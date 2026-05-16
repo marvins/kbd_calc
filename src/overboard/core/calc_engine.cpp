@@ -122,8 +122,8 @@ void Calc_Engine::evaluate() {
     if (m_state.expression.empty()) return;
     try {
         Parser        p(m_state.expression.eval_string());
-        ast::Node_Ptr tree      = p.parse();
-        ast::Node_Ptr result    = tree->simplify();
+        ovb::ast::Node_Ptr tree      = p.parse();
+        ovb::ast::Node_Ptr result    = tree->simplify();
 
         m_state.display_value = result->to_string();
         m_state.last_ast      = std::move(tree);

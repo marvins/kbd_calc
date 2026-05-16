@@ -30,13 +30,13 @@ target_compile_options(project_warnings INTERFACE
 find_package(SDL2 REQUIRED)
 
 set(CORE_SOURCES
-    src/core/keymap.cpp
-    src/core/layer_manager.cpp
-    src/core/ast/ast.cpp
-    src/core/expression.cpp
-    src/core/calc_engine.cpp
-    src/core/parser.cpp
-    src/core/display_controller.cpp
+    src/overboard/core/keymap.cpp
+    src/overboard/core/layer_manager.cpp
+    src/overboard/core/ast/ast.cpp
+    src/overboard/core/expression.cpp
+    src/overboard/core/calc_engine.cpp
+    src/overboard/core/parser.cpp
+    src/overboard/core/display_controller.cpp
 )
 
 # ── GoogleTest ────────────────────────────────────────────────────────────────
@@ -59,12 +59,12 @@ if(BUILD_TESTS)
         test/test_render.cpp
         test/test_calc_engine.cpp
         test/test_expression.cpp
-        src/core/keymap.cpp
-        src/core/layer_manager.cpp
-        src/core/ast/ast.cpp
-        src/core/expression.cpp
-        src/core/calc_engine.cpp
-        src/core/parser.cpp
+        src/overboard/core/keymap.cpp
+        src/overboard/core/layer_manager.cpp
+        src/overboard/core/ast/ast.cpp
+        src/overboard/core/expression.cpp
+        src/overboard/core/calc_engine.cpp
+        src/overboard/core/parser.cpp
     )
 
     target_include_directories(calc_tests PRIVATE src)
@@ -76,9 +76,9 @@ endif()
 if(SIMULATOR)
     add_executable(calc_sim
         src/main_sim.cpp
-        src/hal/sdl/sdl_display.cpp
-        src/hal/sdl/sdl_input.cpp
-        src/hal/sdl/stdout_logger.cpp
+        src/overboard/hal/sdl/sdl_display.cpp
+        src/overboard/hal/sdl/sdl_input.cpp
+        src/overboard/hal/sdl/stdout_logger.cpp
         ${CORE_SOURCES}
     )
 
@@ -94,8 +94,8 @@ if(SIMULATOR)
 
     set_source_files_properties(
         src/main_sim.cpp
-        src/hal/sdl/sdl_display.cpp
-        src/hal/sdl/sdl_input.cpp
+        src/overboard/hal/sdl/sdl_display.cpp
+        src/overboard/hal/sdl/sdl_input.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-old-style-cast"
     )
 endif()

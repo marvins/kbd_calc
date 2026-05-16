@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <cmath>
 #include <string>
-#include "core/calc_engine.hpp"
+#include <overboard/core/calc_engine.hpp>
 
 static void press(Calc_Engine& eng, std::initializer_list<Key_Code> keys) {
     for (Key_Code k : keys)

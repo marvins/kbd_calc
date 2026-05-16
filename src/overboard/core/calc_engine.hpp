@@ -10,7 +10,7 @@ struct Calc_State {
     std::string   display_value;
     std::string   error;
     double        memory     = 0.0;
-    ast::Node_Ptr last_ast;          // populated after each successful evaluate()
+    ovb::ast::Node_Ptr last_ast;          // populated after each successful evaluate()
 };
 
 class Calc_Engine {

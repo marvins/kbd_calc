@@ -1,4 +1,4 @@
-#include "sdl_input.hpp"
+#include <overboard/hal/sdl/sdl_input.hpp>
 
 SDL_Input::SDL_Input(SDL_Display& kbd_display, int cols, int rows,
                      int header_height, int margin_left, int margin_top)

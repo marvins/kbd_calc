@@ -1,12 +1,12 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 
-#include "hal/sdl/sdl_display.hpp"
-#include "hal/sdl/sdl_input.hpp"
-#include "core/keymap.hpp"
-#include "core/layer_manager.hpp"
-#include "core/calc_engine.hpp"
-#include "core/display_controller.hpp"
+#include <overboard/hal/sdl/sdl_display.hpp>
+#include <overboard/hal/sdl/sdl_input.hpp>
+#include <overboard/core/keymap.hpp>
+#include <overboard/core/layer_manager.hpp>
+#include <overboard/core/calc_engine.hpp>
+#include <overboard/core/display_controller.hpp>
 
 static constexpr int KBD_W  = 360;
 static constexpr int KBD_H  = 480;

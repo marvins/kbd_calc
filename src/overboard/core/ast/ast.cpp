@@ -6,7 +6,7 @@
 // Project Libraries
 #include <overboard/core/ast/ast.hpp>
 
-namespace ast {
+namespace ovb::ast {
 
 // ─── Binary_Op_Node ──────────────────────────────────────────────────────────
 
@@ -178,4 +178,4 @@ std::string Number_Node::to_string() const {
 
 std::string Number_Node::to_latex() const { return to_string(); }
 
-} // namespace ast
+} // namespace ovb::ast

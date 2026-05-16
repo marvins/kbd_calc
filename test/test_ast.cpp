@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "core/ast/ast.hpp"
+#include <overboard/core/ast/ast.hpp>
 
-using namespace ast;
+using namespace ovb::ast;
 
 // ─── Number_Node ─────────────────────────────────────────────────────────────
 

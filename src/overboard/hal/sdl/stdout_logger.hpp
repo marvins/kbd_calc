@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../i_logger.hpp"
+#include <overboard/hal/i_logger.hpp>
 
 class Stdout_Logger : public I_Logger {
     public:

@@ -7,7 +7,7 @@ class Parser {
     public:
         explicit Parser(const std::string& input);
 
-        ast::Node_Ptr parse();
+        ovb::ast::Node_Ptr parse();
 
     private:
         const std::string& m_src;
@@ -20,12 +20,12 @@ class Parser {
         std::string   read_ident();
         double        read_number_literal();
 
-        ast::Node_Ptr parse_expr();
-        ast::Node_Ptr parse_add();
-        ast::Node_Ptr parse_mul();
-        ast::Node_Ptr parse_pow();
-        ast::Node_Ptr parse_unary();
-        ast::Node_Ptr parse_postfix();
-        ast::Node_Ptr parse_primary();
-        ast::Node_Ptr parse_func(const std::string& name);
+        ovb::ast::Node_Ptr parse_expr();
+        ovb::ast::Node_Ptr parse_add();
+        ovb::ast::Node_Ptr parse_mul();
+        ovb::ast::Node_Ptr parse_pow();
+        ovb::ast::Node_Ptr parse_unary();
+        ovb::ast::Node_Ptr parse_postfix();
+        ovb::ast::Node_Ptr parse_primary();
+        ovb::ast::Node_Ptr parse_func(const std::string& name);
 };

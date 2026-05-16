@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "core/parser.hpp"
+#include <overboard/core/parser.hpp>
 #include <cmath>
 
 // Helper: parse expression string and return evaluated double

@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <cmath>
 
-namespace ast {
+namespace ovb::ast {
 
 // ─── Forward declarations ────────────────────────────────────────────────────
 
@@ -206,4 +206,4 @@ struct Factorial_Node : Node {
     }
 };
 
-} // namespace ast
+} // namespace ovb::ast
