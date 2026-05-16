@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../i_input.hpp"
-#include "sdl_display.hpp"
+#include <overboard/hal/i_input.hpp>
+#include <overboard/hal/sdl/sdl_display.hpp>
 #include <SDL2/SDL.h>
 #include <queue>
 

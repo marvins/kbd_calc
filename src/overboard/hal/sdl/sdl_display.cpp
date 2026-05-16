@@ -1,4 +1,4 @@
-#include "sdl_display.hpp"
+#include <overboard/hal/sdl/sdl_display.hpp>
 #include <stdexcept>
 #include <cstdint>
 

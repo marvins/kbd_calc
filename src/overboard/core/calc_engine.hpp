@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ast.hpp"
-#include "expression.hpp"
-#include "keymap.hpp"
+#include <overboard/core/ast/ast.hpp>
+#include <overboard/core/expression.hpp>
+#include <overboard/core/keymap.hpp>
 #include <string>
 
 struct Calc_State {

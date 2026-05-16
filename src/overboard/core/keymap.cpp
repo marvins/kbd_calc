@@ -1,4 +1,4 @@
-#include "keymap.hpp"
+#include <overboard/core/keymap.hpp>
 #include <string>
 
 std::string label_string(Key_Label lbl) {

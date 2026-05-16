@@ -32,7 +32,7 @@ find_package(SDL2 REQUIRED)
 set(CORE_SOURCES
     src/core/keymap.cpp
     src/core/layer_manager.cpp
-    src/core/ast.cpp
+    src/core/ast/ast.cpp
     src/core/expression.cpp
     src/core/calc_engine.cpp
     src/core/parser.cpp
@@ -61,7 +61,7 @@ if(BUILD_TESTS)
         test/test_expression.cpp
         src/core/keymap.cpp
         src/core/layer_manager.cpp
-        src/core/ast.cpp
+        src/core/ast/ast.cpp
         src/core/expression.cpp
         src/core/calc_engine.cpp
         src/core/parser.cpp

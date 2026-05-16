@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../hal/i_display.hpp"
-#include "keymap.hpp"
-#include "layer_manager.hpp"
-#include "calc_engine.hpp"
+#include <overboard/hal/i_display.hpp>
+#include <overboard/core/keymap.hpp>
+#include <overboard/core/layer_manager.hpp>
+#include <overboard/core/calc_engine.hpp>
 
 class Display_Controller {
     public:

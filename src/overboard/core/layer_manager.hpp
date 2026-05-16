@@ -1,6 +1,6 @@
 #pragma once
 
-#include "keymap.hpp"
+#include <overboard/core/keymap.hpp>
 
 class Layer_Manager {
     public:

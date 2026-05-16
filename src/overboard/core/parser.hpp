@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ast.hpp"
+#include <overboard/core/ast/ast.hpp>
 #include <string>
 
 class Parser {

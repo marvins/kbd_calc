@@ -1,4 +1,4 @@
-#include "display_controller.hpp"
+#include <overboard/core/display_controller.hpp>
 #include <string>
 
 Display_Controller::Display_Controller(I_Display& kbd_display, I_Display& lcd_display,

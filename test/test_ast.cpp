@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "core/ast.hpp"
+#include "core/ast/ast.hpp"
 
 using namespace ast;
 

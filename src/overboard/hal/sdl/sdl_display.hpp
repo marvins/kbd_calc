@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../i_display.hpp"
+#include <overboard/hal/i_display.hpp>
 #include <SDL2/SDL.h>
 #include <string>
 
