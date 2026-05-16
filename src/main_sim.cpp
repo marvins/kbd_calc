@@ -58,6 +58,9 @@ int main(int /*argc*/, char* /*argv*/[]) {
                         case Key_Code::CONST_LAYER:
                             layers.set_layer(2);
                             break;
+                        case Key_Code::ALGEBRA_LAYER:
+                            layers.set_layer(4);
+                            break;
                         case Key_Code::LAYER_HOME:
                             layers.set_layer(0);
                             break;

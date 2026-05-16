@@ -1,16 +1,16 @@
 #pragma once
 
 #include "ast.hpp"
+#include "expression.hpp"
 #include "keymap.hpp"
 #include <string>
 
 struct Calc_State {
-    std::string   expression;
+    Expression    expression;
     std::string   display_value;
     std::string   error;
     double        memory     = 0.0;
-    int           cursor_pos = 0;
-    Ast::Node_Ptr last_ast;          // populated after each successful evaluate()
+    ast::Node_Ptr last_ast;          // populated after each successful evaluate()
 };
 
 class Calc_Engine {
@@ -25,6 +25,6 @@ class Calc_Engine {
         Calc_State m_state;
         bool       m_result_shown;
 
-        void          append_to_expression(const std::string& token);
+        void          try_insert(Key_Code code);
         void          evaluate();
 };

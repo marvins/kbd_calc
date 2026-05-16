@@ -125,18 +125,6 @@ static std::string pretty_expr(const std::string& expr) {
     return out;
 }
 
-static int count_glyphs(const std::string& s) {
-    int n = 0;
-    for (size_t i = 0; i < s.size(); ) {
-        uint8_t b = static_cast<uint8_t>(s[i]);
-        if      (b < 0x80)           i += 1;
-        else if ((b & 0xE0) == 0xC0) i += 2;
-        else if ((b & 0xF0) == 0xE0) i += 3;
-        else                         i += 4;
-        ++n;
-    }
-    return n;
-}
 
 void Display_Controller::render_lcd() {
     const auto& st = m_engine.state();
@@ -145,9 +133,22 @@ void Display_Controller::render_lcd() {
 
     // Expression line with cursor
     Color expr_fg = Color{160, 160, 160};
-    std::string before_cursor = pretty_expr(st.expression.substr(0, static_cast<std::size_t>(st.cursor_pos)));
-    std::string after_cursor  = pretty_expr(st.expression.substr(static_cast<std::size_t>(st.cursor_pos)));
-    int cursor_x = 8 + count_glyphs(before_cursor) * 6;
+    std::string full_expr  = pretty_expr(st.expression.render_string());
+    int         cursor_pos = st.expression.cursor_glyph_pos();
+    // Split the pretty string at the cursor glyph boundary.
+    std::size_t byte_off = 0;
+    int g = 0;
+    while (g < cursor_pos && byte_off < full_expr.size()) {
+        uint8_t b = static_cast<uint8_t>(full_expr[byte_off]);
+        if      (b < 0x80)           byte_off += 1;
+        else if ((b & 0xE0) == 0xC0) byte_off += 2;
+        else if ((b & 0xF0) == 0xE0) byte_off += 3;
+        else                         byte_off += 4;
+        ++g;
+    }
+    std::string before_cursor = full_expr.substr(0, byte_off);
+    std::string after_cursor  = full_expr.substr(byte_off);
+    int cursor_x = 8 + cursor_pos * 6;
     m_lcd_display.draw_text(8, 8, before_cursor, expr_fg, Color::black(), 1);
     m_lcd_display.draw_rect(cursor_x, 6, 2, 10, Color::white(), true);
     m_lcd_display.draw_text(cursor_x + 3, 8, after_cursor, expr_fg, Color::black(), 1);

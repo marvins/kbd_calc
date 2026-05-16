@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "core/ast.hpp"
 
-using namespace Ast;
+using namespace ast;
 
 // ─── Number_Node ─────────────────────────────────────────────────────────────
 
@@ -256,4 +256,120 @@ TEST(Ast_Factorial, Negative_Throws) {
 TEST(Ast_Factorial, To_String) {
     EXPECT_EQ(
         Factorial_Node(std::make_unique<Number_Node>(5.0)).to_string(), "5!");
+}
+
+// ─── simplify() ──────────────────────────────────────────────────────────────
+
+TEST(Ast_Simplify, Number_Returns_Clone) {
+    Number_Node n(3.0);
+    auto s = n.simplify();
+    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_DOUBLE_EQ(s->eval(), 3.0);
+}
+
+TEST(Ast_Simplify, Constant_Stays_Symbolic) {
+    Constant_Node c(Constant_Id::PI);
+    auto s = c.simplify();
+    EXPECT_EQ(s->kind, Node_Kind::CONSTANT);
+    EXPECT_EQ(s->to_string(), "pi");
+}
+
+TEST(Ast_Simplify, Binary_Constant_Folds_Two_Numbers) {
+    auto n = std::make_unique<Binary_Op_Node>(
+        Binary_Op::ADD,
+        std::make_unique<Number_Node>(3.0),
+        std::make_unique<Number_Node>(4.0));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_DOUBLE_EQ(s->eval(), 7.0);
+}
+
+TEST(Ast_Simplify, Binary_Stays_Symbolic_With_Constant) {
+    auto n = std::make_unique<Binary_Op_Node>(
+        Binary_Op::MULTIPLY,
+        std::make_unique<Number_Node>(2.0),
+        std::make_unique<Constant_Node>(Constant_Id::PI));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind, Node_Kind::BINARY_OP);
+    EXPECT_EQ(s->to_string(), "(2*pi)");
+}
+
+TEST(Ast_Simplify, Function_Folds_Numeric_Sqrt) {
+    std::vector<Node_Ptr> args;
+    args.push_back(std::make_unique<Number_Node>(9.0));
+    auto n = std::make_unique<Function_Node>("sqrt", std::move(args));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_DOUBLE_EQ(s->eval(), 3.0);
+}
+
+TEST(Ast_Simplify, Function_Stays_Symbolic_With_Constant_Arg) {
+    std::vector<Node_Ptr> args;
+    args.push_back(std::make_unique<Constant_Node>(Constant_Id::PI));
+    auto n = std::make_unique<Function_Node>("sin", std::move(args));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind, Node_Kind::FUNCTION);
+    EXPECT_EQ(s->to_string(), "sin(pi)");
+}
+
+// ─── approx() ────────────────────────────────────────────────────────────────
+
+TEST(Ast_Approx, Forces_Numeric_Eval_Of_Constant) {
+    std::vector<Node_Ptr> args;
+    args.push_back(std::make_unique<Constant_Node>(Constant_Id::PI));
+    auto n = std::make_unique<Function_Node>("approx", std::move(args));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_NEAR(s->eval(), 3.14159265358979, 1e-10);
+}
+
+TEST(Ast_Approx, Forces_Numeric_Eval_Of_Symbolic_Expression) {
+    std::vector<Node_Ptr> inner_args;
+    inner_args.push_back(std::make_unique<Constant_Node>(Constant_Id::PI));
+    auto sin_pi = std::make_unique<Function_Node>("sin", std::move(inner_args));
+
+    std::vector<Node_Ptr> args;
+    args.push_back(std::move(sin_pi));
+    auto n = std::make_unique<Function_Node>("approx", std::move(args));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_NEAR(s->eval(), 0.0, 1e-10); // sin(π) ≈ 0
+}
+
+TEST(Ast_Approx, Two_Plus_Two_Stays_Four) {
+    std::vector<Node_Ptr> args;
+    args.push_back(std::make_unique<Binary_Op_Node>(
+        Binary_Op::ADD,
+        std::make_unique<Number_Node>(2.0),
+        std::make_unique<Number_Node>(2.0)));
+    auto n = std::make_unique<Function_Node>("approx", std::move(args));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_DOUBLE_EQ(s->eval(), 4.0);
+}
+
+// ─── clone() ─────────────────────────────────────────────────────────────────
+
+TEST(Ast_Clone, Number_Clone_Is_Independent) {
+    auto orig = std::make_unique<Number_Node>(99.0);
+    auto copy = orig->clone();
+    EXPECT_DOUBLE_EQ(copy->eval(), 99.0);
+    EXPECT_NE(orig.get(), copy.get());
+}
+
+TEST(Ast_Clone, Binary_Deep_Clone) {
+    auto orig = std::make_unique<Binary_Op_Node>(
+        Binary_Op::ADD,
+        std::make_unique<Number_Node>(1.0),
+        std::make_unique<Number_Node>(2.0));
+    auto copy = orig->clone();
+    EXPECT_DOUBLE_EQ(copy->eval(), 3.0);
+    EXPECT_NE(orig.get(), copy.get());
+}
+
+TEST(Ast_Clone, Constant_Clone_Stays_Symbolic) {
+    auto orig = std::make_unique<Constant_Node>(Constant_Id::E);
+    auto copy = orig->clone();
+    EXPECT_EQ(copy->to_string(), "e");
+    EXPECT_EQ(copy->kind, Node_Kind::CONSTANT);
 }

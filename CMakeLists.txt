@@ -32,6 +32,8 @@ find_package(SDL2 REQUIRED)
 set(CORE_SOURCES
     src/core/keymap.cpp
     src/core/layer_manager.cpp
+    src/core/ast.cpp
+    src/core/expression.cpp
     src/core/calc_engine.cpp
     src/core/parser.cpp
     src/core/display_controller.cpp
@@ -56,8 +58,11 @@ if(BUILD_TESTS)
         test/test_parser.cpp
         test/test_render.cpp
         test/test_calc_engine.cpp
+        test/test_expression.cpp
         src/core/keymap.cpp
         src/core/layer_manager.cpp
+        src/core/ast.cpp
+        src/core/expression.cpp
         src/core/calc_engine.cpp
         src/core/parser.cpp
     )

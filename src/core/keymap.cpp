@@ -60,9 +60,11 @@ std::string label_string(Key_Label lbl) {
         case Key_Label::LAYER_NEXT_TRIG:  return "Trig";
         case Key_Label::PHI:              return "\xCF\x86";   // φ
         case Key_Label::TAU:              return "\xCF\x84";   // τ
-        case Key_Label::LAYER_NEXT_CONST: return "CST";
+        case Key_Label::LAYER_NEXT_CONST:    return "CST";
+        case Key_Label::LAYER_NEXT_ALGEBRA:  return "ALG";
         case Key_Label::LAYER_PREV:       return "BACK";
         case Key_Label::LAYER_PREV_CONST: return "BACK";
+        case Key_Label::APPROX:           return "\xE2\x89\x88";  // ≈
     }
     return "";
 }

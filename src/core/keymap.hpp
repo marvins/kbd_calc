@@ -36,8 +36,10 @@ enum class Key_Label : uint8_t {
     // Layer / meta
     LAYER_NEXT_TRIG,
     LAYER_NEXT_CONST,
+    LAYER_NEXT_ALGEBRA,
     LAYER_PREV,
     LAYER_PREV_CONST,
+    APPROX,
 };
 
 std::string label_string(Key_Label lbl);
@@ -125,8 +127,9 @@ enum class Key_Code : uint16_t {
     LAYER_NEXT,
     LAYER_PREV,
     CONST_LAYER,
+    ALGEBRA_LAYER,
     LAYER_HOME,
-    MODE_TOGGLE,
+    APPROX,
 };
 
 static constexpr int GRID_COLS = 5;
@@ -145,7 +148,7 @@ struct Layer {
 
 class Keymap {
     public:
-        static constexpr int LAYER_COUNT = 4;
+        static constexpr int LAYER_COUNT = 5;
 
         constexpr int layer_count() const { return LAYER_COUNT; }
 
@@ -158,12 +161,12 @@ class Keymap {
 
             return {{
                 { "Basic", {{
-                    { KC::LAYER_NEXT,   KL::LAYER_NEXT_TRIG}, { KC::NONE,      KL::NONE        }, { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT }, { KC::BACKSPACE, KL::BACKSPACE  },
-                    { KC::NONE,        KL::NONE            }, { KC::NONE,      KL::NONE        }, { KC::SQRT,        KL::SQRT        }, { KC::POWER_N,      KL::POWER_N     }, { KC::ADD,       KL::ADD        },
+                    { KC::LAYER_NEXT,   KL::LAYER_NEXT_TRIG}, { KC::NEGATE,    KL::NEGATE      }, { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT }, { KC::BACKSPACE, KL::BACKSPACE  },
+                    { KC::ALGEBRA_LAYER,KL::LAYER_NEXT_ALGEBRA}, { KC::POWER_2,  KL::POWER_2     }, { KC::SQRT,        KL::SQRT        }, { KC::POWER_N,      KL::POWER_N     }, { KC::ADD,       KL::ADD        },
                     { KC::CONST_LAYER, KL::LAYER_NEXT_CONST}, { KC::DIGIT_7,   KL::D_7         }, { KC::DIGIT_8,     KL::D_8         }, { KC::DIGIT_9,      KL::D_9         }, { KC::SUBTRACT,  KL::SUBTRACT   },
                     { KC::NONE,        KL::NONE            }, { KC::DIGIT_4,   KL::D_4         }, { KC::DIGIT_5,     KL::D_5         }, { KC::DIGIT_6,      KL::D_6         }, { KC::MULTIPLY,  KL::MULTIPLY   },
                     { KC::NONE,        KL::NONE            }, { KC::DIGIT_1,   KL::D_1         }, { KC::DIGIT_2,     KL::D_2         }, { KC::DIGIT_3,      KL::D_3         }, { KC::DIVIDE,    KL::DIVIDE     },
-                    { KC::LAYER_PREV,  KL::LAYER_PREV      }, { KC::NEGATE,    KL::NEGATE      }, { KC::DIGIT_0,     KL::D_0         }, { KC::DECIMAL,      KL::DECIMAL     }, { KC::EQUALS,    KL::EQUALS     },
+                    { KC::LAYER_PREV,  KL::LAYER_PREV      }, { KC::DIGIT_0,   KL::D_0         }, { KC::DECIMAL,     KL::DECIMAL     }, { KC::APPROX,  KL::APPROX }, { KC::EQUALS,    KL::EQUALS     },
                 }}},
                 { "Trig", {{
                     { KC::NONE,        KL::NONE            }, { KC::NONE,      KL::NONE        }, { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT }, { KC::BACKSPACE, KL::BACKSPACE  },
@@ -188,6 +191,14 @@ class Keymap {
                     { KC::NONE,        KL::NONE            }, { KC::HEX_D,     KL::HEX_D       }, { KC::HEX_E,       KL::HEX_E       }, { KC::HEX_F,        KL::HEX_F       }, { KC::SHIFT_RIGHT,KL::SHIFT_RIGHT},
                     { KC::NONE,        KL::NONE            }, { KC::DIGIT_7,   KL::D_7         }, { KC::DIGIT_8,     KL::D_8         }, { KC::DIGIT_9,      KL::D_9         }, { KC::DIVIDE,    KL::DIVIDE     },
                     { KC::LAYER_PREV,  KL::LAYER_PREV      }, { KC::NEGATE,    KL::NEGATE      }, { KC::DIGIT_0,     KL::D_0         }, { KC::DECIMAL,      KL::DECIMAL     }, { KC::EQUALS,    KL::EQUALS     },
+                }}},
+                { "Algebra", {{
+                    { KC::NONE,        KL::NONE            }, { KC::NONE,       KL::NONE        }, { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT }, { KC::BACKSPACE, KL::BACKSPACE  },
+                    { KC::NONE,        KL::NONE            }, { KC::RECIPROCAL, KL::RECIPROCAL  }, { KC::FACTORIAL,   KL::FACTORIAL   }, { KC::PERCENT,      KL::PERCENT     }, { KC::NONE,      KL::NONE       },
+                    { KC::NONE,        KL::NONE            }, { KC::LOG,        KL::LOG         }, { KC::LN,          KL::LN          }, { KC::EXP,          KL::EXP         }, { KC::NONE,      KL::NONE       },
+                    { KC::NONE,        KL::NONE            }, { KC::PAREN_OPEN, KL::PAREN_OPEN  }, { KC::PAREN_CLOSE, KL::PAREN_CLOSE }, { KC::NONE,         KL::NONE        }, { KC::NONE,      KL::NONE       },
+                    { KC::NONE,        KL::NONE            }, { KC::NONE,       KL::NONE        }, { KC::NONE,        KL::NONE        }, { KC::NONE,         KL::NONE        }, { KC::NONE,      KL::NONE       },
+                    { KC::LAYER_PREV,  KL::LAYER_PREV      }, { KC::NONE,       KL::NONE        }, { KC::NONE,        KL::NONE        }, { KC::NONE,         KL::NONE        }, { KC::NONE,      KL::NONE       },
                 }}},
             }};
         }
