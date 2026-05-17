@@ -1,5 +1,8 @@
-#include <overboard/core/display_controller.hpp>
+// C++ Standard Libraries
 #include <string>
+
+// Project Libraries
+#include <overboard/core/display_controller.hpp>
 
 Display_Controller::Display_Controller(I_Display& kbd_display, I_Display& lcd_display,
                                        const Layer_Manager& layers, const Calc_Engine& engine)
@@ -131,8 +134,40 @@ void Display_Controller::render_lcd() {
 
     m_lcd_display.clear(Color::black());
 
-    // Expression line with cursor
-    Color expr_fg = Color{160, 160, 160};
+    // ─── History entries (top portion, NSpire style) ─────────────────────────
+    constexpr int HISTORY_SCALE = 2;
+    constexpr int LINE_H = 14;     // 12px font (scale 2) + 2px spacing
+    constexpr int ENTRY_H = 36;    // height per history entry (input + result + gap)
+    constexpr int HISTORY_Y_START = 4;
+    constexpr int MAX_VISIBLE_HISTORY = 2;
+
+    for (size_t i = 0; i < st.history.size() && i < MAX_VISIBLE_HISTORY; ++i) {
+        const auto& entry = st.history[i];
+        int y = HISTORY_Y_START + static_cast<int>(i) * ENTRY_H;
+
+        // Input (upper left)
+        std::string pretty_input = pretty_expr(entry.input);
+        m_lcd_display.draw_text(8, y, pretty_input, Color{140, 140, 140}, Color::black(), HISTORY_SCALE);
+
+        // Result (lower right, aligned to right edge)
+        int result_w = static_cast<int>(entry.result.size()) * 6 * HISTORY_SCALE;
+        int result_x = m_lcd_display.width() - result_w - 8;
+        m_lcd_display.draw_text(result_x, y + LINE_H, entry.result, Color::white(), Color::black(), HISTORY_SCALE);
+
+        // Separator line
+        int sep_y = y + ENTRY_H - 2;
+        m_lcd_display.draw_rect(8, sep_y, m_lcd_display.width() - 16, 1, Color{60, 60, 60}, true);
+    }
+
+    int visible_history = static_cast<int>(std::min(st.history.size(), static_cast<size_t>(MAX_VISIBLE_HISTORY)));
+    int current_y = HISTORY_Y_START + visible_history * ENTRY_H + 8;
+
+    // ─── Current working entry (NSpire style: left input, lower-right result) ─
+    constexpr int WORK_SCALE = 2;  // working equation font size
+    constexpr int RESULT_SCALE = 3;  // larger result after = pressed
+
+    // Expression line with cursor (upper left)
+    Color expr_fg = Color{200, 200, 200};
     std::string full_expr  = pretty_expr(st.expression.render_string());
     int         cursor_pos = st.expression.cursor_glyph_pos();
     // Split the pretty string at the cursor glyph boundary.
@@ -148,26 +183,27 @@ void Display_Controller::render_lcd() {
     }
     std::string before_cursor = full_expr.substr(0, byte_off);
     std::string after_cursor  = full_expr.substr(byte_off);
-    int cursor_x = 8 + cursor_pos * 6;
-    m_lcd_display.draw_text(8, 8, before_cursor, expr_fg, Color::black(), 1);
-    m_lcd_display.draw_rect(cursor_x, 6, 2, 10, Color::white(), true);
-    m_lcd_display.draw_text(cursor_x + 3, 8, after_cursor, expr_fg, Color::black(), 1);
+    int cursor_x = 8 + cursor_pos * 6 * WORK_SCALE;
+    m_lcd_display.draw_text(8, current_y, before_cursor, expr_fg, Color::black(), WORK_SCALE);
+    m_lcd_display.draw_rect(cursor_x, current_y - 2, 2 * WORK_SCALE, 10, Color::white(), true);
+    m_lcd_display.draw_text(cursor_x + 3, current_y, after_cursor, expr_fg, Color::black(), WORK_SCALE);
 
-    // Main display value (large)
+    // Result (lower right, after = pressed) — shown when result is available
     const std::string& val = st.error.empty() ? st.display_value : st.error;
-    Color val_fg = st.error.empty() ? Color::white() : Color::red();
-    int scale = 3;
-    int text_w = static_cast<int>(val.size()) * 6 * scale;
-    int tx = m_lcd_display.width() - text_w - 8;
-    if (tx < 8) tx = 8;
-    m_lcd_display.draw_text(tx, 40, val, val_fg, Color::black(), scale);
+    if (!val.empty() && val != "0") {  // show result if we have one
+        Color val_fg = st.error.empty() ? Color::white() : Color::red();
+        int result_w = static_cast<int>(val.size()) * 6 * RESULT_SCALE;
+        int result_x = m_lcd_display.width() - result_w - 8;
+        int result_y = current_y + 20;  // lower-right positioning
+        m_lcd_display.draw_text(result_x, result_y, val, val_fg, Color::black(), RESULT_SCALE);
+    }
 
-    // Memory indicator
+    // ─── Memory indicator ───────────────────────────────────────────────────
     if (m_engine.state().memory != 0.0) {
         m_lcd_display.draw_text(8, m_lcd_display.height() - 20, "M", Color::yellow(), Color::black(), 1);
     }
 
-    // Layer indicator bottom-right
+    // ─── Layer indicator bottom-right ───────────────────────────────────────
     std::string layer_label = std::string(m_layers.current_layer().name);
     int lx = m_lcd_display.width() - static_cast<int>(layer_label.size()) * 6 - 8;
     m_lcd_display.draw_text(lx, m_lcd_display.height() - 20, layer_label, Color{100, 100, 200}, Color::black(), 1);

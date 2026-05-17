@@ -1,6 +1,11 @@
-#include <gtest/gtest.h>
-#include <overboard/core/parser.hpp>
+// C++ Standard Libraries
 #include <cmath>
+
+// Third-Party Libraries
+#include <gtest/gtest.h>
+
+// Project Libraries
+#include <overboard/core/parser.hpp>
 
 // Helper: parse expression string and return evaluated double
 static double eval(const std::string& expr) {

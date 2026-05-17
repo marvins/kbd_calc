@@ -1,5 +1,8 @@
-#include <overboard/core/expression.hpp>
+// C++ Standard Libraries
 #include <stdexcept>
+
+// Project Libraries
+#include <overboard/core/expression.hpp>
 
 // ── Token factory ─────────────────────────────────────────────────────────────
 

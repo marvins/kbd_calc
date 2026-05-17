@@ -1,7 +1,9 @@
-#include <overboard/hal/sdl/stdout_logger.hpp>
-
-#include <cstdio>
+// C++ Standard Libraries
 #include <chrono>
+#include <cstdio>
+
+// Project Libraries
+#include <overboard/hal/sdl/stdout_logger.hpp>
 
 Stdout_Logger::Stdout_Logger(Log_Level min_level)
     : m_min_level(min_level) {}

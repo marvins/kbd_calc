@@ -29,6 +29,23 @@ make -j$(nproc)
 ./calc_sim
 ```
 
+## Testing
+
+Build and run the unit-test suite:
+
+```bash
+mkdir build && cd build
+cmake .. -DBUILD_TESTS=ON
+make -j$(nproc)
+./calc_tests
+```
+
+Filter to specific test suites (e.g., layout tests only):
+
+```bash
+./calc_tests --gtest_filter="LayoutTest*"
+```
+
 ## Architecture
 
 ```

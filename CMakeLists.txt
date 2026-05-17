@@ -28,6 +28,7 @@ target_compile_options(project_warnings INTERFACE
 )
 
 find_package(SDL2 REQUIRED)
+find_package(PNG REQUIRED)
 
 set(CORE_SOURCES
     src/overboard/core/keymap.cpp
@@ -37,6 +38,7 @@ set(CORE_SOURCES
     src/overboard/core/calc_engine.cpp
     src/overboard/core/parser.cpp
     src/overboard/core/display_controller.cpp
+    src/overboard/core/layout/engine.cpp
 )
 
 # ── GoogleTest ────────────────────────────────────────────────────────────────
@@ -59,18 +61,33 @@ if(BUILD_TESTS)
         test/test_render.cpp
         test/test_calc_engine.cpp
         test/test_expression.cpp
+        test/test_layout.cpp
         src/overboard/core/keymap.cpp
         src/overboard/core/layer_manager.cpp
         src/overboard/core/ast/ast.cpp
         src/overboard/core/expression.cpp
         src/overboard/core/calc_engine.cpp
         src/overboard/core/parser.cpp
+        src/overboard/core/layout/engine.cpp
     )
 
     target_include_directories(calc_tests PRIVATE src)
     target_link_libraries(calc_tests PRIVATE GTest::gtest_main project_warnings)
     include(GoogleTest)
     gtest_discover_tests(calc_tests)
+
+    # Standalone math render test (outputs PNG from equation string)
+    add_executable(math_render_test
+        test/test_math_render.cpp
+        src/overboard/core/ast/ast.cpp
+        src/overboard/core/parser.cpp
+        src/overboard/core/layout/engine.cpp
+    )
+    target_include_directories(math_render_test PRIVATE src)
+    target_include_directories(math_render_test SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS})
+    target_link_libraries(math_render_test PRIVATE ${SDL2_LIBRARIES} PNG::PNG)
+    # Disable strict warnings for this test to avoid SDL header issues
+    target_compile_options(math_render_test PRIVATE -Wno-old-style-cast -Wno-sign-conversion)
 endif()
 
 if(SIMULATOR)

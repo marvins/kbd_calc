@@ -1,6 +1,9 @@
-#include <overboard/core/parser.hpp>
+// C++ Standard Libraries
 #include <cctype>
 #include <stdexcept>
+
+// Project Libraries
+#include <overboard/core/parser.hpp>
 
 Parser::Parser(const std::string& input) : m_src(input) {}
 

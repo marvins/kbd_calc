@@ -168,7 +168,7 @@ class Keymap {
                     { KC::NONE,        KL::NONE            }, { KC::DIGIT_1,   KL::D_1         }, { KC::DIGIT_2,     KL::D_2         }, { KC::DIGIT_3,      KL::D_3         }, { KC::DIVIDE,    KL::DIVIDE     },
                     { KC::LAYER_PREV,  KL::LAYER_PREV      }, { KC::DIGIT_0,   KL::D_0         }, { KC::DECIMAL,     KL::DECIMAL     }, { KC::APPROX,  KL::APPROX }, { KC::EQUALS,    KL::EQUALS     },
                 }}},
-                { "Trig", {{
+                { "TRG", {{
                     { KC::NONE,        KL::NONE            }, { KC::NONE,      KL::NONE        }, { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT }, { KC::BACKSPACE, KL::BACKSPACE  },
                     { KC::NONE,        KL::NONE            }, { KC::SIN,       KL::SIN         }, { KC::COS,         KL::COS         }, { KC::TAN,          KL::TAN         }, { KC::NONE,      KL::NONE       },
                     { KC::NONE,        KL::NONE            }, { KC::ASIN,      KL::ASIN        }, { KC::ACOS,        KL::ACOS        }, { KC::ATAN,         KL::ATAN        }, { KC::NONE,      KL::NONE       },

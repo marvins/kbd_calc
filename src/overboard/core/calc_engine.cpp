@@ -1,9 +1,12 @@
+// C++ Standard Libraries
+#include <cmath>
+#include <iomanip>
+#include <sstream>
+#include <stdexcept>
+
+// Project Libraries
 #include <overboard/core/calc_engine.hpp>
 #include <overboard/core/parser.hpp>
-#include <cmath>
-#include <stdexcept>
-#include <sstream>
-#include <iomanip>
 
 Calc_Engine::Calc_Engine() {
     reset();
@@ -121,13 +124,20 @@ void Calc_Engine::try_insert(Key_Code code) {
 void Calc_Engine::evaluate() {
     if (m_state.expression.empty()) return;
     try {
-        Parser        p(m_state.expression.eval_string());
+        std::string expr_str = m_state.expression.eval_string();
+        Parser        p(expr_str);
         ovb::ast::Node_Ptr tree      = p.parse();
         ovb::ast::Node_Ptr result    = tree->simplify();
 
-        m_state.display_value = result->to_string();
+        std::string result_str = result->to_string();
+        m_state.display_value = result_str;
         m_state.last_ast      = std::move(tree);
         m_result_shown        = true;
+
+        // Push to history
+        m_state.history.push_front({expr_str, result_str});
+        if (m_state.history.size() > Calc_State::MAX_HISTORY)
+            m_state.history.pop_back();
     } catch (const std::exception& e) {
         m_state.error         = e.what();
         m_state.display_value = "Error";

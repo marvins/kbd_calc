@@ -1,12 +1,16 @@
-#include <SDL2/SDL.h>
+// C++ Standard Libraries
 #include <iostream>
 
-#include <overboard/hal/sdl/sdl_display.hpp>
-#include <overboard/hal/sdl/sdl_input.hpp>
-#include <overboard/core/keymap.hpp>
-#include <overboard/core/layer_manager.hpp>
+// Third-Party Libraries
+#include <SDL2/SDL.h>
+
+// Project Libraries
 #include <overboard/core/calc_engine.hpp>
 #include <overboard/core/display_controller.hpp>
+#include <overboard/core/keymap.hpp>
+#include <overboard/core/layer_manager.hpp>
+#include <overboard/hal/sdl/sdl_display.hpp>
+#include <overboard/hal/sdl/sdl_input.hpp>
 
 static constexpr int KBD_W  = 360;
 static constexpr int KBD_H  = 480;

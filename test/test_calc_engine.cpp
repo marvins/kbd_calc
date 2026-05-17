@@ -1,6 +1,11 @@
-#include <gtest/gtest.h>
+// C++ Standard Libraries
 #include <cmath>
 #include <string>
+
+// Third-Party Libraries
+#include <gtest/gtest.h>
+
+// Project Libraries
 #include <overboard/core/calc_engine.hpp>
 
 static void press(Calc_Engine& eng, std::initializer_list<Key_Code> keys) {
