@@ -5,6 +5,8 @@
 #include <SDL2/SDL.h>
 #include <queue>
 
+namespace ovb::hal::sdl {
+
 class SDL_Input : public I_Input {
     public:
         explicit SDL_Input(SDL_Display& kbd_display, int cols, int rows,
@@ -28,3 +30,5 @@ class SDL_Input : public I_Input {
 
         static constexpr int KEY_PAD = 4;
 };
+
+} // namespace ovb::hal::sdl

@@ -68,6 +68,7 @@ std::string label_string(Key_Label lbl) {
         case Key_Label::LAYER_PREV:          return "BACK";
         case Key_Label::LAYER_PREV_CONST:    return "BACK";
         case Key_Label::APPROX:              return "\xE2\x89\x88";  // ≈
+        case Key_Label::MATH_LAYOUT:         return "MATH";
     }
     return "";
 }

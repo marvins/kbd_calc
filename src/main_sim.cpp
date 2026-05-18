@@ -9,13 +9,15 @@
 #include <overboard/core/display_controller.hpp>
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
+#include <overboard/hal/lcd_config.hpp>
 #include <overboard/hal/sdl/sdl_display.hpp>
 #include <overboard/hal/sdl/sdl_input.hpp>
 
+
+using namespace ovb;
+
 static constexpr int KBD_W  = 360;
 static constexpr int KBD_H  = 480;
-static constexpr int LCD_W  = 480;
-static constexpr int LCD_H  = 240;
 static constexpr int HDR_H       = 22;
 static constexpr int MARGIN_LEFT = 20;
 static constexpr int MARGIN_TOP  = 16;
@@ -27,8 +29,13 @@ int main(int /*argc*/, char* /*argv*/[]) {
     }
 
     try {
-        SDL_Display kbd_display("Keyboard",   100,  100, KBD_W, KBD_H);
-        SDL_Display lcd_display("Calculator", 480,  100, LCD_W, LCD_H);
+        hal::sdl::SDL_Display kbd_display( "Keyboard",
+                                           core::Point2i(100, 100),
+                                           core::Point2i(KBD_W, KBD_H));
+
+        hal::sdl::SDL_Display lcd_display( "Calculator",
+                                           core::Point2i(480, 100),
+                                           core::Point2i(hal::LCD_WIDTH, hal::LCD_HEIGHT));
 
         lcd_display.raise_to_front();
         kbd_display.raise_to_front();
@@ -37,8 +44,16 @@ int main(int /*argc*/, char* /*argv*/[]) {
         Layer_Manager layers(keymap);
         Calc_Engine   engine;
 
-        SDL_Input        input(kbd_display, GRID_COLS, GRID_ROWS, HDR_H, MARGIN_LEFT, MARGIN_TOP);
-        Display_Controller controller(kbd_display, lcd_display, layers, engine);
+        hal::sdl::SDL_Input input( kbd_display,
+                                   GRID_COLS,
+                                   GRID_ROWS,
+                                   HDR_H,
+                                   MARGIN_LEFT,
+                                   MARGIN_TOP );
+        core::Display_Controller controller( kbd_display,
+                                             lcd_display,
+                                             layers,
+                                             engine );
 
         controller.render();
 
@@ -67,6 +82,9 @@ int main(int /*argc*/, char* /*argv*/[]) {
                             break;
                         case Key_Code::LAYER_HOME:
                             layers.set_layer(0);
+                            break;
+                        case Key_Code::TOGGLE_MATH_LAYOUT:
+                            engine.toggle_math_layout();
                             break;
                         default:
                             engine.handle_key(key.code);

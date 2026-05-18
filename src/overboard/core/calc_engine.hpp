@@ -17,6 +17,7 @@ struct Calc_State {
     std::string   error;
     double        memory     = 0.0;
     ovb::ast::Node_Ptr last_ast;          // populated after each successful evaluate()
+    bool          use_math_layout = true; // display mode: true = math layout, false = single-line
 
     std::deque<History_Entry> history;    // newest entries at front
     static constexpr size_t MAX_HISTORY = 20;
@@ -29,6 +30,7 @@ class Calc_Engine {
         void              handle_key(Key_Code code);
         const Calc_State& state() const;
         void              reset();
+        void              toggle_math_layout();  // Toggle between math layout and single-line
 
     private:
         Calc_State m_state;

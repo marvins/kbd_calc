@@ -1,6 +1,8 @@
 // Project Libraries
 #include <overboard/hal/sdl/sdl_input.hpp>
 
+namespace ovb::hal::sdl {
+
 SDL_Input::SDL_Input(SDL_Display& kbd_display, int cols, int rows,
                      int header_height, int margin_left, int margin_top)
     : m_kbd_display(kbd_display), m_cols(cols), m_rows(rows),
@@ -62,3 +64,5 @@ bool SDL_Input::poll(Key_Event& out_event) {
     m_event_queue.pop();
     return true;
 }
+
+} // namespace ovb::hal::sdl

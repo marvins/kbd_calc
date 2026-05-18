@@ -1,11 +1,22 @@
 // C++ Standard Libraries
+#include <functional>
 #include <string>
 
 // Project Libraries
 #include <overboard/core/display_controller.hpp>
+#include <overboard/core/parser.hpp>
+#include <overboard/core/point.hpp>
+#include <overboard/hal/lcd_config.hpp>
 
-Display_Controller::Display_Controller(I_Display& kbd_display, I_Display& lcd_display,
-                                       const Layer_Manager& layers, const Calc_Engine& engine)
+namespace ovb::core {
+
+/****************************/
+/*     Constructor          */
+/****************************/
+Display_Controller::Display_Controller( I_Display&           kbd_display,
+                                        I_Display&           lcd_display,
+                                        const Layer_Manager& layers,
+                                        const Calc_Engine&   engine )
     : m_kbd_display(kbd_display), m_lcd_display(lcd_display),
       m_layers(layers), m_engine(engine) {}
 
@@ -17,6 +28,9 @@ void Display_Controller::clear_pressed_key() {
     m_pressed_key = -1;
 }
 
+/****************************/
+/*       Main Render        */
+/****************************/
 void Display_Controller::render() {
     render_keyboard();
     render_lcd();
@@ -39,21 +53,21 @@ void Display_Controller::render_keyboard() {
 
     // ── Header bar ──────────────────────────────────────────────────────────
     std::string header = "Layer: " + std::string(layer.name);
-    m_kbd_display.draw_rect(0, 0, m_kbd_display.width(), header_h, Color{50, 50, 80}, true);
-    m_kbd_display.draw_text(MARGIN_LEFT + KEY_PAD, 4, header, Color::white(), Color{50, 50, 80}, 1);
+    m_kbd_display.draw_rect(Point<int>(0, 0), Point<int>(m_kbd_display.width(), header_h), Color{50, 50, 80}, true);
+    m_kbd_display.draw_text(Point<int>(MARGIN_LEFT + KEY_PAD, 4), header, Color::white(), Color{50, 50, 80}, 1);
 
     // ── Col ID labels (0–COLS-1) ─────────────────────────────────────────────
     for (int c = 0; c < COLS; ++c) {
         std::string lbl = std::to_string(c);
         int tx = grid_x + c * cell_w + cell_w / 2 - 3;
-        m_kbd_display.draw_text(tx, header_h + 2, lbl, Color{160, 160, 160}, Color{30, 30, 30}, 1);
+        m_kbd_display.draw_text(Point<int>(tx, header_h + 2), lbl, Color{160, 160, 160}, Color{30, 30, 30}, 1);
     }
 
     // ── Row ID labels (0–rows-1) ─────────────────────────────────────────────
     for (int r = 0; r < rows; ++r) {
         std::string lbl = std::to_string(r);
         int ty = grid_y + r * cell_h + cell_h / 2 - 4;
-        m_kbd_display.draw_text(4, ty, lbl, Color{160, 160, 160}, Color{30, 30, 30}, 1);
+        m_kbd_display.draw_text(Point<int>(4, ty), lbl, Color{160, 160, 160}, Color{30, 30, 30}, 1);
     }
 
     // ── Keys ────────────────────────────────────────────────────────────────
@@ -64,6 +78,9 @@ void Display_Controller::render_keyboard() {
     m_kbd_display.flush();
 }
 
+/****************************/
+/*       Key Drawing        */
+/****************************/
 void Display_Controller::draw_key(int index, const Key_Def& key, bool pressed) {
     const auto& layer     = m_layers.current_layer();
     const int   key_count = static_cast<int>(layer.keys.size());
@@ -88,8 +105,8 @@ void Display_Controller::draw_key(int index, const Key_Def& key, bool pressed) {
     Color fg     = pressed ? Color::black()      : Color::white();
     Color border = Color{100, 100, 130};
 
-    m_kbd_display.draw_rect(x, y, w, h, border, true);
-    m_kbd_display.draw_rect(x + 1, y + 1, w - 2, h - 2, bg, true);
+    m_kbd_display.draw_rect(Point<int>(x, y), Point<int>(w, h), border, true);
+    m_kbd_display.draw_rect(Point<int>(x + 1, y + 1), Point<int>(w - 2, h - 2), bg, true);
 
     const std::string lbl = label_string(key.label);
     if (!lbl.empty()) {
@@ -108,14 +125,13 @@ void Display_Controller::draw_key(int index, const Key_Def& key, bool pressed) {
         }
         int tx = x + w / 2 - glyphs * CHAR_W / 2;
         int ty = y + h / 2 - CHAR_H / 2;
-        m_kbd_display.draw_text(tx, ty, lbl, fg, bg, KEY_FONT_SCALE);
+        m_kbd_display.draw_text(Point<int>(tx, ty), lbl, fg, bg, KEY_FONT_SCALE);
     }
 }
 
-/********************************/
-/*          Render LCD          */
-/********************************/
-
+/******************************/
+/*       LCD Rendering        */
+/******************************/
 static std::string pretty_expr(const std::string& expr) {
     std::string out;
     out.reserve(expr.size());
@@ -128,11 +144,45 @@ static std::string pretty_expr(const std::string& expr) {
     return out;
 }
 
+/****************************/
+/*       Mode Panel         */
+/****************************/
+void Display_Controller::draw_mode_panel(Point<int> pos) {
+    const auto& st = m_engine.state();
+    const char* mode_text = st.use_math_layout ? "MATH" : "LINE";
+    Color mode_color = st.use_math_layout ? Color{50, 200, 100} : Color{200, 200, 100};
+    m_lcd_display.draw_text(pos, mode_text, mode_color, Color::black(), 1);
+}
 
+void Display_Controller::render_math_expression(Point<int> pos, Point<int> max_size) {
+    const auto& st = m_engine.state();
+    if (!st.last_ast || !st.use_math_layout) return;
+
+    auto box = m_layout_engine.build(st.last_ast.get());
+    m_layout_engine.prepare(box, max_size);
+
+    // Simple rendering: just draw boxes as outlines for now
+    std::function<void(const ovb::layout::Layout_Box&, Point<int>)> draw_box;
+    draw_box = [&](const ovb::layout::Layout_Box& b, Point<int> offset) {
+        auto box_pos = b.pos + offset;
+        m_lcd_display.draw_rect(box_pos, b.size, Color{100, 100, 100}, false);
+        for (const auto& child : b.children) {
+            draw_box(child, offset);
+        }
+    };
+    draw_box(box, pos);
+}
+
+/****************************/
+/*     LCD Main Render      */
+/****************************/
 void Display_Controller::render_lcd() {
     const auto& st = m_engine.state();
 
     m_lcd_display.clear(Color::black());
+
+    // ─── Mode panel (top right) ──────────────────────────────────────────────
+    draw_mode_panel(Point<int>(m_lcd_display.width() - 40, 4));
 
     // ─── History entries (top portion, NSpire style) ─────────────────────────
     constexpr int HISTORY_SCALE = 2;
@@ -147,16 +197,16 @@ void Display_Controller::render_lcd() {
 
         // Input (upper left)
         std::string pretty_input = pretty_expr(entry.input);
-        m_lcd_display.draw_text(8, y, pretty_input, Color{140, 140, 140}, Color::black(), HISTORY_SCALE);
+        m_lcd_display.draw_text(Point<int>(8, y), pretty_input, Color{140, 140, 140}, Color::black(), HISTORY_SCALE);
 
         // Result (lower right, aligned to right edge)
         int result_w = static_cast<int>(entry.result.size()) * 6 * HISTORY_SCALE;
         int result_x = m_lcd_display.width() - result_w - 8;
-        m_lcd_display.draw_text(result_x, y + LINE_H, entry.result, Color::white(), Color::black(), HISTORY_SCALE);
+        m_lcd_display.draw_text(Point<int>(result_x, y + LINE_H), entry.result, Color::white(), Color::black(), HISTORY_SCALE);
 
         // Separator line
         int sep_y = y + ENTRY_H - 2;
-        m_lcd_display.draw_rect(8, sep_y, m_lcd_display.width() - 16, 1, Color{60, 60, 60}, true);
+        m_lcd_display.draw_rect(Point<int>(8, sep_y), Point<int>(m_lcd_display.width() - 16, 1), Color{60, 60, 60}, true);
     }
 
     int visible_history = static_cast<int>(std::min(st.history.size(), static_cast<size_t>(MAX_VISIBLE_HISTORY)));
@@ -184,9 +234,9 @@ void Display_Controller::render_lcd() {
     std::string before_cursor = full_expr.substr(0, byte_off);
     std::string after_cursor  = full_expr.substr(byte_off);
     int cursor_x = 8 + cursor_pos * 6 * WORK_SCALE;
-    m_lcd_display.draw_text(8, current_y, before_cursor, expr_fg, Color::black(), WORK_SCALE);
-    m_lcd_display.draw_rect(cursor_x, current_y - 2, 2 * WORK_SCALE, 10, Color::white(), true);
-    m_lcd_display.draw_text(cursor_x + 3, current_y, after_cursor, expr_fg, Color::black(), WORK_SCALE);
+    m_lcd_display.draw_text(Point<int>(8, current_y), before_cursor, expr_fg, Color::black(), WORK_SCALE);
+    m_lcd_display.draw_rect(Point<int>(cursor_x, current_y - 2), Point<int>(2 * WORK_SCALE, 10), Color::white(), true);
+    m_lcd_display.draw_text(Point<int>(cursor_x + 3, current_y), after_cursor, expr_fg, Color::black(), WORK_SCALE);
 
     // Result (lower right, after = pressed) — shown when result is available
     const std::string& val = st.error.empty() ? st.display_value : st.error;
@@ -195,18 +245,58 @@ void Display_Controller::render_lcd() {
         int result_w = static_cast<int>(val.size()) * 6 * RESULT_SCALE;
         int result_x = m_lcd_display.width() - result_w - 8;
         int result_y = current_y + 20;  // lower-right positioning
-        m_lcd_display.draw_text(result_x, result_y, val, val_fg, Color::black(), RESULT_SCALE);
+        m_lcd_display.draw_text(Point<int>(result_x, result_y), val, val_fg, Color::black(), RESULT_SCALE);
     }
 
     // ─── Memory indicator ───────────────────────────────────────────────────
     if (m_engine.state().memory != 0.0) {
-        m_lcd_display.draw_text(8, m_lcd_display.height() - 20, "M", Color::yellow(), Color::black(), 1);
+        m_lcd_display.draw_text(Point<int>( 8,
+                                m_lcd_display.height() - 20),
+                                            "M", Color::yellow(),
+                                            Color::black(), 1);
     }
 
     // ─── Layer indicator bottom-right ───────────────────────────────────────
     std::string layer_label = std::string(m_layers.current_layer().name);
     int lx = m_lcd_display.width() - static_cast<int>(layer_label.size()) * 6 - 8;
-    m_lcd_display.draw_text(lx, m_lcd_display.height() - 20, layer_label, Color{100, 100, 200}, Color::black(), 1);
+    m_lcd_display.draw_text( Point<int>( lx, m_lcd_display.height() - 20),
+                             layer_label,
+                             Color::light_blue(),
+                             Color::black(),
+                             1);
+
+    // ─── Math layout preview (if enabled and result shown) ──────────────────
+    if (st.use_math_layout && !st.last_ast && !st.expression.empty()) {
+
+        // Build AST from current expression for preview
+        try {
+            Parser p(st.expression.eval_string());
+            auto preview_ast = p.parse();
+            auto box = m_layout_engine.build(preview_ast.get());
+            m_layout_engine.prepare(box, Point<int>(hal::PREVIEW_MAX_WIDTH, hal::PREVIEW_MAX_HEIGHT));
+
+            // Draw preview at bottom center
+            int preview_x = (m_lcd_display.width() - box.size.x) / 2;
+            int preview_y = m_lcd_display.height() - hal::PREVIEW_OFFSET_Y;
+            std::function<void(const ovb::layout::Layout_Box&, Point<int>)> draw_box;
+
+            draw_box = [&](const ovb::layout::Layout_Box& b, Point<int> offset) {
+                auto pos = b.pos + offset;
+                // Draw text for ATOM boxes
+                if (b.kind == ovb::layout::Box_Kind::ATOM && !b.text.empty()) {
+                    m_lcd_display.draw_text(pos, b.text, Color::white(), Color::black(), b.scale);
+                }
+                for (const auto& child : b.children) {
+                    draw_box(child, offset);
+                }
+            };
+            draw_box(box, Point<int>(preview_x, preview_y));
+        } catch (...) {
+            // Ignore parse errors for preview
+        }
+    }
 
     m_lcd_display.flush();
 }
+
+} // namespace ovb::core

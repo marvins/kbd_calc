@@ -8,6 +8,9 @@
 #include <overboard/core/calc_engine.hpp>
 #include <overboard/core/parser.hpp>
 
+/****************************/
+/*     Constructor/Reset    */
+/****************************/
 Calc_Engine::Calc_Engine() {
     reset();
 }
@@ -23,6 +26,9 @@ const Calc_State& Calc_Engine::state() const {
     return m_state;
 }
 
+/****************************/
+/*       Key Handling       */
+/****************************/
 void Calc_Engine::handle_key(Key_Code code) {
     m_state.error = "";
 
@@ -116,11 +122,17 @@ void Calc_Engine::handle_key(Key_Code code) {
     }
 }
 
+/****************************/
+/*    Expression Insert     */
+/****************************/
 void Calc_Engine::try_insert(Key_Code code) {
     m_state.expression.insert(code);
     m_state.display_value = m_state.expression.render_string();
 }
 
+/****************************/
+/*       Evaluation         */
+/****************************/
 void Calc_Engine::evaluate() {
     if (m_state.expression.empty()) return;
     try {
@@ -142,5 +154,12 @@ void Calc_Engine::evaluate() {
         m_state.error         = e.what();
         m_state.display_value = "Error";
     }
+}
+
+/****************************/
+/*     Math Layout Mode     */
+/****************************/
+void Calc_Engine::toggle_math_layout() {
+    m_state.use_math_layout = !m_state.use_math_layout;
 }
 
