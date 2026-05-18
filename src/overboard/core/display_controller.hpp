@@ -2,6 +2,9 @@
 
 #include <overboard/hal/i_display.hpp>
 #include <overboard/core/keymap.hpp>
+#include <overboard/core/point.hpp>
+#include <overboard/core/rect.hpp>
+#include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/core/calc_engine.hpp>
 #include <overboard/core/layout/engine.hpp>
@@ -15,11 +18,14 @@ namespace ovb::core {
  * Handles keyboard layers, key press visualization, history display,
  * and math layout preview. Integrates with Calc_Engine for state
  * and Layout_Engine for math expression typesetting.
+ *
+ * Supports configurable keyboard layouts via Grid_Layout for asymmetric
+ * layouts like the Womier SK30 with split sections and multi-cell keys.
  */
 class Display_Controller {
     public:
         /**
-         * @brief Construct display controller
+         * @brief Construct display controller with default layout
          * @param kbd_display Keyboard window display interface
          * @param lcd_display Calculator LCD display interface
          * @param layers Layer manager for keyboard layout
@@ -29,6 +35,20 @@ class Display_Controller {
                             I_Display&           lcd_display,
                             const Layer_Manager& layers,
                             const Calc_Engine&   engine );
+
+        /**
+         * @brief Construct display controller with custom layout
+         * @param kbd_display Keyboard window display interface
+         * @param lcd_display Calculator LCD display interface
+         * @param layers Layer manager for keyboard layout
+         * @param engine Calculation engine for state and expressions
+         * @param layout Custom grid layout for key positioning
+         */
+        Display_Controller( I_Display&           kbd_display,
+                            I_Display&           lcd_display,
+                            const Layer_Manager& layers,
+                            const Calc_Engine&   engine,
+                            Grid_Layout          layout );
 
         /// @brief Render both keyboard and LCD displays
         void render();
@@ -45,10 +65,10 @@ class Display_Controller {
         I_Display&            m_lcd_display;       ///< LCD display interface
         const Layer_Manager&  m_layers;            ///< Keymap layer manager
         const Calc_Engine&    m_engine;            ///< Calculator state engine
+        Grid_Layout           m_layout;            ///< Keyboard grid layout
         int                   m_pressed_key = -1;  ///< Currently pressed key index (-1 if none)
         layout::Layout_Engine m_layout_engine{2};  ///< Math layout engine (scale 2)
 
-        static constexpr int COLS       = GRID_COLS;  ///< Grid columns (5)
         static constexpr int KEY_PAD    = 4;          ///< Padding between keys
         static constexpr int MARGIN_LEFT = 20;        ///< Left margin for row labels
         static constexpr int MARGIN_TOP  = 16;        ///< Top margin for column labels
@@ -60,12 +80,13 @@ class Display_Controller {
         void render_lcd();
 
         /**
-         * @brief Draw single key button
-         * @param index Key position in grid (0 to GRID_KEYS-1)
+         * @brief Draw single key button at grid position
+         * @param index Key index in layer
          * @param key Key definition (code and label)
+         * @param rect Key rectangle in pixels
          * @param pressed Whether key is currently pressed (for highlight)
          */
-        void draw_key(int index, const Key_Def& key, bool pressed);
+        void draw_key(int index, const Key_Def& key, core::Rect<int> rect, bool pressed);
 
         /**
          * @brief Draw mode indicator panel (MATH/LINE)

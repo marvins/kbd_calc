@@ -33,6 +33,7 @@ find_package(PNG REQUIRED)
 set(CORE_SOURCES
     src/overboard/core/keymap.cpp
     src/overboard/core/layer_manager.cpp
+    src/overboard/core/keyboard_layout.cpp
     src/overboard/core/ast/ast.cpp
     src/overboard/core/expression.cpp
     src/overboard/core/calc_engine.cpp

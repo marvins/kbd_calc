@@ -18,7 +18,15 @@ Display_Controller::Display_Controller( I_Display&           kbd_display,
                                         const Layer_Manager& layers,
                                         const Calc_Engine&   engine )
     : m_kbd_display(kbd_display), m_lcd_display(lcd_display),
-      m_layers(layers), m_engine(engine) {}
+      m_layers(layers), m_engine(engine), m_layout(Grid_Layout::standard_5x6()) {}
+
+Display_Controller::Display_Controller( I_Display&           kbd_display,
+                                        I_Display&           lcd_display,
+                                        const Layer_Manager& layers,
+                                        const Calc_Engine&   engine,
+                                        Grid_Layout          layout )
+    : m_kbd_display(kbd_display), m_lcd_display(lcd_display),
+      m_layers(layers), m_engine(engine), m_layout(std::move(layout)) {}
 
 void Display_Controller::set_pressed_key(int key_index) {
     m_pressed_key = key_index;
@@ -39,15 +47,16 @@ void Display_Controller::render() {
 void Display_Controller::render_keyboard() {
     const auto& layer     = m_layers.current_layer();
     const int   key_count = static_cast<int>(layer.keys.size());
-    const int   rows      = (key_count + COLS - 1) / COLS;
 
     const int header_h = 22;
     const int grid_x   = MARGIN_LEFT;
     const int grid_y   = header_h + MARGIN_TOP;
     const int grid_w   = m_kbd_display.width()  - MARGIN_LEFT - KEY_PAD;
     const int grid_h   = m_kbd_display.height() - grid_y      - KEY_PAD;
-    const int cell_w   = grid_w / COLS;
-    const int cell_h   = grid_h / rows;
+
+    // Calculate cell size based on layout grid dimensions
+    const int cell_w   = grid_w / m_layout.cols();
+    const int cell_h   = grid_h / m_layout.rows();
 
     m_kbd_display.clear(Color{30, 30, 30});
 
@@ -56,23 +65,50 @@ void Display_Controller::render_keyboard() {
     m_kbd_display.draw_rect(Point<int>(0, 0), Point<int>(m_kbd_display.width(), header_h), Color{50, 50, 80}, true);
     m_kbd_display.draw_text(Point<int>(MARGIN_LEFT + KEY_PAD, 4), header, Color::white(), Color{50, 50, 80}, 1);
 
-    // ── Col ID labels (0–COLS-1) ─────────────────────────────────────────────
-    for (int c = 0; c < COLS; ++c) {
+    // ── Col ID labels (0–layout.cols-1) ────────────────────────────────────
+    for (int c = 0; c < m_layout.cols(); ++c) {
         std::string lbl = std::to_string(c);
         int tx = grid_x + c * cell_w + cell_w / 2 - 3;
         m_kbd_display.draw_text(Point<int>(tx, header_h + 2), lbl, Color{160, 160, 160}, Color{30, 30, 30}, 1);
     }
 
-    // ── Row ID labels (0–rows-1) ─────────────────────────────────────────────
-    for (int r = 0; r < rows; ++r) {
+    // ── Row ID labels (0–layout.rows-1) ──────────────────────────────────────
+    for (int r = 0; r < m_layout.rows(); ++r) {
         std::string lbl = std::to_string(r);
         int ty = grid_y + r * cell_h + cell_h / 2 - 4;
         m_kbd_display.draw_text(Point<int>(4, ty), lbl, Color{160, 160, 160}, Color{30, 30, 30}, 1);
     }
 
+    // ── Draw grid cells (optional visualization) ────────────────────────────
+    // Draw faint cell borders to show the grid structure
+    for (int r = 0; r < m_layout.rows(); ++r) {
+        for (int c = 0; c < m_layout.cols(); ++c) {
+            int x = grid_x + c * cell_w;
+            int y = grid_y + r * cell_h;
+            // Draw cell outline (very faint)
+            m_kbd_display.draw_rect(Point<int>(x, y), Point<int>(cell_w, 1), Color{50, 50, 50}, true);
+            m_kbd_display.draw_rect(Point<int>(x, y), Point<int>(1, cell_h), Color{50, 50, 50}, true);
+        }
+    }
+
     // ── Keys ────────────────────────────────────────────────────────────────
+    // Only draw keys that are KEY_START cells (not continuations)
     for (int i = 0; i < key_count; ++i) {
-        draw_key(i, layer.keys[static_cast<std::size_t>(i)], i == m_pressed_key);
+        auto pos_opt = m_layout.get_key_position(i);
+        if (!pos_opt) continue;
+
+        const auto& pos = *pos_opt;
+
+        // Skip if this key doesn't start at this cell (it's a continuation)
+        Cell_Type cell_type = m_layout.get_cell_type(pos.col, pos.row);
+        if (cell_type != Cell_Type::KEY_START) continue;
+
+        // Calculate key rectangle
+        auto rect_opt = m_layout.get_key_rect(i, Point<int>(grid_x, grid_y),
+                                                 Point<int>(cell_w, cell_h), KEY_PAD);
+        if (!rect_opt) continue;
+
+        draw_key(i, layer.keys[static_cast<std::size_t>(i)], *rect_opt, i == m_pressed_key);
     }
 
     m_kbd_display.flush();
@@ -81,30 +117,18 @@ void Display_Controller::render_keyboard() {
 /****************************/
 /*       Key Drawing        */
 /****************************/
-void Display_Controller::draw_key(int index, const Key_Def& key, bool pressed) {
-    const auto& layer     = m_layers.current_layer();
-    const int   key_count = static_cast<int>(layer.keys.size());
-    const int   rows      = (key_count + COLS - 1) / COLS;
-
-    const int header_h = 22;
-    const int grid_x   = MARGIN_LEFT;
-    const int grid_y   = header_h + MARGIN_TOP;
-    const int grid_w   = m_kbd_display.width()  - MARGIN_LEFT - KEY_PAD;
-    const int grid_h   = m_kbd_display.height() - grid_y      - KEY_PAD;
-    const int cell_w   = grid_w / COLS;
-    const int cell_h   = grid_h / rows;
-
-    int col = index % COLS;
-    int row = index / COLS;
-    int x   = grid_x + col * cell_w + KEY_PAD / 2;
-    int y   = grid_y + row * cell_h + KEY_PAD / 2;
-    int w   = cell_w - KEY_PAD;
-    int h   = cell_h - KEY_PAD;
+void Display_Controller::draw_key(int index, const Key_Def& key, core::Rect<int> rect, bool pressed) {
+    (void)index; // Unused, reserved for future features
+    int x = rect.x;
+    int y = rect.y;
+    int w = rect.w;
+    int h = rect.h;
 
     Color bg     = pressed ? Color{180, 180, 60} : Color{60, 60, 80};
     Color fg     = pressed ? Color::black()      : Color::white();
     Color border = Color{100, 100, 130};
 
+    // Draw border and fill
     m_kbd_display.draw_rect(Point<int>(x, y), Point<int>(w, h), border, true);
     m_kbd_display.draw_rect(Point<int>(x + 1, y + 1), Point<int>(w - 2, h - 2), bg, true);
 

@@ -58,6 +58,20 @@ Any standard USB HID macropad with mechanical switches:
 
 **Layout**: 5 columns × 4 rows to match the software grid (`GRID_COLS=5`, `GRID_ROWS=4`)
 
+##### Alternative: Womier SK30 (30-Key Macropad)
+
+**Product**: [Womier SK30 Mechanical Gaming Keypad](https://www.amazon.com/Womier-Mechanical-Keyboard-Bluetooth-Rechargeable/dp/B0G6YZNLWJ)
+
+| Property           | Value                          |
+|--------------------|--------------------------------|
+| Keys               | 30 (5 columns × 6 rows)        |
+| Dimensions         | 156 × 143 × 38.8 mm            |
+| Switches           | Hot-swappable mechanical       |
+| Connectivity       | USB-C, Bluetooth               |
+| Features           | RGB backlight, rechargeable    |
+
+**Notes**: The 30-key layout provides 10 extra keys beyond the 4-row calculator grid. These can be mapped to functions (clear, history, mode toggle, etc.) or left unused. The compact footprint is comparable to the target form factor.
+
 ### USB Architecture
 
 The ESP32-S3 operates in dual USB roles:

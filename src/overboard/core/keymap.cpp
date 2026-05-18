@@ -38,6 +38,8 @@ std::string label_string(Key_Label lbl) {
         case Key_Label::PAREN_CLOSE:         return ")";
         case Key_Label::CURSOR_LEFT:         return "<";
         case Key_Label::CURSOR_RIGHT:        return ">";
+        case Key_Label::CURSOR_UP:           return "^";
+        case Key_Label::CURSOR_DOWN:         return "v";
         case Key_Label::SIN:                 return "sin";
         case Key_Label::COS:                 return "cos";
         case Key_Label::TAN:                 return "tan";
@@ -60,13 +62,12 @@ std::string label_string(Key_Label lbl) {
         case Key_Label::BIT_NOT:             return "NOT";
         case Key_Label::SHIFT_LEFT:          return "<<";
         case Key_Label::SHIFT_RIGHT:         return ">>";
-        case Key_Label::LAYER_NEXT_TRIG:     return "TRG";
+        case Key_Label::LAYER_TRIG:          return "TRG";
         case Key_Label::PHI:                 return "\xCF\x86";   // φ
         case Key_Label::TAU:                 return "\xCF\x84";   // τ
-        case Key_Label::LAYER_NEXT_CONST:    return "CST";
-        case Key_Label::LAYER_NEXT_ALGEBRA:  return "ALG";
-        case Key_Label::LAYER_PREV:          return "BACK";
-        case Key_Label::LAYER_PREV_CONST:    return "BACK";
+        case Key_Label::LAYER_ALGEBRA:       return "ALG";
+        case Key_Label::LAYER_HOME:          return "Home";
+        case Key_Label::LAYER_CONST:         return "CST";
         case Key_Label::APPROX:              return "\xE2\x89\x88";  // ≈
         case Key_Label::MATH_LAYOUT:         return "MATH";
     }

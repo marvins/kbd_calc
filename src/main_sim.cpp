@@ -7,6 +7,7 @@
 // Project Libraries
 #include <overboard/core/calc_engine.hpp>
 #include <overboard/core/display_controller.hpp>
+#include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/hal/lcd_config.hpp>
@@ -16,7 +17,7 @@
 
 using namespace ovb;
 
-static constexpr int KBD_W  = 360;
+static constexpr int KBD_W  = 480;  // Wider for 8-column SK30 layout
 static constexpr int KBD_H  = 480;
 static constexpr int HDR_H       = 22;
 static constexpr int MARGIN_LEFT = 20;
@@ -44,16 +45,24 @@ int main(int /*argc*/, char* /*argv*/[]) {
         Layer_Manager layers(keymap);
         Calc_Engine   engine;
 
+        // SK30 uses 8×6 grid (3 left + 1 gap + 4 right)
+        constexpr int SK30_COLS = 8;
+        constexpr int SK30_ROWS = 6;
+
         hal::sdl::SDL_Input input( kbd_display,
-                                   GRID_COLS,
-                                   GRID_ROWS,
+                                   SK30_COLS,
+                                   SK30_ROWS,
                                    HDR_H,
                                    MARGIN_LEFT,
                                    MARGIN_TOP );
+        // Use Womier SK30 asymmetric layout (6×6 grid with split sections)
+        core::Grid_Layout sk30_layout = core::Grid_Layout::womier_sk30();
+
         core::Display_Controller controller( kbd_display,
                                              lcd_display,
                                              layers,
-                                             engine );
+                                             engine,
+                                             std::move(sk30_layout) );
 
         controller.render();
 
