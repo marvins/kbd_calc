@@ -1,3 +1,10 @@
+/**
+ * @file    main.cpp
+ * @author  Marvin Smith
+ * @date    2025-10-19
+ * @brief   Main entry point for the calculator application.
+ */
+
 // C++ Standard Libraries
 #include <iostream>
 
@@ -5,7 +12,7 @@
 #include <SDL2/SDL.h>
 
 // Project Libraries
-#include <overboard/core/calc_engine.hpp>
+#include <overboard/math/calc_engine.hpp>
 #include <overboard/core/display_controller.hpp>
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/keymap.hpp>

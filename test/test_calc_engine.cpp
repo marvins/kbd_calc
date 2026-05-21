@@ -1,3 +1,10 @@
+/**
+ * @file    test_calc_engine.cpp
+ * @author  Marvin Smith
+ * @date    2025-10-19
+ * @brief   Unit tests for the Calc_Engine class.
+ */
+
 // C++ Standard Libraries
 #include <cmath>
 #include <string>
@@ -6,7 +13,7 @@
 #include <gtest/gtest.h>
 
 // Project Libraries
-#include <overboard/core/calc_engine.hpp>
+#include <overboard/math/calc_engine.hpp>
 
 static void press(Calc_Engine& eng, std::initializer_list<Key_Code> keys) {
     for (Key_Code k : keys)

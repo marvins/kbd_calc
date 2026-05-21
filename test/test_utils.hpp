@@ -1,16 +1,15 @@
-#pragma once
-
 /**
  * @file test_utils.hpp
  * @brief Shared test utilities for calculator tests
  */
+#pragma once
 
 // C++ Standard Libraries
 #include <iostream>
 #include <string>
 
 // Project Libraries
-#include <overboard/core/layout/box.hpp>
+#include <overboard/math/layout/box.hpp>
 
 namespace ovb::test {
 

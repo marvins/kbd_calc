@@ -1,10 +1,20 @@
+/**
+ * @file   keymap.hpp
+ * @author Marvin Smith
+ * @date   2025-10-18
+ * @brief  Key mapping and layout definitions
+ */
 #pragma once
 
+// C++ Standard Libraries
 #include <array>
 #include <cstdint>
 #include <stdexcept>
 #include <string_view>
 
+/**
+ * @brief Key label enumeration
+ */
 enum class Key_Label : uint8_t {
     NONE = 0,
 
@@ -44,8 +54,16 @@ enum class Key_Label : uint8_t {
     MATH_LAYOUT,
 };
 
+/**
+ * @brief Convert key label to string
+ * @param lbl Key label
+ * @return String representation of the key label
+ */
 std::string label_string(Key_Label lbl);
 
+/**
+ * @brief Key code enumeration
+ */
 enum class Key_Code : uint16_t {
     NONE = 0,
 

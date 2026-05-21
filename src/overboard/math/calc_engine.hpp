@@ -1,10 +1,20 @@
+/**
+ * @file    calc_engine.hpp
+ * @author  Marvin Smith
+ * @date    5/20/2026
+ *
+ * @brief Header file for the Calc_Engine class.
+ */
 #pragma once
 
-#include <overboard/core/ast/ast.hpp>
-#include <overboard/core/expression.hpp>
-#include <overboard/core/keymap.hpp>
+// C++ Standard Libraries
 #include <deque>
 #include <string>
+
+// Project Libraries
+#include <overboard/math/ast/ast.hpp>
+#include <overboard/math/expression.hpp>
+#include <overboard/core/keymap.hpp>
 
 struct History_Entry {
     std::string input;   // expression string

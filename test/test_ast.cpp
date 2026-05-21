@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 // Project Libraries
-#include <overboard/core/ast/ast.hpp>
+#include <overboard/math/ast/ast.hpp>
 
 using namespace ovb::ast;
 

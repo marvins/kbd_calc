@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 // Project Libraries
-#include <overboard/core/ast/ast.hpp>
+#include <overboard/math/ast/ast.hpp>
 
 namespace ovb::ast {
 

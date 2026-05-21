@@ -1,3 +1,10 @@
+/**
+ * @file    test_layout.cpp
+ * @author  Marvin Smith
+ * @date    2025-10-19
+ * @brief   Unit tests for the Layout system.
+ */
+
 // C++ Standard Libraries
 #include <iostream>
 #include <string>
@@ -6,10 +13,10 @@
 #include <gtest/gtest.h>
 
 // Project Libraries
-#include <overboard/core/ast/ast.hpp>
-#include <overboard/core/layout/box.hpp>
-#include <overboard/core/layout/engine.hpp>
-#include <overboard/core/parser.hpp>
+#include <overboard/math/ast/ast.hpp>
+#include <overboard/math/layout/box.hpp>
+#include <overboard/math/layout/engine.hpp>
+#include <overboard/math/parser.hpp>
 #include "test_utils.hpp"
 
 using namespace ovb;

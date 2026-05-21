@@ -1,3 +1,11 @@
+/**
+ * @file    test_math_render.cpp
+ * @author  Marvin Smith
+ * @date    10/20/2025
+ *
+ * @brief Test suite for the Math Render functionality.
+ */
+
 // C++ Standard Libraries
 #include <algorithm>
 #include <cstdint>
@@ -10,10 +18,10 @@
 #include <SDL2/SDL.h>
 
 // Project Libraries
-#include <overboard/core/ast/ast.hpp>
-#include <overboard/core/layout/box.hpp>
-#include <overboard/core/layout/engine.hpp>
-#include <overboard/core/parser.hpp>
+#include <overboard/math/ast/ast.hpp>
+#include <overboard/math/layout/box.hpp>
+#include <overboard/math/layout/engine.hpp>
+#include <overboard/math/parser.hpp>
 #include <overboard/hal/font_5x7.hpp>
 
 using namespace ovb;

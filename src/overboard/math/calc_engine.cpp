@@ -1,3 +1,12 @@
+/**
+ * @file   calc_engine.cpp
+ * @author Marvin Smith
+ * @date   5/20/2026
+ *
+ * @brief  Implementation of the Calc_Engine class for handling calculator operations.
+ */
+#include <overboard/math/calc_engine.hpp>
+
 // C++ Standard Libraries
 #include <cmath>
 #include <iomanip>
@@ -5,8 +14,7 @@
 #include <stdexcept>
 
 // Project Libraries
-#include <overboard/core/calc_engine.hpp>
-#include <overboard/core/parser.hpp>
+#include <overboard/math/parser.hpp>
 
 /****************************/
 /*     Constructor/Reset    */

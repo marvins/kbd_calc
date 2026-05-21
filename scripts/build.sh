@@ -7,55 +7,76 @@ BUILD_DIR="${PROJECT_DIR}/build"
 
 BUILD_TYPE="Debug"
 CLEAN=false
+TARGET_DEVICE="SDL"
+SIMULATOR=ON
 
 usage() {
     cat <<EOF
 Usage: $(basename "$0") [options]
 
 Options:
-  -h    Show this help message
-  -c    Clean build directory before building
-  -d    Debug build (default)
-  -r    Release build
+  -h           Show this help message
+  -c           Clean build directory before building
+  -d           Debug build (default)
+  -r           Release build
+  -t <target>  Target device: SDL or SK30 (default: SDL)
+  -s <on|off>  Simulator mode: on or off (default: on)
 
 Examples:
-  $(basename "$0")          # Debug build
-  $(basename "$0") -r       # Release build
-  $(basename "$0") -c -r    # Clean then release build
-  $(basename "$0") -c       # Clean only (no build)
+  $(basename "$0")              # SDL simulator, debug build
+  $(basename "$0") -t SK30      # SK30 target, simulator off
+  $(basename "$0") -t SDL -r    # SDL simulator, release build
+  $(basename "$0") -c -r         # Clean then release build
+  $(basename "$0") -c            # Clean only (no build)
 EOF
 }
 
-while getopts ":hcdr" opt; do
+while getopts ":hcdrt:s:" opt; do
     case "${opt}" in
         h) usage; exit 0 ;;
         c) CLEAN=true ;;
         d) BUILD_TYPE="Debug" ;;
         r) BUILD_TYPE="Release" ;;
+        t) TARGET_DEVICE="${OPTARG}" ;;
+        s) SIMULATOR="${OPTARG}" ;;
         :) echo "Error: option -${OPTARG} requires an argument." >&2; usage; exit 1 ;;
         \?) echo "Error: unknown option -${OPTARG}" >&2; usage; exit 1 ;;
     esac
 done
 
+# Normalize simulator flag
+case "${SIMULATOR}" in
+    on|ON|On|1|true|TRUE|True) SIMULATOR=ON ;;
+    off|OFF|Off|0|false|FALSE|False) SIMULATOR=OFF ;;
+    *) echo "Error: -s requires 'on' or 'off'" >&2; usage; exit 1 ;;
+esac
+
 if ${CLEAN}; then
     echo "Cleaning build directory: ${BUILD_DIR}"
     rm -rf "${BUILD_DIR}"
-    if [[ "${OPTIND}" -gt "$#" ]] && ! ${CLEAN} || [[ $# -eq 0 ]] || [[ "$*" == *"-c"* && "$*" != *"-r"* && "$*" != *"-d"* ]]; then
+    if [[ "${OPTIND}" -gt "$#" ]] && ! ${CLEAN} || [[ $# -eq 0 ]] || [[ "$*" == *"-c"* && "$*" != *"-r"* && "$*" != *"-d"* && "$*" != *"-t"* ]]; then
         echo "Clean complete."
         exit 0
     fi
 fi
 
-echo "Build type : ${BUILD_TYPE}"
-echo "Project dir: ${PROJECT_DIR}"
-echo "Build dir  : ${BUILD_DIR}"
+echo "Build type    : ${BUILD_TYPE}"
+echo "Target device : ${TARGET_DEVICE}"
+echo "Simulator     : ${SIMULATOR}"
+echo "Project dir   : ${PROJECT_DIR}"
+echo "Build dir     : ${BUILD_DIR}"
 echo ""
 
 cmake -S "${PROJECT_DIR}" -B "${BUILD_DIR}" \
-    -DSIMULATOR=ON \
+    -DTARGET_DEVICE="${TARGET_DEVICE}" \
+    -DSIMULATOR="${SIMULATOR}" \
     -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
 
 cmake --build "${BUILD_DIR}" --parallel "$(nproc 2>/dev/null || sysctl -n hw.logicalcpu)"
 
 echo ""
-echo "Build complete: ${BUILD_DIR}/calc_sim"
+if [[ "${SIMULATOR}" == "ON" ]]; then
+    echo "Build complete: ${BUILD_DIR}/calc_sim"
+else
+    echo "Build complete: ${BUILD_DIR}/calc_firmware"
+fi

@@ -1,10 +1,20 @@
+/**
+ * @file    display_controller.cpp
+ * @author  Marvin Smith
+ * @date    2025-10-19
+ * @brief   Implementation of the Display_Controller class.
+ *
+ * @details This file contains the implementation of the Display_Controller class,
+ *          which is responsible for rendering the keyboard and LCD displays.
+ */
+#include <overboard/core/display_controller.hpp>
+
 // C++ Standard Libraries
 #include <functional>
 #include <string>
 
 // Project Libraries
-#include <overboard/core/display_controller.hpp>
-#include <overboard/core/parser.hpp>
+#include <overboard/math/parser.hpp>
 #include <overboard/core/point.hpp>
 #include <overboard/hal/lcd_config.hpp>
 

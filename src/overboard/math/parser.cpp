@@ -1,9 +1,15 @@
+/**
+ * @file   parser.cpp
+ * @author Marvin Smith
+ * @date   5/20/2026
+ *
+ * @brief  Implementation of the Parser class for parsing mathematical expressions.
+ */
+#include <overboard/math/parser.hpp>
+
 // C++ Standard Libraries
 #include <cctype>
 #include <stdexcept>
-
-// Project Libraries
-#include <overboard/core/parser.hpp>
 
 Parser::Parser(const std::string& input) : m_src(input) {}
 

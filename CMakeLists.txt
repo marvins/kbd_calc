@@ -7,6 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(SIMULATOR "Build simulator target (requires SDL2)" ON)
 option(BUILD_TESTS "Build unit tests" ON)
 
+# Target device selection: SDL or SK30
+set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, SK30)")
+set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL SK30)
+
 # ── Strict warning flags ───────────────────────────────────────────────────────
 add_library(project_warnings INTERFACE)
 target_compile_options(project_warnings INTERFACE
@@ -30,16 +34,20 @@ target_compile_options(project_warnings INTERFACE
 find_package(SDL2 REQUIRED)
 find_package(PNG REQUIRED)
 
+# ── LVGL ──────────────────────────────────────────────────────────────────────
+set(LV_CONF_PATH ${CMAKE_SOURCE_DIR}/thirdparty/lv_conf.h CACHE PATH "LVGL config file")
+add_subdirectory(thirdparty/lvgl)
+
 set(CORE_SOURCES
     src/overboard/core/keymap.cpp
     src/overboard/core/layer_manager.cpp
     src/overboard/core/keyboard_layout.cpp
-    src/overboard/core/ast/ast.cpp
-    src/overboard/core/expression.cpp
-    src/overboard/core/calc_engine.cpp
-    src/overboard/core/parser.cpp
     src/overboard/core/display_controller.cpp
-    src/overboard/core/layout/engine.cpp
+    src/overboard/math/ast/ast.cpp
+    src/overboard/math/expression.cpp
+    src/overboard/math/calc_engine.cpp
+    src/overboard/math/parser.cpp
+    src/overboard/math/layout/engine.cpp
 )
 
 # ── GoogleTest ────────────────────────────────────────────────────────────────
@@ -65,11 +73,11 @@ if(BUILD_TESTS)
         test/test_layout.cpp
         src/overboard/core/keymap.cpp
         src/overboard/core/layer_manager.cpp
-        src/overboard/core/ast/ast.cpp
-        src/overboard/core/expression.cpp
-        src/overboard/core/calc_engine.cpp
-        src/overboard/core/parser.cpp
-        src/overboard/core/layout/engine.cpp
+        src/overboard/math/ast/ast.cpp
+        src/overboard/math/expression.cpp
+        src/overboard/math/calc_engine.cpp
+        src/overboard/math/parser.cpp
+        src/overboard/math/layout/engine.cpp
     )
 
     target_include_directories(calc_tests PRIVATE src)
@@ -80,9 +88,9 @@ if(BUILD_TESTS)
     # Standalone math render test (outputs PNG from equation string)
     add_executable(math_render_test
         test/test_math_render.cpp
-        src/overboard/core/ast/ast.cpp
-        src/overboard/core/parser.cpp
-        src/overboard/core/layout/engine.cpp
+        src/overboard/math/ast/ast.cpp
+        src/overboard/math/parser.cpp
+        src/overboard/math/layout/engine.cpp
     )
     target_include_directories(math_render_test PRIVATE src)
     target_include_directories(math_render_test SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS})
@@ -92,8 +100,11 @@ if(BUILD_TESTS)
 endif()
 
 if(SIMULATOR)
+    # SDL Simulator target
     add_executable(calc_sim
-        src/main_sim.cpp
+        src/main.cpp
+        src/overboard/hal/app_factory.cpp
+        src/overboard/hal/sdl/sdl_app.cpp
         src/overboard/hal/sdl/sdl_display.cpp
         src/overboard/hal/sdl/sdl_input.cpp
         src/overboard/hal/sdl/stdout_logger.cpp
@@ -105,15 +116,42 @@ if(SIMULATOR)
 
     target_link_libraries(calc_sim PRIVATE
         ${SDL2_LIBRARIES}
+        lvgl
         project_warnings
     )
 
-    target_compile_definitions(calc_sim PRIVATE SIMULATOR=1)
+    target_compile_definitions(calc_sim PRIVATE
+        SIMULATOR=1
+        TARGET_SDL=1
+    )
 
     set_source_files_properties(
-        src/main_sim.cpp
+        src/main.cpp
+        src/overboard/hal/app_factory.cpp
+        src/overboard/hal/sdl/sdl_app.cpp
         src/overboard/hal/sdl/sdl_display.cpp
         src/overboard/hal/sdl/sdl_input.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-old-style-cast"
+    )
+endif()
+
+# SK30 Embedded target (when not building simulator)
+if(NOT SIMULATOR AND TARGET_DEVICE STREQUAL "SK30")
+    add_executable(calc_firmware
+        src/main.cpp
+        src/overboard/hal/app_factory.cpp
+        src/overboard/hal/sk30/sk30_app.cpp
+        src/overboard/hal/sk30/sk30_input.cpp
+        ${CORE_SOURCES}
+    )
+
+    target_include_directories(calc_firmware PRIVATE src)
+
+    target_link_libraries(calc_firmware PRIVATE
+        project_warnings
+    )
+
+    target_compile_definitions(calc_firmware PRIVATE
+        TARGET_SK30=1
     )
 endif()

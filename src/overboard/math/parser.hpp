@@ -1,7 +1,14 @@
+/**
+ * @file parser.hpp
+ * @brief Parser for mathematical expressions
+ */
 #pragma once
 
-#include <overboard/core/ast/ast.hpp>
+// C++ Standard Libraries
 #include <string>
+
+// Project Libraries
+#include <overboard/math/ast/ast.hpp>
 
 class Parser {
     public:

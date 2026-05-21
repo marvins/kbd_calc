@@ -1,10 +1,13 @@
 /**
  * @file engine.cpp
+ * @author Marvin Smith
+ * @date 5/20/2026
+ *
  * @brief Layout engine implementation
  */
+#include <overboard/math/layout/engine.hpp>
 
 // Project Libraries
-#include <overboard/core/layout/engine.hpp>
 #include <overboard/core/point.hpp>
 
 // C++ Standard Libraries

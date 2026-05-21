@@ -1,13 +1,18 @@
+/**
+ * @file display_controller.hpp
+ * @brief Display controller for calculator UI
+ */
 #pragma once
 
-#include <overboard/hal/i_display.hpp>
+// Project Libraries
+#include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/keymap.hpp>
+#include <overboard/core/layer_manager.hpp>
 #include <overboard/core/point.hpp>
 #include <overboard/core/rect.hpp>
-#include <overboard/core/keyboard_layout.hpp>
-#include <overboard/core/layer_manager.hpp>
-#include <overboard/core/calc_engine.hpp>
-#include <overboard/core/layout/engine.hpp>
+#include <overboard/hal/i_display.hpp>
+#include <overboard/math/calc_engine.hpp>
+#include <overboard/math/layout/engine.hpp>
 
 namespace ovb::core {
 

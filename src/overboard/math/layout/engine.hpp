@@ -1,20 +1,22 @@
-#pragma once
-
 /**
- * @file engine.hpp
+ * @file    engine.hpp
+ * @author  Marvin Smith
+ * @date    2025-10-19
+ *
  * @brief Layout engine for math expression typesetting
  *
  * Converts AST nodes to layout box trees and performs measurement
  * and positioning passes.
  */
+#pragma once
 
 // C++ Standard Libraries
 #include <memory>
 #include <string>
 
 // Project Libraries
-#include <overboard/core/ast/ast.hpp>
-#include <overboard/core/layout/box.hpp>
+#include <overboard/math/ast/ast.hpp>
+#include <overboard/math/layout/box.hpp>
 #include <overboard/core/point.hpp>
 
 namespace ovb::layout {

@@ -1,5 +1,13 @@
+
+/**
+ * @file   i_logger.hpp
+ * @author Marvin Smith
+ * @date   2025-10-18
+ * @brief  Logger interface for platform abstraction
+ */
 #pragma once
 
+// C++ Standard Libraries
 #include <cstdint>
 #include <string_view>
 

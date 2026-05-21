@@ -1,8 +1,14 @@
+/**
+ * @file   expression.cpp
+ * @author Marvin Smith
+ * @date   5/20/2026
+ *
+ * @brief  Implementation of the Expression class for handling mathematical expressions.
+ */
+#include <overboard/math/expression.hpp>
+
 // C++ Standard Libraries
 #include <stdexcept>
-
-// Project Libraries
-#include <overboard/core/expression.hpp>
 
 // ── Token factory ─────────────────────────────────────────────────────────────
 

@@ -1,3 +1,10 @@
+/**
+ * @file    test_parser.cpp
+ * @author  Marvin Smith
+ * @date    2025-10-19
+ * @brief   Unit tests for the Parser class.
+ */
+
 // C++ Standard Libraries
 #include <cmath>
 
@@ -5,7 +12,7 @@
 #include <gtest/gtest.h>
 
 // Project Libraries
-#include <overboard/core/parser.hpp>
+#include <overboard/math/parser.hpp>
 
 // Helper: parse expression string and return evaluated double
 static double eval(const std::string& expr) {
