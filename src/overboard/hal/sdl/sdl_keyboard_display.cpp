@@ -1,10 +1,11 @@
 /**
- * @file lvgl_keyboard_display.cpp
- * @author Marvin Smith
- * @date 2026-05-20
- * @brief LVGL window owner for the keyboard display
+ * @file    sdl_keyboard_display.cpp
+ * @author  Marvin Smith
+ * @date    2026-05-20
+ *
+ * @brief   SDL window owner for the keyboard display
  */
-#include <overboard/hal/sdl/lvgl_keyboard_display.hpp>
+#include <overboard/hal/sdl/sdl_keyboard_display.hpp>
 
 // C++ Standard Libraries
 #include <stdexcept>
@@ -14,13 +15,12 @@ namespace ovb::hal::sdl {
 /****************************/
 /*  Constructor/Destructor  */
 /****************************/
-
-LVGL_Keyboard_Display::LVGL_Keyboard_Display(const std::string& title, int width, int height)
+SDL_Keyboard_Display::SDL_Keyboard_Display( const std::string& title, int width, int height )
     : m_width(width), m_height(height)
 {
     m_display = lv_sdl_window_create(width, height);
     if (!m_display) {
-        throw std::runtime_error("LVGL_Keyboard_Display: lv_sdl_window_create failed");
+        throw std::runtime_error("SDL_Keyboard_Display: lv_sdl_window_create failed");
     }
     lv_sdl_window_set_title(m_display, title.c_str());
 
@@ -43,14 +43,14 @@ LVGL_Keyboard_Display::LVGL_Keyboard_Display(const std::string& title, int width
 /****************************/
 /*     Accessors            */
 /****************************/
-int    LVGL_Keyboard_Display::width()     const { return m_width;  }
-int    LVGL_Keyboard_Display::height()    const { return m_height; }
+int    SDL_Keyboard_Display::width()     const { return m_width;  }
+int    SDL_Keyboard_Display::height()    const { return m_height; }
 
-uint32_t LVGL_Keyboard_Display::window_id() const {
+uint32_t SDL_Keyboard_Display::window_id() const {
     return m_sdl_window ? SDL_GetWindowID(m_sdl_window) : 0;
 }
 
-lv_obj_t* LVGL_Keyboard_Display::screen() const {
+lv_obj_t* SDL_Keyboard_Display::screen() const {
     lv_display_set_default(m_display);
     return lv_screen_active();
 }
@@ -58,15 +58,14 @@ lv_obj_t* LVGL_Keyboard_Display::screen() const {
 /****************************/
 /*    I_Display stubs       */
 /****************************/
-
-void LVGL_Keyboard_Display::clear(Color /*c*/)                                                           {}
-void LVGL_Keyboard_Display::draw_pixel(ovb::core::Point<int> /*pos*/, Color /*c*/)                       {}
-void LVGL_Keyboard_Display::draw_rect(ovb::core::Point<int> /*pos*/, ovb::core::Point<int> /*size*/,
+void SDL_Keyboard_Display::clear(Color /*c*/)                                                           {}
+void SDL_Keyboard_Display::draw_pixel(ovb::core::Point<int> /*pos*/, Color /*c*/)                       {}
+void SDL_Keyboard_Display::draw_rect(ovb::core::Point<int> /*pos*/, ovb::core::Point<int> /*size*/,
                                        Color /*c*/, bool /*filled*/)                                      {}
-void LVGL_Keyboard_Display::draw_text(ovb::core::Point<int> /*pos*/, const std::string& /*text*/,
+void SDL_Keyboard_Display::draw_text(ovb::core::Point<int> /*pos*/, const std::string& /*text*/,
                                        Color /*fg*/, Color /*bg*/, int /*scale*/)                         {}
 
-void LVGL_Keyboard_Display::flush() {
+void SDL_Keyboard_Display::flush() {
     lv_timer_handler();
 }
 

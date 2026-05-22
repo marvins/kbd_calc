@@ -1,8 +1,9 @@
 /**
- * @file lvgl_keyboard_view.hpp
- * @author Marvin Smith
- * @date 2026-05-20
- * @brief LVGL widget-based keyboard view
+ * @file    sdl_keyboard_view.hpp
+ * @author  Marvin Smith
+ * @date    2026-05-20
+ *
+ * @brief   SDL widget-based keyboard view
  *
  * Creates and manages a grid of lv_button widgets representing the
  * physical keyboard layout. Key labels, layer state, and press
@@ -24,13 +25,13 @@
 namespace ovb::hal::sdl {
 
 /**
- * @brief LVGL widget keyboard view
+ * @brief SDL widget keyboard view
  *
  * Owns one lv_button + lv_label per key, laid out using pixel
  * coordinates derived from Grid_Layout. Call update() after any
  * layer or press state change to synchronise widget labels/styles.
  */
-class LVGL_Keyboard_View {
+class SDL_Keyboard_View {
     public:
         /**
          * @brief Create keyboard view on an existing LVGL screen
@@ -40,11 +41,11 @@ class LVGL_Keyboard_View {
          * @param width     Display width in pixels
          * @param height    Display height in pixels
          */
-        LVGL_Keyboard_View( lv_obj_t*                     parent,
-                            const ovb::core::Grid_Layout& layout,
-                            const core::Layer_Manager&    layers,
-                            int                           width,
-                            int                           height );
+        SDL_Keyboard_View( lv_obj_t*                     parent,
+                           const ovb::core::Grid_Layout& layout,
+                           const core::Layer_Manager&    layers,
+                           int                           width,
+                           int                           height );
 
         /// @brief Rebuild all button labels to match the current layer
         void update_layer();

@@ -12,11 +12,16 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 
 // Project Libraries
+#include <overboard/log/stdout_logger.hpp>
 #include <overboard/math/parser.hpp>
 
 namespace ovb::math {
+
+// Static logger for this module
+static ovb::log::Stdout_Logger s_logger(ovb::log::Log_Level::Debug);
 
 /****************************/
 /*     Constructor/Reset    */
@@ -161,6 +166,7 @@ void Calc_Engine::evaluate() {
         if (m_state.history.size() > Calc_State::MAX_HISTORY)
             m_state.history.pop_back();
     } catch (const std::exception& e) {
+        s_logger.error("Evaluation error: " + std::string(e.what()) + " | Expression: " + m_state.expression.eval_string());
         m_state.error         = e.what();
         m_state.display_value = "Error";
     }

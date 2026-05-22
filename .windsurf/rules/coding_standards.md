@@ -42,10 +42,11 @@ All header and source files must follow this structure:
 
 ```cpp
 /**
- * @file filename.hpp
- * @author <author>
- * @date <date>
- * @brief Brief description of file purpose
+ * @file    filename.hpp
+ * @author  <author>
+ * @date    <date>
+ *
+ * @brief   Brief description of file purpose
  *
  * Optional longer description if needed.
  */

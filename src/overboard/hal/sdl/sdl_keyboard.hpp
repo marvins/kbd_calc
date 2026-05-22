@@ -1,10 +1,11 @@
 /**
- * @file lvgl_keyboard.hpp
+ * @file   sdl_keyboard.hpp
  * @author Marvin Smith
- * @date 2026-05-21
- * @brief LVGL keyboard manager — window + widget management
+ * @date   2026-05-21
  *
- * Encapsulates the complete LVGL keyboard UI: SDL window creation,
+ * @brief  SDL keyboard manager — window + widget management
+ *
+ * Encapsulates the keyboard UI: SDL window creation,
  * widget tree management (buttons, labels), and layer/press state.
  * Independent of Display_Controller; main coordinates between
  * this keyboard manager and the LCD display controller.
@@ -19,23 +20,19 @@
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/layer_manager.hpp>
-
-// Forward declarations — implementation detail
-namespace ovb::hal::sdl {
-    class LVGL_Keyboard_Display;
-    class LVGL_Keyboard_View;
-}
+#include <overboard/hal/sdl/sdl_keyboard_display.hpp>
+#include <overboard/hal/sdl/sdl_keyboard_view.hpp>
 
 namespace ovb::hal::sdl {
 
 /**
- * @brief LVGL keyboard manager
+ * @brief SDL keyboard manager
  *
  * Owns the keyboard window and all LVGL widgets.
  * Provides high-level interface for layer switching
  * and key press visualization.
  */
-class LVGL_Keyboard {
+class SDL_Keyboard {
     public:
         /**
          * @brief Create LVGL keyboard window with widget layout
@@ -45,13 +42,16 @@ class LVGL_Keyboard {
          * @param layout    Grid layout for key positioning
          * @param layers    Layer manager for key labels
          */
-        LVGL_Keyboard( const std::string&            title,
+        SDL_Keyboard( const std::string&            title,
                        int                           width,
                        int                           height,
                        const ovb::core::Grid_Layout& layout,
                        const core::Layer_Manager&    layers );
 
-        ~LVGL_Keyboard();
+        /**
+         * Destructor
+         */
+        virtual ~SDL_Keyboard() = default;
 
         /// @brief Window dimensions
         int  width()  const;
@@ -73,8 +73,8 @@ class LVGL_Keyboard {
         void render();
 
     private:
-        std::unique_ptr<LVGL_Keyboard_Display> m_display;
-        std::unique_ptr<LVGL_Keyboard_View>    m_view;
+        std::unique_ptr<SDL_Keyboard_Display> m_display;
+        std::unique_ptr<SDL_Keyboard_View>    m_view;
 };
 
 } // namespace ovb::hal::sdl

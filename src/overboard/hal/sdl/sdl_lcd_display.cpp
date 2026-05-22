@@ -1,13 +1,15 @@
 /**
- * @file lvgl_lcd_display.cpp
- * @author Marvin Smith
- * @date 2026-05-21
- * @brief LVGL LCD display implementation
+ * @file    sdl_lcd_display.cpp
+ * @author  Marvin Smith
+ * @date    2026-05-21
+ *
+ * @brief   SDL LCD display implementation
  */
-#include <overboard/hal/sdl/lvgl_lcd_display.hpp>
+#include <overboard/hal/sdl/sdl_lcd_display.hpp>
 
 // C++ Standard Libraries
 #include <functional>
+#include <string>
 
 // Third-Party Libraries
 #include <SDL2/SDL.h>
@@ -16,6 +18,7 @@
 
 // Project Libraries
 #include <overboard/hal/sdl/lvgl_theme.hpp>
+#include <overboard/log/stdout_logger.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/math/calc_engine.hpp>
 #include <overboard/math/expression.hpp>
@@ -24,12 +27,15 @@
 
 namespace ovb::hal::sdl {
 
+// Static logger instance for this module
+static ovb::log::Stdout_Logger s_logger(ovb::log::Log_Level::Debug);
+
 // Forward declarations for draw helpers
 static void draw_math_to_canvas( lv_obj_t* canvas, int width, int height,
                                  ovb::layout::Layout_Engine& layout_engine,
                                  const std::string&          expr_str);
 
-struct LVGL_LCD_Display::Impl {
+struct SDL_LCD_Display::Impl {
     SDL_Window*   sdl_window   = nullptr;
     lv_display_t* lv_display   = nullptr;
     int           width        = 0;
@@ -56,7 +62,10 @@ struct LVGL_LCD_Display::Impl {
         : width(w), height(h), engine(e), layers(l) {}
 };
 
-LVGL_LCD_Display::LVGL_LCD_Display( const std::string&              title,
+/************************************/
+/*          Constructor             */
+/************************************/
+SDL_LCD_Display::SDL_LCD_Display( const std::string&              title,
                                      int                             x,
                                      int                             y,
                                      int                             width,
@@ -171,16 +180,25 @@ LVGL_LCD_Display::LVGL_LCD_Display( const std::string&              title,
     refresh();
 }
 
-LVGL_LCD_Display::~LVGL_LCD_Display() = default;
+/************************************/
+/*         Destructor               */
+/************************************/
+SDL_LCD_Display::~SDL_LCD_Display() = default;
 
-int  LVGL_LCD_Display::width()  const { return m_impl->width; }
-int  LVGL_LCD_Display::height() const { return m_impl->height; }
+/************************************/
+/*         Getters                  */
+/************************************/
+int  SDL_LCD_Display::width()  const { return m_impl->width; }
+int  SDL_LCD_Display::height() const { return m_impl->height; }
 
-uint32_t LVGL_LCD_Display::window_id() const {
+uint32_t SDL_LCD_Display::window_id() const {
     return m_impl->sdl_window ? SDL_GetWindowID(m_impl->sdl_window) : 0;
 }
 
-void LVGL_LCD_Display::refresh() {
+/*****************************************/
+/*         Refresh the Display           */
+/*****************************************/
+void SDL_LCD_Display::refresh() {
     const auto& st = m_impl->engine.state();
     const auto& history = st.history;
 
@@ -217,11 +235,17 @@ void LVGL_LCD_Display::refresh() {
     }
 }
 
-void LVGL_LCD_Display::render() {
+/*****************************************/
+/*         Render the Display            */
+/*****************************************/
+void SDL_LCD_Display::render() {
     lv_display_set_default(m_impl->lv_display);
     lv_timer_handler();
 }
 
+/*****************************************/
+/*         Draw Math to Canvas           */
+/*****************************************/
 // Helper: draw typeset math to LVGL canvas using layer-based rendering (LVGL v9)
 static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
                                  ovb::layout::Layout_Engine& layout_engine,
@@ -305,8 +329,28 @@ static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
         // Finalize drawing
         lv_canvas_finish_layer(canvas, &layer);
 
-    } catch (...) {
+    } catch (const std::exception& e) {
         // Parse error - show error text
+        s_logger.error("Math render error: " + std::string(e.what()) + " | Expression: " + expr_str);
+
+        lv_layer_t layer;
+        lv_canvas_init_layer(canvas, &layer);
+
+        lv_draw_label_dsc_t label_dsc;
+        lv_draw_label_dsc_init(&label_dsc);
+        label_dsc.color = lvgl_color(0xFF6060);  // Error color - not in theme yet
+        label_dsc.font = LVGL_FONT_DEFAULT;
+        label_dsc.opa = LV_OPA_COVER;
+
+        lv_area_t coords = {4, 4, width - 4, height - 4};
+        label_dsc.text = "Error";
+        lv_draw_label(&layer, &label_dsc, &coords);
+
+        lv_canvas_finish_layer(canvas, &layer);
+    } catch (...) {
+        // Parse error - show error text (unknown exception type)
+        s_logger.error("Math render error: unknown exception | Expression: " + expr_str);
+
         lv_layer_t layer;
         lv_canvas_init_layer(canvas, &layer);
 

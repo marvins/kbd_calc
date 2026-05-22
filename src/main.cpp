@@ -18,8 +18,8 @@
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/hal/lcd_config.hpp>
-#include <overboard/hal/sdl/lvgl_keyboard.hpp>
-#include <overboard/hal/sdl/lvgl_lcd_display.hpp>
+#include <overboard/hal/sdl/sdl_keyboard.hpp>
+#include <overboard/hal/sdl/sdl_lcd_display.hpp>
 #include <overboard/hal/sdl/sdl_input.hpp>
 #include <overboard/math/calc_engine.hpp>
 
@@ -49,13 +49,13 @@ int main(int /*argc*/, char* /*argv*/[]) {
         // Use Womier SK30 asymmetric layout (8×6 grid with split sections)
         core::Grid_Layout sk30_layout = core::Grid_Layout::womier_sk30();
 
-        hal::sdl::LVGL_Keyboard kbd_manager( "Keyboard", KBD_W, KBD_H,
-                                             sk30_layout, layers );
+        hal::sdl::SDL_Keyboard kbd_manager( "Keyboard", KBD_W, KBD_H,
+                                            sk30_layout, layers );
 
         math::Calc_Engine engine;
 
         // LCD display — LVGL-based with typeset math rendering
-        hal::sdl::LVGL_LCD_Display lcd_display( "Calculator",
+        hal::sdl::SDL_LCD_Display lcd_display( "Calculator",
                                                 KBD_W + 120, 100,
                                                 hal::LCD_WIDTH, hal::LCD_HEIGHT,
                                                 engine, layers );

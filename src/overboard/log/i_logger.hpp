@@ -1,15 +1,20 @@
-
 /**
- * @file   i_logger.hpp
- * @author Marvin Smith
- * @date   2025-10-18
- * @brief  Logger interface for platform abstraction
+ * @file    i_logger.hpp
+ * @author  Marvin Smith
+ * @date    2026-05-22
+ *
+ * @brief   Logger interface for platform abstraction
+ *
+ * Core logging interface that can be implemented for
+ * different targets (stdout, file, hardware UART, etc.)
  */
 #pragma once
 
 // C++ Standard Libraries
 #include <cstdint>
 #include <string_view>
+
+namespace ovb::log {
 
 enum class Log_Level : uint8_t {
     Debug,
@@ -18,7 +23,11 @@ enum class Log_Level : uint8_t {
     Error,
 };
 
+/**
+ * @brief   Logger interface for platform abstraction
+ */
 class I_Logger {
+
     public:
         virtual ~I_Logger() = default;
 
@@ -31,3 +40,5 @@ class I_Logger {
 
         virtual uint64_t now_us() const = 0;
 };
+
+} // namespace ovb::log

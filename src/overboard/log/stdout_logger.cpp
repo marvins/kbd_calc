@@ -1,9 +1,17 @@
+/**
+ * @file    stdout_logger.cpp
+ * @author  Marvin Smith
+ * @date    2026-05-22
+ *
+ * @brief   Stdout logger implementation
+ */
+#include <overboard/log/stdout_logger.hpp>
+
 // C++ Standard Libraries
 #include <chrono>
 #include <cstdio>
 
-// Project Libraries
-#include <overboard/hal/sdl/stdout_logger.hpp>
+namespace ovb::log {
 
 Stdout_Logger::Stdout_Logger(Log_Level min_level)
     : m_min_level(min_level) {}
@@ -38,3 +46,5 @@ void Stdout_Logger::log(Log_Level level, std::string_view message) {
         static_cast<int>(message.size()),
         message.data());
 }
+
+} // namespace ovb::log

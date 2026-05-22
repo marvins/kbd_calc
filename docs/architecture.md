@@ -10,8 +10,8 @@ src/overboard/
 │   ├── config/            # Build configuration
 │   ├── sdl/               # SDL simulator
 │   │   ├── Input: sdl_input, sdl_keymap
-│   │   ├── Keyboard: lvgl_keyboard (window, view, display)
-│   │   ├── Display: lvgl_lcd_display (typeset math)
+│   │   ├── Keyboard: sdl_keyboard (window, view, display)
+│   │   ├── Display: sdl_lcd_display (typeset math)
 │   │   └── Theme: lvgl_theme
 │   └── sk30/              # Womier SK30 hardware
 ├── core/                  # Core portable logic
@@ -41,22 +41,22 @@ The SDL simulator uses a **dual-LVGL-window architecture**:
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| `LVGL_Keyboard` | LVGL widgets | Virtual keyboard with button/label widgets (light theme) |
-| `LVGL_LCD_Display` | LVGL widgets | Calculator LCD with typeset math, history table (light theme) |
+| `SDL_Keyboard` | LVGL widgets | Virtual keyboard with button/label widgets (light theme) |
+| `SDL_LCD_Display` | LVGL widgets | Calculator LCD with typeset math, history table (light theme) |
 
 **Architecture**: Both keyboard and LCD are now LVGL-based with matching light themes:
-- `LVGL_Keyboard` manages the keyboard window with `lv_button` widgets
-- `LVGL_LCD_Display` manages the LCD window with `lv_table`, `lv_canvas` for math typesetting
+- `SDL_Keyboard` manages the keyboard window with `lv_button` widgets
+- `SDL_LCD_Display` manages the LCD window with `lv_table`, `lv_canvas` for math typesetting
 - `SDL_Input` handles both mouse (hit-testing) and physical keyboard events
 - `lvgl_theme.hpp` provides centralized color/font constants
 
 **Classes**:
 | Class | Responsibility |
 |-------|--------------|
-| `LVGL_Keyboard` | High-level keyboard manager — owns window + view |
-| `LVGL_Keyboard_Display` | SDL window owner for LVGL keyboard |
-| `LVGL_Keyboard_View` | Creates `lv_button`/`lv_label` grid from `Grid_Layout` |
-| `LVGL_LCD_Display` | LCD window with bezel, history table, math preview canvas |
+| `SDL_Keyboard` | High-level keyboard manager — owns window + view |
+| `SDL_Keyboard_Display` | SDL window owner for keyboard |
+| `SDL_Keyboard_View` | Creates `lv_button`/`lv_label` grid from `Grid_Layout` |
+| `SDL_LCD_Display` | LCD window with bezel, history table, math preview canvas |
 | `SDL_Input` | Mouse hit-testing + physical keyboard mapping via `SDL_Keymap` |
 | `SDL_Keymap` | Maps SDL scancodes (arrows, qwe/asd/zxc, etc.) to key indices |
 | `lvgl_theme.hpp` | Centralized light-mode colors and font constants |

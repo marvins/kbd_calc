@@ -1,10 +1,11 @@
 /**
- * @file lvgl_keyboard_view.cpp
- * @author Marvin Smith
- * @date 2026-05-20
- * @brief LVGL widget-based keyboard view implementation
+ * @file    sdl_keyboard_view.cpp
+ * @author  Marvin Smith
+ * @date    2026-05-20
+ *
+ * @brief   SDL widget-based keyboard view implementation
  */
-#include <overboard/hal/sdl/lvgl_keyboard_view.hpp>
+#include <overboard/hal/sdl/sdl_keyboard_view.hpp>
 
 // C++ Standard Libraries
 #include <string>
@@ -19,7 +20,7 @@ namespace ovb::hal::sdl {
 /****************************/
 /*      Constructor         */
 /****************************/
-LVGL_Keyboard_View::LVGL_Keyboard_View( lv_obj_t*                       parent,
+SDL_Keyboard_View::SDL_Keyboard_View( lv_obj_t*                       parent,
                                          const ovb::core::Grid_Layout&  layout,
                                          const core::Layer_Manager&     layers,
                                          int                            width,
@@ -58,7 +59,7 @@ LVGL_Keyboard_View::LVGL_Keyboard_View( lv_obj_t*                       parent,
 /****************************/
 /*     Button Building      */
 /****************************/
-void LVGL_Keyboard_View::build_buttons(lv_obj_t* parent) {
+void SDL_Keyboard_View::build_buttons(lv_obj_t* parent) {
     const int key_count = m_layout.key_count();
     m_buttons.assign(static_cast<std::size_t>(key_count), nullptr);
     m_labels.assign(static_cast<std::size_t>(key_count), nullptr);
@@ -115,7 +116,7 @@ void LVGL_Keyboard_View::build_buttons(lv_obj_t* parent) {
 /****************************/
 /*     Layer Update         */
 /****************************/
-void LVGL_Keyboard_View::update_layer() {
+void SDL_Keyboard_View::update_layer() {
     const auto& layer = m_layers.current_layer();
     const std::size_t key_count = m_buttons.size();
 
@@ -129,7 +130,7 @@ void LVGL_Keyboard_View::update_layer() {
 /****************************/
 /*    Press Highlighting    */
 /****************************/
-void LVGL_Keyboard_View::apply_style(int key_index, bool pressed) {
+void SDL_Keyboard_View::apply_style(int key_index, bool pressed) {
     if (key_index < 0 || key_index >= static_cast<int>(m_buttons.size())) return;
     lv_obj_t* btn = m_buttons[static_cast<std::size_t>(key_index)];
     if (!btn) return;
@@ -148,14 +149,20 @@ void LVGL_Keyboard_View::apply_style(int key_index, bool pressed) {
     }
 }
 
-void LVGL_Keyboard_View::set_pressed(int key_index) {
+/************************************/
+/*      Set the Pressed Button      */
+/************************************/
+void SDL_Keyboard_View::set_pressed(int key_index) {
     if (m_pressed_key == key_index) return;
     clear_pressed();
     m_pressed_key = key_index;
     apply_style(key_index, true);
 }
 
-void LVGL_Keyboard_View::clear_pressed() {
+/************************************/
+/*      Clear the Pressed Button    */
+/************************************/
+void SDL_Keyboard_View::clear_pressed() {
     if (m_pressed_key >= 0) {
         apply_style(m_pressed_key, false);
         m_pressed_key = -1;

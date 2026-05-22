@@ -1,13 +1,13 @@
 /**
- * @file lvgl_keyboard_display.hpp
- * @author Marvin Smith
- * @date 2026-05-20
+ * @file    sdl_keyboard_display.hpp
+ * @author  Marvin Smith
+ * @date    2026-05-20
  *
- * @brief LVGL window owner for the keyboard display
+ * @brief   SDL window owner for the keyboard display
  *
  * Creates and owns an LVGL SDL window for the keyboard. Satisfies
  * I_Display so it can be passed to Display_Controller, but keyboard
- * rendering is delegated entirely to LVGL_Keyboard_View widgets.
+ * rendering is delegated entirely to SDL_Keyboard_View widgets.
  * The I_Display draw methods are intentional no-ops; flush() drives
  * lv_timer_handler() to push LVGL widget renders to the screen.
  */
@@ -27,14 +27,14 @@
 namespace ovb::hal::sdl {
 
 /**
- * @brief LVGL window owner implementing I_Display
+ * @brief SDL window owner implementing I_Display
  *
- * Keyboard rendering is handled by LVGL_Keyboard_View widgets attached
+ * Keyboard rendering is handled by SDL_Keyboard_View widgets attached
  * to screen(). The I_Display interface is satisfied as a stub so
  * Display_Controller can hold a reference without needing a separate
  * display type for the keyboard path.
  */
-class LVGL_Keyboard_Display : public I_Display {
+class SDL_Keyboard_Display : public I_Display {
     public:
         /**
          * @brief Create LVGL keyboard window
@@ -42,9 +42,12 @@ class LVGL_Keyboard_Display : public I_Display {
          * @param width  Window width in pixels
          * @param height Window height in pixels
          */
-        LVGL_Keyboard_Display(const std::string& title, int width, int height);
+        SDL_Keyboard_Display(const std::string& title, int width, int height);
 
-        ~LVGL_Keyboard_Display() override = default;
+        /**
+         * Destructor
+         */
+        ~SDL_Keyboard_Display() override = default;
 
         int    width()     const override;
         int    height()    const override;

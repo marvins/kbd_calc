@@ -103,16 +103,13 @@ if(SIMULATOR)
     # SDL Simulator target
     add_executable(calc_sim
         src/main.cpp
-        src/overboard/hal/app_factory.cpp
-        src/overboard/hal/sdl/lvgl_keyboard.cpp
-        src/overboard/hal/sdl/lvgl_keyboard_display.cpp
-        src/overboard/hal/sdl/lvgl_keyboard_view.cpp
-        src/overboard/hal/sdl/lvgl_lcd_display.cpp
-        src/overboard/hal/sdl/sdl_app.cpp
-        src/overboard/hal/sdl/sdl_display.cpp
+        src/overboard/hal/sdl/sdl_keyboard.cpp
+        src/overboard/hal/sdl/sdl_keyboard_display.cpp
+        src/overboard/hal/sdl/sdl_keyboard_view.cpp
+        src/overboard/hal/sdl/sdl_lcd_display.cpp
         src/overboard/hal/sdl/sdl_input.cpp
         src/overboard/hal/sdl/sdl_keymap.cpp
-        src/overboard/hal/sdl/stdout_logger.cpp
+        src/overboard/log/stdout_logger.cpp
         ${CORE_SOURCES}
     )
 
@@ -136,12 +133,10 @@ if(SIMULATOR)
     set_source_files_properties(
         src/main.cpp
         src/overboard/hal/app_factory.cpp
-        src/overboard/hal/sdl/lvgl_keyboard.cpp
-        src/overboard/hal/sdl/lvgl_keyboard_display.cpp
-        src/overboard/hal/sdl/lvgl_keyboard_view.cpp
-        src/overboard/hal/sdl/lvgl_lcd_display.cpp
-        src/overboard/hal/sdl/sdl_app.cpp
-        src/overboard/hal/sdl/sdl_display.cpp
+        src/overboard/hal/sdl/sdl_keyboard.cpp
+        src/overboard/hal/sdl/sdl_keyboard_display.cpp
+        src/overboard/hal/sdl/sdl_keyboard_view.cpp
+        src/overboard/hal/sdl/sdl_lcd_display.cpp
         src/overboard/hal/sdl/sdl_input.cpp
         src/overboard/hal/sdl/sdl_keymap.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-old-style-cast"

@@ -1,12 +1,11 @@
 /**
- * @file lvgl_lcd_display.hpp
- * @author Marvin Smith
- * @date 2026-05-21
- * @brief LVGL-based LCD display with typeset math rendering
+ * @file    sdl_lcd_display.hpp
+ * @author  Marvin Smith
+ * @date    2026-05-21
+ * @brief   SDL LCD display with typeset math rendering
  *
  * Creates an LVGL window with bezel styling, a scrollable history table,
  * and custom canvas widgets for rendering typeset math expressions.
- * Replaces SDL_Display for the calculator LCD view.
  */
 #pragma once
 
@@ -26,14 +25,14 @@ struct SDL_Window;
 namespace ovb::hal::sdl {
 
 /**
- * @brief LVGL LCD display manager
+ * @brief SDL LCD display manager
  *
  * Owns the LCD window with:
  * - Bezel container with rounded border
  * - Scrollable history table (expression | result)
  * - Typeset expression preview area
  */
-class LVGL_LCD_Display {
+class SDL_LCD_Display {
     public:
         /**
          * @brief Create LVGL LCD window
@@ -43,7 +42,7 @@ class LVGL_LCD_Display {
          * @param engine    Calculation engine for state/history
          * @param layers    Layer manager for mode display
          */
-        LVGL_LCD_Display( const std::string&            title,
+        SDL_LCD_Display( const std::string&            title,
                           int                           x,
                           int                           y,
                           int                           width,
@@ -51,7 +50,7 @@ class LVGL_LCD_Display {
                           const ovb::math::Calc_Engine& engine,
                           const ovb::core::Layer_Manager& layers );
 
-        ~LVGL_LCD_Display();
+        virtual ~SDL_LCD_Display();
 
         /// @brief Window dimensions
         int  width()  const;
