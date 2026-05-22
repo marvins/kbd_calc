@@ -39,6 +39,13 @@ uint32_t SDL_Keyboard::window_id() const {
 }
 
 /*********************************/
+/*          Get Display Reference          */
+/*********************************/
+I_Display& SDL_Keyboard::get_display() {
+    return *m_display;
+}
+
+/*********************************/
 /*          Layer Management     */
 /*********************************/
 void SDL_Keyboard::update_layer() {

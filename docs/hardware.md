@@ -58,19 +58,19 @@ Any standard USB HID macropad with mechanical switches:
 
 **Layout**: 5 columns × 4 rows to match the software grid (`GRID_COLS=5`, `GRID_ROWS=4`)
 
-##### Alternative: Womier SK30 (30-Key Macropad)
+##### Selected: KISNT KN34 (34-Key Macropad with VIA)
 
-**Product**: [Womier SK30 Mechanical Gaming Keypad](https://www.amazon.com/Womier-Mechanical-Keyboard-Bluetooth-Rechargeable/dp/B0G6YZNLWJ)
+**Product**: KISNT KN34 Mechanical Keypad (VIA-compatible firmware)
 
 | Property           | Value                          |
 |--------------------|--------------------------------|
-| Keys               | 30 (5 columns × 6 rows)        |
+| Keys               | 34 (8 columns × 7 rows)        |
 | Dimensions         | 156 × 143 × 38.8 mm            |
 | Switches           | Hot-swappable mechanical       |
 | Connectivity       | USB-C, Bluetooth               |
 | Features           | RGB backlight, rechargeable    |
 
-**Notes**: The 30-key layout provides 10 extra keys beyond the 4-row calculator grid. These can be mapped to functions (clear, history, mode toggle, etc.) or left unused. The compact footprint is comparable to the target form factor.
+**Notes**: The 34-key layout provides 14 extra keys beyond the 4-row calculator grid. These can be mapped to functions (clear, history, mode toggle, etc.) or left unused. The compact footprint is comparable to the target form factor.
 
 ### USB Architecture
 

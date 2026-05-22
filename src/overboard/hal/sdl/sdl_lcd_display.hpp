@@ -20,6 +20,7 @@ struct SDL_Window;
 
 // Project Libraries
 #include <overboard/core/layer_manager.hpp>
+#include <overboard/hal/i_display.hpp>
 #include <overboard/math/calc_engine.hpp>
 
 namespace ovb::hal::sdl {
@@ -32,7 +33,7 @@ namespace ovb::hal::sdl {
  * - Scrollable history table (expression | result)
  * - Typeset expression preview area
  */
-class SDL_LCD_Display {
+class SDL_LCD_Display : public I_Display {
     public:
         /**
          * @brief Create LVGL LCD window
@@ -50,11 +51,19 @@ class SDL_LCD_Display {
                           const ovb::math::Calc_Engine& engine,
                           const ovb::core::Layer_Manager& layers );
 
-        virtual ~SDL_LCD_Display();
+        /**
+         * Destructor
+         */
+        ~SDL_LCD_Display() override;
 
-        /// @brief Window dimensions
-        int  width()  const;
-        int  height() const;
+        // I_Display interface
+        int  width()  const override;
+        int  height() const override;
+        void clear(Color c = Color::black()) override;
+        void draw_pixel(ovb::core::Point<int> pos, Color c) override;
+        void draw_rect(ovb::core::Point<int> pos, ovb::core::Point<int> size, Color c, bool filled = true) override;
+        void draw_text(ovb::core::Point<int> pos, const std::string& text, Color fg, Color bg, int scale = 1) override;
+        void flush() override;
 
         /// @brief SDL window ID for event filtering
         uint32_t window_id() const;

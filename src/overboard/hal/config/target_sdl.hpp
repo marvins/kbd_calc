@@ -13,9 +13,9 @@
 
 namespace ovb::hal::config {
 
-/// @brief SDL simulator uses the Womier SK30 layout for visual consistency
+/// @brief SDL simulator uses the KISNT KN34 layout for visual consistency
 inline core::Grid_Layout create_layout() {
-    return core::Grid_Layout::womier_sk30();
+    return core::Grid_Layout::kn34();
 }
 
 /// Target identifier

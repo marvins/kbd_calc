@@ -160,16 +160,16 @@ class Grid_Layout {
         static Grid_Layout standard_5x6();
 
         /**
-         * @brief Create Womier SK30-style asymmetric layout
+         * @brief Create KISNT KN34-style asymmetric layout
          *
          * Split layout with:
          * - Left section: function keys and arrows
          * - Right section: numpad with tall + and Enter keys
          * - Visual gaps between sections
          *
-         * @return Grid layout matching SK30 form factor
+         * @return Grid layout matching KN34 form factor
          */
-        static Grid_Layout womier_sk30();
+        static Grid_Layout kn34();
 
     private:
         int m_cols;

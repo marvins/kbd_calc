@@ -62,6 +62,13 @@ void SDL_Input::pump() {
 
         // Handle keyboard events (global - not tied to a specific window)
         if (ev.type == SDL_KEYDOWN && ev.key.repeat == 0) {
+            // Handle Command-Q on macOS for quit
+#ifdef __APPLE__
+            if (ev.key.keysym.sym == SDLK_q && (ev.key.keysym.mod & KMOD_GUI)) {
+                m_quit = true;
+                return;
+            }
+#endif
             auto key_idx = m_keymap.get_key_index(ev.key.keysym.scancode);
             if (key_idx.has_value()) {
                 m_event_queue.push({key_idx.value(), Key_Event_Type::Press});

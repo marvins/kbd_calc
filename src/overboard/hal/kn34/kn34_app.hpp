@@ -1,8 +1,8 @@
 /**
- * @file sk30_app.hpp
- * @brief Womier SK30 hardware application implementation
+ * @file kn34_app.hpp
+ * @brief KISNT KN34 hardware application implementation
  *
- * Embedded application for Womier SK30 hardware. Handles
+ * Embedded application for KISNT KN34 hardware. Handles
  * hardware initialization, key matrix scanning, and display
  * management for the embedded target.
  */
@@ -12,17 +12,17 @@
 #include <overboard/hal/i_app.hpp>
 #include <overboard/core/keyboard_layout.hpp>
 
-namespace ovb::hal::sk30 {
+namespace ovb::hal::kn34 {
 
 /**
- * @brief SK30 hardware application implementation
+ * @brief KN34 hardware application implementation
  *
- * Manages embedded hardware lifecycle for the Womier SK30.
+ * Manages embedded hardware lifecycle for the KISNT KN34.
  * Handles key matrix scanning and display updates.
  */
-class SK30_App : public I_App {
+class KN34_App : public I_App {
     public:
-        explicit SK30_App(const core::Grid_Layout& layout);
+        explicit KN34_App(const core::Grid_Layout& layout);
 
         bool init() override;
         void run() override;
@@ -37,4 +37,4 @@ class SK30_App : public I_App {
     // (SPI LCD, GPIO matrix scan, etc.)
 };
 
-} // namespace ovb::hal::sk30
+} // namespace ovb::hal::kn34

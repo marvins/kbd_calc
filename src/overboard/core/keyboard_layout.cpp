@@ -199,16 +199,16 @@ Grid_Layout Grid_Layout::standard_5x6() {
 }
 
 /**
- * @brief Womier SK30-style layout
+ * @brief KISNT KN34-style layout
  *
  * Visual layout matching user's design:
  * - Top: 3 keys (left), gap (1u), 4 keys (right/numpad top)
  * - Middle: arrow keys in upside-down T on left, numpad middle on right
  * - Bottom: more keys, wide 0, tall Enter
  *
- * Grid: 9 columns × 7 rows (3 left + 2 gaps + 4 right)
+ * Grid: 8 columns × 6 rows (3 left + 1 gap + 4 right)
  */
-Grid_Layout Grid_Layout::womier_sk30() {
+Grid_Layout Grid_Layout::kn34() {
     // 9×7 grid for better spacing:
     //   Cols 0-2 = left section (3 keys wide)
     //   Col 3 = gap between left function and arrows
@@ -244,42 +244,48 @@ Grid_Layout Grid_Layout::womier_sk30() {
     positions.push_back({6, 0, 1, 1});  // 5
     positions.push_back({7, 0, 1, 1});  // 6
 
-    // --- Row 1: Left section (was r2) + Numpad 7,8,9 + tall + ---
-    positions.push_back({0, 1, 1, 1});  // 7: (was r2c0)
-    positions.push_back({1, 1, 1, 1});  // 8: (was r2c1)
-    positions.push_back({2, 1, 1, 1});  // 9: (was r2c2)
-    positions.push_back({4, 1, 1, 1});  // 10: 7
-    positions.push_back({5, 1, 1, 1});  // 11: 8
-    positions.push_back({6, 1, 1, 1});  // 12: 9
-    positions.push_back({7, 1, 1, 2});  // 13: TALL PLUS (spans rows 1-2)
+    // --- Row 1: 4 blank buttons above numpad ---
+    positions.push_back({4, 1, 1, 1});  // 7: Extra 1
+    positions.push_back({5, 1, 1, 1});  // 8: Extra 2
+    positions.push_back({6, 1, 1, 1});  // 9: Extra 3
+    positions.push_back({7, 1, 1, 1});  // 10: Extra 4
 
-    // --- Row 2: Left section (was r3) + numpad 4,5,6 ---
-    positions.push_back({0, 2, 1, 1});  // 14: (was r3c0)
-    positions.push_back({1, 2, 1, 1});  // 15: (was r3c1)
-    positions.push_back({2, 2, 1, 1});  // 16: (was r3c2)
-    positions.push_back({4, 2, 1, 1});  // 17: 4
-    positions.push_back({5, 2, 1, 1});  // 18: 5
-    positions.push_back({6, 2, 1, 1});  // 19: 6
-    // (key 13 continues here)
+    // --- Row 2: Left section + Numpad 7,8,9 + tall + ---
+    positions.push_back({0, 2, 1, 1});  // 11: (was r2c0)
+    positions.push_back({1, 2, 1, 1});  // 12: (was r2c1)
+    positions.push_back({2, 2, 1, 1});  // 13: (was r2c2)
+    positions.push_back({4, 2, 1, 1});  // 14: 7
+    positions.push_back({5, 2, 1, 1});  // 15: 8
+    positions.push_back({6, 2, 1, 1});  // 16: 9
+    positions.push_back({7, 2, 1, 2});  // 17: TALL PLUS (spans rows 2-3)
 
-    // --- Row 3: Empty left + numpad 1,2,3 + Enter ---
-    positions.push_back({4, 3, 1, 1});  // 20: 1
-    positions.push_back({5, 3, 1, 1});  // 21: 2
-    positions.push_back({6, 3, 1, 1});  // 22: 3
-    positions.push_back({7, 3, 1, 2});  // 23: TALL ENTER (spans rows 3-4)
+    // --- Row 3: Left section (was r3) + numpad 4,5,6 ---
+    positions.push_back({0, 3, 1, 1});  // 18: (was r3c0)
+    positions.push_back({1, 3, 1, 1});  // 19: (was r3c1)
+    positions.push_back({2, 3, 1, 1});  // 20: (was r3c2)
+    positions.push_back({4, 3, 1, 1});  // 21: 4
+    positions.push_back({5, 3, 1, 1});  // 22: 5
+    positions.push_back({6, 3, 1, 1});  // 23: 6
+    // (key 17 continues here)
 
-    // --- Row 4: [blank] + wide 0 (c4-5) + [→] at c6 + Enter cont ---
-    positions.push_back({1, 4, 1, 1});  // Blank
-    positions.push_back({4, 4, 2, 1});  // WIDE 0 (spans cols 4-5, moved right)
-    positions.push_back({6, 4, 1, 1});  // Right arrow (moved to c6)
-    // (key 23 continues here)
+    // --- Row 4: Empty left + numpad 1,2,3 + Enter ---
+    positions.push_back({4, 4, 1, 1});  // 24: 1
+    positions.push_back({5, 4, 1, 1});  // 25: 2
+    positions.push_back({6, 4, 1, 1});  // 26: 3
+    positions.push_back({7, 4, 1, 2});  // 27: TALL ENTER (spans rows 4-5)
 
-    // --- Row 5: [↑][←][↓] arrows ---
-    positions.push_back({0, 5, 1, 1});  // Up arrow
-    positions.push_back({1, 5, 1, 1});  // Left arrow (moved down and right)
-    positions.push_back({2, 5, 1, 1});  // Down arrow
+    // --- Row 5: [blank] + wide 0 (c4-5) + [→] at c6 + Enter cont ---
+    positions.push_back({1, 5, 1, 1});  // Blank
+    positions.push_back({4, 5, 2, 1});  // WIDE 0 (spans cols 4-5, moved right)
+    positions.push_back({6, 5, 1, 1});  // Right arrow (moved to c6)
+    // (key 27 continues here)
 
-    return Grid_Layout(8, 6, std::move(positions));
+    // --- Row 6: [↑][←][↓] arrows ---
+    positions.push_back({0, 6, 1, 1});  // Up arrow
+    positions.push_back({1, 6, 1, 1});  // Left arrow (moved down and right)
+    positions.push_back({2, 6, 1, 1});  // Down arrow
+
+    return Grid_Layout(8, 7, std::move(positions));
 }
 
 } // namespace ovb::core

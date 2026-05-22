@@ -5,7 +5,10 @@
 #include <queue>
 
 // Third-Party Libraries
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <SDL2/SDL.h>
+#pragma GCC diagnostic pop
 
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>

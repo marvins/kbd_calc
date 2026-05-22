@@ -12,7 +12,10 @@
 #include <string>
 
 // Third-Party Libraries
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <SDL2/SDL.h>
+#pragma GCC diagnostic pop
 #include <lvgl.h>
 #include <lvgl/src/drivers/sdl/lv_sdl_window.h>
 
@@ -191,6 +194,41 @@ SDL_LCD_Display::~SDL_LCD_Display() = default;
 int  SDL_LCD_Display::width()  const { return m_impl->width; }
 int  SDL_LCD_Display::height() const { return m_impl->height; }
 
+void SDL_LCD_Display::clear( [[maybe_unused]] Color c ) {
+    // LVGL handles clearing via redraw
+}
+
+/********************************/
+/*          Draw a Pixel        */
+/********************************/
+void SDL_LCD_Display::draw_pixel( [[maybe_unused]] core::Point<int> pos,
+                                  [[maybe_unused]] Color c ) {
+    // LVGL handles rendering via widgets
+}
+
+/****************************************/
+/*          Draw a rectangle            */
+/****************************************/
+void SDL_LCD_Display::draw_rect( [[maybe_unused]] ovb::core::Point<int> pos,
+                                 [[maybe_unused]] ovb::core::Point<int> size,
+                                 [[maybe_unused]] Color c,
+                                 [[maybe_unused]] bool filled ) {
+    // LVGL handles rendering via widgets
+}
+
+/*****************************/
+/*          Draw Text        */
+/*****************************/
+void SDL_LCD_Display::draw_text([[maybe_unused]] ovb::core::Point<int> pos,
+                                 [[maybe_unused]] const std::string& text,
+                                 [[maybe_unused]] Color fg, [[maybe_unused]] Color bg, [[maybe_unused]] int scale) {
+    // LVGL handles rendering via widgets
+}
+
+void SDL_LCD_Display::flush() {
+    // LVGL flush is handled by lv_timer_handler()
+}
+
 uint32_t SDL_LCD_Display::window_id() const {
     return m_impl->sdl_window ? SDL_GetWindowID(m_impl->sdl_window) : 0;
 }
@@ -330,7 +368,7 @@ static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
         lv_canvas_finish_layer(canvas, &layer);
 
     } catch (const std::exception& e) {
-        // Parse error - show error text
+        // Parse error - log it and show raw expression as fallback
         s_logger.error("Math render error: " + std::string(e.what()) + " | Expression: " + expr_str);
 
         lv_layer_t layer;
@@ -338,17 +376,18 @@ static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
 
         lv_draw_label_dsc_t label_dsc;
         lv_draw_label_dsc_init(&label_dsc);
-        label_dsc.color = lvgl_color(0xFF6060);  // Error color - not in theme yet
+        label_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
         label_dsc.font = LVGL_FONT_DEFAULT;
         label_dsc.opa = LV_OPA_COVER;
 
         lv_area_t coords = {4, 4, width - 4, height - 4};
-        label_dsc.text = "Error";
+        // Show raw expression text instead of "Error" so user sees partial input
+        label_dsc.text = expr_str.c_str();
         lv_draw_label(&layer, &label_dsc, &coords);
 
         lv_canvas_finish_layer(canvas, &layer);
     } catch (...) {
-        // Parse error - show error text (unknown exception type)
+        // Parse error - log it and show raw expression as fallback (unknown exception type)
         s_logger.error("Math render error: unknown exception | Expression: " + expr_str);
 
         lv_layer_t layer;
@@ -356,12 +395,13 @@ static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
 
         lv_draw_label_dsc_t label_dsc;
         lv_draw_label_dsc_init(&label_dsc);
-        label_dsc.color = lvgl_color(0xFF6060);  // Error color - not in theme yet
+        label_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
         label_dsc.font = LVGL_FONT_DEFAULT;
         label_dsc.opa = LV_OPA_COVER;
 
         lv_area_t coords = {4, 4, width - 4, height - 4};
-        label_dsc.text = "Error";
+        // Show raw expression text instead of "Error" so user sees partial input
+        label_dsc.text = expr_str.c_str();
         lv_draw_label(&layer, &label_dsc, &coords);
 
         lv_canvas_finish_layer(canvas, &layer);

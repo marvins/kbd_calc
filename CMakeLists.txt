@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(SIMULATOR "Build simulator target (requires SDL2)" ON)
 option(BUILD_TESTS "Build unit tests" ON)
 
-# Target device selection: SDL or SK30
-set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, SK30)")
-set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL SK30)
+# Target device selection: SDL or KN34
+set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, KN34)")
+set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL KN34)
 
 # ── Strict warning flags ───────────────────────────────────────────────────────
 add_library(project_warnings INTERFACE)
@@ -78,6 +78,7 @@ if(BUILD_TESTS)
         src/overboard/math/calc_engine.cpp
         src/overboard/math/parser.cpp
         src/overboard/math/layout/engine.cpp
+        src/overboard/log/stdout_logger.cpp
     )
 
     target_include_directories(calc_tests PRIVATE src)
@@ -103,6 +104,8 @@ if(SIMULATOR)
     # SDL Simulator target
     add_executable(calc_sim
         src/main.cpp
+        src/overboard/hal/app_factory.cpp
+        src/overboard/hal/sdl/sdl_app.cpp
         src/overboard/hal/sdl/sdl_keyboard.cpp
         src/overboard/hal/sdl/sdl_keyboard_display.cpp
         src/overboard/hal/sdl/sdl_keyboard_view.cpp
@@ -130,26 +133,23 @@ if(SIMULATOR)
         TARGET_SDL=1
     )
 
-    set_source_files_properties(
-        src/main.cpp
-        src/overboard/hal/app_factory.cpp
-        src/overboard/hal/sdl/sdl_keyboard.cpp
-        src/overboard/hal/sdl/sdl_keyboard_display.cpp
-        src/overboard/hal/sdl/sdl_keyboard_view.cpp
-        src/overboard/hal/sdl/sdl_lcd_display.cpp
-        src/overboard/hal/sdl/sdl_input.cpp
-        src/overboard/hal/sdl/sdl_keymap.cpp
-        PROPERTIES COMPILE_OPTIONS "-Wno-old-style-cast"
+    # Keylogger utility for mapping physical keys
+    add_executable(keylogger
+        src/utils/keylogger.cpp
+        src/overboard/log/stdout_logger.cpp
     )
+    target_include_directories(keylogger PRIVATE src)
+    target_include_directories(keylogger SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
+    target_link_libraries(keylogger PRIVATE ${SDL2_LIBRARIES} project_warnings)
 endif()
 
-# SK30 Embedded target (when not building simulator)
-if(NOT SIMULATOR AND TARGET_DEVICE STREQUAL "SK30")
+# KN34 Embedded target (when not building simulator)
+if(NOT SIMULATOR AND TARGET_DEVICE STREQUAL "KN34")
     add_executable(calc_firmware
         src/main.cpp
         src/overboard/hal/app_factory.cpp
-        src/overboard/hal/sk30/sk30_app.cpp
-        src/overboard/hal/sk30/sk30_input.cpp
+        src/overboard/hal/kn34/kn34_app.cpp
+        src/overboard/hal/kn34/kn34_input.cpp
         ${CORE_SOURCES}
     )
 
@@ -160,6 +160,6 @@ if(NOT SIMULATOR AND TARGET_DEVICE STREQUAL "SK30")
     )
 
     target_compile_definitions(calc_firmware PRIVATE
-        TARGET_SK30=1
+        TARGET_KN34=1
     )
 endif()

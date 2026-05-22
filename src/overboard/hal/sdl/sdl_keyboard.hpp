@@ -20,6 +20,7 @@
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/layer_manager.hpp>
+#include <overboard/hal/i_display.hpp>
 #include <overboard/hal/sdl/sdl_keyboard_display.hpp>
 #include <overboard/hal/sdl/sdl_keyboard_view.hpp>
 
@@ -59,6 +60,9 @@ class SDL_Keyboard {
 
         /// @brief SDL window ID for event filtering
         uint32_t window_id() const;
+
+        /// @brief Get the display interface
+        I_Display& get_display();
 
         /// @brief Refresh key labels from current layer
         void update_layer();

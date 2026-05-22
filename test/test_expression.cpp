@@ -236,6 +236,55 @@ TEST(Expression, cursor_backspace_between_tokens_removes_left_token) {
 }
 
 /****************************/
+/*  Auto-balanced parens    */
+/****************************/
+
+/*************************************************************/
+/*   PAREN_OPEN inserts both '(' and ')' with cursor between   */
+/*************************************************************/
+TEST(Expression, paren_open_inserts_balanced_pair) {
+    Expression e;
+    e.insert(KC::PAREN_OPEN);
+    EXPECT_EQ(e.eval_string(), "()");
+}
+
+/*************************************************************/
+/*   Typing inside parens works correctly                     */
+/*************************************************************/
+TEST(Expression, type_inside_auto_parens) {
+    Expression e;
+    e.insert(KC::PAREN_OPEN);
+    e.insert(KC::DIGIT_2);
+    e.insert(KC::ADD);
+    e.insert(KC::DIGIT_3);
+    EXPECT_EQ(e.eval_string(), "(2+3)");
+}
+
+/*************************************************************/
+/*   Backspace on '(' deletes both parens atomically          */
+/*************************************************************/
+TEST(Expression, backspace_deletes_balanced_parens_atomically) {
+    Expression e;
+    e.insert(KC::PAREN_OPEN);
+    EXPECT_EQ(e.eval_string(), "()");
+    e.backspace();
+    EXPECT_TRUE(e.empty());
+}
+
+/*************************************************************/
+/*   Backspace with content inside only deletes content       */
+/*************************************************************/
+TEST(Expression, backspace_inside_parens_deletes_content_first) {
+    Expression e;
+    e.insert(KC::PAREN_OPEN);
+    e.insert(KC::DIGIT_5);
+    e.backspace();  // deletes '5'
+    EXPECT_EQ(e.eval_string(), "()");
+    e.backspace();  // now deletes '()' atomically
+    EXPECT_TRUE(e.empty());
+}
+
+/****************************/
 /*     Render/eval string   */
 /****************************/
 

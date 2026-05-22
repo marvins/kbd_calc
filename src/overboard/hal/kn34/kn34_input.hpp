@@ -1,10 +1,10 @@
 /**
- * @file   sk30_input.hpp
+ * @file   kn34_input.hpp
  * @author Marvin Smith
  * @date   2025-10-18
- * @brief  Womier SK30 hardware input driver
+ * @brief  KISNT KN34 hardware input driver
  *
- * Reads key matrix from the SK30 and generates Key_Event messages.
+ * Reads key matrix from the KN34 and generates Key_Event messages.
  * Platform-specific implementation for embedded targets.
  */
 
@@ -14,17 +14,17 @@
 #include <overboard/hal/i_input.hpp>
 #include <overboard/core/keyboard_layout.hpp>
 
-namespace ovb::hal::sk30 {
+namespace ovb::hal::kn34 {
 
 /**
- * @brief SK30 hardware input implementation
+ * @brief KN34 hardware input implementation
  *
  * Maps physical key matrix positions to logical key indices
  * based on the Grid_Layout configuration.
  */
-class SK30_Input : public I_Input {
+class KN34_Input : public I_Input {
     public:
-        explicit SK30_Input(const core::Grid_Layout& layout);
+        explicit KN34_Input(const core::Grid_Layout& layout);
 
         bool poll(Key_Event& out_event) override;
         bool should_quit() const override;
@@ -38,4 +38,4 @@ class SK30_Input : public I_Input {
         int scan_matrix() const;
 };
 
-} // namespace ovb::hal::sk30
+} // namespace ovb::hal::kn34

@@ -32,6 +32,11 @@ kbd.double-height {
   flex-direction: column;
   gap: 10px;
 }
+.right-section-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .right-section {
   display: grid;
   grid-template-columns: repeat(4, auto);
@@ -61,6 +66,15 @@ kbd.double-height {
   grid-template-columns: repeat(3, auto);
   gap: 4px;
 }
+.key-group-4x1 {
+  border: 3px solid #888 !important;
+  border-radius: 4px;
+  padding: 4px;
+  background-color: transparent;
+  display: inline-grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 4px;
+}
 .arrow-group {
   border: 3px solid #888 !important;
   border-radius: 4px;
@@ -76,8 +90,8 @@ kbd.double-height {
 }
 </style>
 
-Each layer occupies an **8-column × 6-row** asymmetric grid (42 cells, 30 keys with gaps).
-This layout matches the **Womier SK30** macropad physical arrangement:
+Each layer occupies an **8-column × 7-row** asymmetric grid (42 cells, 34 keys with gaps).
+This layout matches the **KISNT KN34** macropad physical arrangement:
 - Split sections with gaps between logical key groups
 - 7 keys in top rows, 6 in middle, 4-3 keys in bottom rows
 - Use **Home** key to return to the Basic layer
@@ -103,12 +117,15 @@ This layout matches the **Womier SK30** macropad physical arrangement:
       <kbd style="grid-area: right;">→</kbd>
     </div>
   </div>
-  <div class="right-section">
-    <kbd>(</kbd> <kbd>)</kbd> <kbd>=</kbd> <kbd>+/-</kbd>
-    <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
-    <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd>
-    <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
-    <kbd style="grid-column: span 2;">0</kbd> <kbd>.</kbd>
+  <div class="right-section-wrapper">
+    <div class="key-group-4x1"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
+    <div class="right-section">
+      <kbd>(</kbd> <kbd>)</kbd> <kbd>=</kbd> <kbd>+/-</kbd>
+      <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
+      <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd>
+      <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
+      <kbd style="grid-column: span 2;">0</kbd> <kbd>.</kbd>
+    </div>
   </div>
 </div>
 
@@ -129,12 +146,15 @@ Trigonometric and inverse trigonometric functions.
       <kbd style="grid-area: right;">→</kbd>
     </div>
   </div>
-  <div class="right-section">
-    <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
-    <kbd>sin</kbd> <kbd>cos</kbd> <kbd>tan</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
-    <kbd>asin</kbd> <kbd>acos</kbd> <kbd>atan</kbd>
-    <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
-    <kbd style="grid-column: span 2;">&nbsp;</kbd> <kbd>&nbsp;</kbd>
+  <div class="right-section-wrapper">
+    <div class="key-group-4x1"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
+    <div class="right-section">
+      <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
+      <kbd>sin</kbd> <kbd>cos</kbd> <kbd>tan</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
+      <kbd>asin</kbd> <kbd>acos</kbd> <kbd>atan</kbd>
+      <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
+      <kbd style="grid-column: span 2;">&nbsp;</kbd> <kbd>&nbsp;</kbd>
+    </div>
   </div>
 </div>
 
@@ -155,12 +175,15 @@ Mathematical constants.
       <kbd style="grid-area: right;">→</kbd>
     </div>
   </div>
-  <div class="right-section">
-    <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
-    <kbd>π</kbd> <kbd>e</kbd> <kbd>φ</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
-    <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
-    <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
-    <kbd style="grid-column: span 2;">&nbsp;</kbd> <kbd>&nbsp;</kbd>
+  <div class="right-section-wrapper">
+    <div class="key-group-4x1"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
+    <div class="right-section">
+      <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
+      <kbd>π</kbd> <kbd>e</kbd> <kbd>φ</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
+      <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
+      <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
+      <kbd style="grid-column: span 2;">&nbsp;</kbd> <kbd>&nbsp;</kbd>
+    </div>
   </div>
 </div>
 
@@ -181,12 +204,15 @@ Hexadecimal digits, bitwise operations, and bit-shift keys.
       <kbd style="grid-area: right;">→</kbd>
     </div>
   </div>
-  <div class="right-section">
-    <kbd>AC</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
-    <kbd>AND</kbd> <kbd>OR</kbd> <kbd>XOR</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
-    <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd>
-    <kbd>D</kbd> <kbd>E</kbd> <kbd>F</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
-    <kbd style="grid-column: span 2;">0</kbd> <kbd>.</kbd>
+  <div class="right-section-wrapper">
+    <div class="key-group-4x1"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
+    <div class="right-section">
+      <kbd>AC</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
+      <kbd>AND</kbd> <kbd>OR</kbd> <kbd>XOR</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
+      <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd>
+      <kbd>D</kbd> <kbd>E</kbd> <kbd>F</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
+      <kbd style="grid-column: span 2;">0</kbd> <kbd>.</kbd>
+    </div>
   </div>
 </div>
 

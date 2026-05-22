@@ -147,6 +147,19 @@ void Expression::insert(Key_Code code) {
                 cursor_token_ = insert_pos;
             }
         }
+    } else if (code == Key_Code::PAREN_OPEN) {
+        // ── Auto-balanced parentheses ────────────────────────────────────────
+        // Insert "()" with cursor between them
+        if (cursor_inside_number())
+            close_number();
+
+        Token open_paren = make_token(Key_Code::PAREN_OPEN);
+        Token close_paren = make_token(Key_Code::PAREN_CLOSE);
+
+        int insert_pos = cursor_token_ + 1;
+        tokens_.insert(tokens_.begin() + insert_pos, open_paren);
+        tokens_.insert(tokens_.begin() + insert_pos + 1, close_paren);
+        cursor_token_ = insert_pos;  // Cursor is between ( and )
     } else {
         // ── Non-number token ─────────────────────────────────────────────────
         // Close any open number first (move char_cursor out).
@@ -178,6 +191,20 @@ void Expression::backspace() {
     // Cursor is between tokens — delete the token to the left.
     if (cursor_token_ < 0)
         return;
+
+    // Check for balanced () pair — delete both atomically
+    if (cursor_token_ + 1 < static_cast<int>(tokens_.size())) {
+        const Token& left = tokens_[static_cast<std::size_t>(cursor_token_)];
+        const Token& right = tokens_[static_cast<std::size_t>(cursor_token_ + 1)];
+        if (left.type == Token_Type::Paren && left.text == "(" &&
+            right.type == Token_Type::Paren && right.text == ")") {
+            // Atomic delete of () pair
+            tokens_.erase(tokens_.begin() + cursor_token_,
+                          tokens_.begin() + cursor_token_ + 2);
+            --cursor_token_;
+            return;
+        }
+    }
 
     tokens_.erase(tokens_.begin() + cursor_token_);
     --cursor_token_;

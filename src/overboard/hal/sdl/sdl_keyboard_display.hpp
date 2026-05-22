@@ -18,7 +18,10 @@
 #include <string>
 
 // Third-Party Libraries
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <SDL2/SDL.h>
+#pragma GCC diagnostic pop
 #include <lvgl.h>
 
 // Project Libraries

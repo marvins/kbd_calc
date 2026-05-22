@@ -13,7 +13,7 @@ src/overboard/
 │   │   ├── Keyboard: sdl_keyboard (window, view, display)
 │   │   ├── Display: sdl_lcd_display (typeset math)
 │   │   └── Theme: lvgl_theme
-│   └── sk30/              # Womier SK30 hardware
+│   └── sk30/              # KISNT KN34 hardware
 ├── core/                  # Core portable logic
 │   ├── Keyboard: keyboard_layout, keymap, layer_manager
 │   ├── Layout: grid_layout
@@ -34,7 +34,7 @@ src/overboard/
   - `I_Display`: Display interface (pixel-buffer based)
   - `I_Input`: Input interface
   - `App_Factory`: Centralized factory — all `#ifdef` target logic lives here
-  - Target config headers (`target_sdl.hpp`, `target_sk30.hpp`)
+  - Target config headers (`target_sdl.hpp`, `target_kn34.hpp`)
 
 #### SDL Simulator (`hal/sdl/`)
 The SDL simulator uses a **dual-LVGL-window architecture**:
@@ -91,7 +91,7 @@ src/overboard/
 ├── hal/                   # Hardware Abstraction Layer (ion equivalent) — no change
 │   ├── config/
 │   ├── sdl/
-│   └── sk30/
+│   └── kn34/
 ├── core/                  # Shared types and keyboard logic only
 │   ├── point.hpp
 │   ├── rect.hpp
@@ -261,7 +261,7 @@ class LVGL_Keyboard {
 - Build script (`scripts/build.sh`) with target selection
 - Targets:
   - `calc_sim`: SDL simulator (default)
-  - `calc_firmware`: Embedded firmware (SK30)
+  - `calc_firmware`: Embedded firmware (KN34)
 
 ## Platform Support
 
@@ -270,10 +270,10 @@ class LVGL_Keyboard {
 - Uses SDL2 for graphics and input
 - Target: `TARGET_SDL`
 
-### Womier SK30
+### KISNT KN34
 - 30-key macropad hardware
 - Embedded target (future: Raspberry Pi Pico)
-- Target: `TARGET_SK30`
+- Target: `TARGET_KN34`
 
 ### Future: PicoCalc
 - QWERTY keyboard calculator
