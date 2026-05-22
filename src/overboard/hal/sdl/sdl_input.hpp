@@ -10,6 +10,7 @@
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/hal/i_input.hpp>
+#include <overboard/hal/sdl/sdl_keymap.hpp>
 
 namespace ovb::hal::sdl {
 
@@ -31,6 +32,12 @@ class SDL_Input : public I_Input {
                   const ovb::core::Grid_Layout& layout,
                   int header_height, int margin_left, int margin_top);
 
+        /**
+         * @brief Access the keyboard keymap for customization
+         * @return Reference to the SDL keymap
+         */
+        SDL_Keymap& keymap() { return m_keymap; }
+
         bool poll(Key_Event& out_event) override;
         bool should_quit() const override;
         void pump() override;
@@ -46,7 +53,8 @@ class SDL_Input : public I_Input {
         int                             m_margin_left;
         int                             m_margin_top;
         bool                            m_quit = false;
-        std::queue<Key_Event>            m_event_queue;
+        std::queue<Key_Event>           m_event_queue;
+        SDL_Keymap                      m_keymap;
 
         static constexpr int KEY_PAD = 4;
 };

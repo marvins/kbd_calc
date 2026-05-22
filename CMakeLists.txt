@@ -111,6 +111,7 @@ if(SIMULATOR)
         src/overboard/hal/sdl/sdl_app.cpp
         src/overboard/hal/sdl/sdl_display.cpp
         src/overboard/hal/sdl/sdl_input.cpp
+        src/overboard/hal/sdl/sdl_keymap.cpp
         src/overboard/hal/sdl/stdout_logger.cpp
         ${CORE_SOURCES}
     )
@@ -142,6 +143,7 @@ if(SIMULATOR)
         src/overboard/hal/sdl/sdl_app.cpp
         src/overboard/hal/sdl/sdl_display.cpp
         src/overboard/hal/sdl/sdl_input.cpp
+        src/overboard/hal/sdl/sdl_keymap.cpp
         PROPERTIES COMPILE_OPTIONS "-Wno-old-style-cast"
     )
 endif()

@@ -1,67 +1,116 @@
 # Key Layers
 
-Each layer occupies a **5-column × 6-row** physical grid (30 keys total).
-Empty cells have no function. Use **BACK** to return to the Basic layer.
+<style>
+kbd {
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 2px 6px;
+  background-color: #f8f8f8;
+  font-family: monospace;
+  display: inline-block;
+  min-width: 20px;
+  text-align: center;
+}
+kbd.double-width {
+  grid-column: span 2;
+}
+kbd.double-height {
+  grid-row: span 2;
+}
+.keyboard-layout {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 20px;
+  margin: 10px 0;
+  border: 3px solid #888 !important;
+  border-radius: 4px;
+  padding: 10px;
+  background-color: transparent;
+}
+.left-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.right-section {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  grid-template-rows: repeat(5, auto);
+  gap: 4px;
+  border: 3px solid #888 !important;
+  border-radius: 4px;
+  padding: 4px;
+  background-color: transparent;
+}
+.key-group {
+  border: 3px solid #888 !important;
+  border-radius: 4px;
+  padding: 4px;
+  background-color: transparent;
+  display: inline-grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 4px;
+  align-items: center;
+}
+.key-group-3x2 {
+  border: 3px solid #888 !important;
+  border-radius: 4px;
+  padding: 4px;
+  background-color: transparent;
+  display: inline-grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 4px;
+}
+.arrow-group {
+  border: 3px solid #888 !important;
+  border-radius: 4px;
+  padding: 4px;
+  background-color: transparent;
+  display: inline-grid;
+  grid-template-columns: repeat(3, auto);
+  grid-template-rows: auto auto;
+  gap: 4px;
+  grid-template-areas:
+    ". up ."
+    "left down right";
+}
+</style>
+
+Each layer occupies an **8-column × 6-row** asymmetric grid (42 cells, 30 keys with gaps).
+This layout matches the **Womier SK30** macropad physical arrangement:
+- Split sections with gaps between logical key groups
+- 7 keys in top rows, 6 in middle, 4-3 keys in bottom rows
+- Use **Home** key to return to the Basic layer
+
+**Keyboard Mapping** (for SDL simulator):
+- Arrow keys (←→↑↓) map to cursor keys
+- `qwe` / `asd` / `zxc` map to top-left 3×3 grid
+- Number keys `0-9` map to calculator digits
+- `Return` = Equals, `Backspace` = Backspace, `Escape` = All Clear
 
 ---
 
 ## Layer 0 — Basic
 
-<table>
-  <thead>
-    <tr>
-      <th>Col 1</th>
-      <th>Col 2</th>
-      <th>Col 3</th>
-      <th>Col 4</th>
-      <th>Col 5</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><kbd>Trig</kbd></td>
-      <td></td>
-      <td><kbd>◀</kbd></td>
-      <td><kbd>▶</kbd></td>
-      <td><kbd>BSP</kbd></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><kbd>x²</kbd></td>
-      <td><kbd>√</kbd></td>
-      <td><kbd>xʸ</kbd></td>
-      <td><kbd>+</kbd></td>
-    </tr>
-    <tr>
-      <td><kbd>CST</kbd></td>
-      <td><kbd>7</kbd></td>
-      <td><kbd>8</kbd></td>
-      <td><kbd>9</kbd></td>
-      <td><kbd>-</kbd></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><kbd>4</kbd></td>
-      <td><kbd>5</kbd></td>
-      <td><kbd>6</kbd></td>
-      <td><kbd>×</kbd></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><kbd>1</kbd></td>
-      <td><kbd>2</kbd></td>
-      <td><kbd>3</kbd></td>
-      <td><kbd>÷</kbd></td>
-    </tr>
-    <tr>
-      <td><kbd>BACK</kbd></td>
-      <td><kbd>+/-</kbd></td>
-      <td><kbd>0</kbd></td>
-      <td><kbd>.</kbd></td>
-      <td><kbd>=</kbd></td>
-    </tr>
-  </tbody>
-</table>
+<div class="keyboard-layout">
+  <div class="left-section">
+    <div class="key-group"><kbd>Home</kbd> <kbd>&nbsp;</kbd> <kbd>BSP</kbd></div>
+    <div class="key-group-3x2"><kbd>TRG</kbd><kbd>CST</kbd><kbd>PgUp</kbd><kbd>ALG</kbd><kbd>Var</kbd><kbd>PgDn</kbd></div>
+    <div class="arrow-group">
+      <kbd style="grid-area: up;">↑</kbd>
+      <kbd style="grid-area: left;">←</kbd>
+      <kbd style="grid-area: down;">↓</kbd>
+      <kbd style="grid-area: right;">→</kbd>
+    </div>
+  </div>
+  <div class="right-section">
+    <kbd>(</kbd> <kbd>)</kbd> <kbd>=</kbd> <kbd>+/-</kbd>
+    <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
+    <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd>
+    <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
+    <kbd style="grid-column: span 2;">0</kbd> <kbd>.</kbd>
+  </div>
+</div>
 
 ---
 
@@ -69,61 +118,25 @@ Empty cells have no function. Use **BACK** to return to the Basic layer.
 
 Trigonometric and inverse trigonometric functions.
 
-<table>
-  <thead>
-    <tr>
-      <th>Col 1</th>
-      <th>Col 2</th>
-      <th>Col 3</th>
-      <th>Col 4</th>
-      <th>Col 5</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td></td>
-      <td></td>
-      <td><kbd>◀</kbd></td>
-      <td><kbd>▶</kbd></td>
-      <td><kbd>BSP</kbd></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><kbd>sin</kbd></td>
-      <td><kbd>cos</kbd></td>
-      <td><kbd>tan</kbd></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><kbd>asin</kbd></td>
-      <td><kbd>acos</kbd></td>
-      <td><kbd>atan</kbd></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td><kbd>BACK</kbd></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-  </tbody>
-</table>
+<div class="keyboard-layout">
+  <div class="left-section">
+    <div class="key-group"><kbd>Home</kbd> <kbd>&nbsp;</kbd> <kbd>BSP</kbd></div>
+    <div class="key-group-3x2"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
+    <div class="arrow-group">
+      <kbd style="grid-area: up;">↑</kbd>
+      <kbd style="grid-area: left;">←</kbd>
+      <kbd style="grid-area: down;">↓</kbd>
+      <kbd style="grid-area: right;">→</kbd>
+    </div>
+  </div>
+  <div class="right-section">
+    <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
+    <kbd>sin</kbd> <kbd>cos</kbd> <kbd>tan</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
+    <kbd>asin</kbd> <kbd>acos</kbd> <kbd>atan</kbd>
+    <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
+    <kbd style="grid-column: span 2;">&nbsp;</kbd> <kbd>&nbsp;</kbd>
+  </div>
+</div>
 
 ---
 
@@ -131,61 +144,25 @@ Trigonometric and inverse trigonometric functions.
 
 Mathematical constants.
 
-<table>
-  <thead>
-    <tr>
-      <th>Col 1</th>
-      <th>Col 2</th>
-      <th>Col 3</th>
-      <th>Col 4</th>
-      <th>Col 5</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td></td>
-      <td></td>
-      <td><kbd>◀</kbd></td>
-      <td><kbd>▶</kbd></td>
-      <td><kbd>BSP</kbd></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><kbd>π</kbd></td>
-      <td><kbd>e</kbd></td>
-      <td><kbd>φ</kbd></td>
-      <td><kbd>τ</kbd></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <td><kbd>BACK</kbd></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-  </tbody>
-</table>
+<div class="keyboard-layout">
+  <div class="left-section">
+    <div class="key-group"><kbd>Home</kbd> <kbd>&nbsp;</kbd> <kbd>BSP</kbd></div>
+    <div class="key-group-3x2"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
+    <div class="arrow-group">
+      <kbd style="grid-area: up;">↑</kbd>
+      <kbd style="grid-area: left;">←</kbd>
+      <kbd style="grid-area: down;">↓</kbd>
+      <kbd style="grid-area: right;">→</kbd>
+    </div>
+  </div>
+  <div class="right-section">
+    <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
+    <kbd>π</kbd> <kbd>e</kbd> <kbd>φ</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
+    <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
+    <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
+    <kbd style="grid-column: span 2;">&nbsp;</kbd> <kbd>&nbsp;</kbd>
+  </div>
+</div>
 
 ---
 
@@ -193,61 +170,25 @@ Mathematical constants.
 
 Hexadecimal digits, bitwise operations, and bit-shift keys.
 
-<table>
-  <thead>
-    <tr>
-      <th>Col 1</th>
-      <th>Col 2</th>
-      <th>Col 3</th>
-      <th>Col 4</th>
-      <th>Col 5</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td></td>
-      <td><kbd>AC</kbd></td>
-      <td><kbd>◀</kbd></td>
-      <td><kbd>▶</kbd></td>
-      <td><kbd>BSP</kbd></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><kbd>AND</kbd></td>
-      <td><kbd>OR</kbd></td>
-      <td><kbd>XOR</kbd></td>
-      <td><kbd>NOT</kbd></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><kbd>A</kbd></td>
-      <td><kbd>B</kbd></td>
-      <td><kbd>C</kbd></td>
-      <td><kbd>&lt;&lt;</kbd></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><kbd>D</kbd></td>
-      <td><kbd>E</kbd></td>
-      <td><kbd>F</kbd></td>
-      <td><kbd>&gt;&gt;</kbd></td>
-    </tr>
-    <tr>
-      <td></td>
-      <td><kbd>7</kbd></td>
-      <td><kbd>8</kbd></td>
-      <td><kbd>9</kbd></td>
-      <td><kbd>÷</kbd></td>
-    </tr>
-    <tr>
-      <td><kbd>BACK</kbd></td>
-      <td><kbd>+/-</kbd></td>
-      <td><kbd>0</kbd></td>
-      <td><kbd>.</kbd></td>
-      <td><kbd>=</kbd></td>
-    </tr>
-  </tbody>
-</table>
+<div class="keyboard-layout">
+  <div class="left-section">
+    <div class="key-group"><kbd>Home</kbd> <kbd>&nbsp;</kbd> <kbd>BSP</kbd></div>
+    <div class="key-group-3x2"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
+    <div class="arrow-group">
+      <kbd style="grid-area: up;">↑</kbd>
+      <kbd style="grid-area: left;">←</kbd>
+      <kbd style="grid-area: down;">↓</kbd>
+      <kbd style="grid-area: right;">→</kbd>
+    </div>
+  </div>
+  <div class="right-section">
+    <kbd>AC</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
+    <kbd>AND</kbd> <kbd>OR</kbd> <kbd>XOR</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
+    <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd>
+    <kbd>D</kbd> <kbd>E</kbd> <kbd>F</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
+    <kbd style="grid-column: span 2;">0</kbd> <kbd>.</kbd>
+  </div>
+</div>
 
 ---
 

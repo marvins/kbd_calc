@@ -15,6 +15,7 @@
 #include <lvgl/src/drivers/sdl/lv_sdl_window.h>
 
 // Project Libraries
+#include <overboard/hal/sdl/lvgl_theme.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/math/calc_engine.hpp>
 #include <overboard/math/expression.hpp>
@@ -80,7 +81,7 @@ LVGL_LCD_Display::LVGL_LCD_Display( const std::string&              title,
     // Clear default styling
     lv_obj_set_style_pad_all(m_impl->screen, 0, 0);
     lv_obj_set_style_border_width(m_impl->screen, 0, 0);
-    lv_obj_set_style_bg_color(m_impl->screen, lv_color_hex(0xF0F0F0), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(m_impl->screen, lvgl_color(LVGL_COLOR_BG_SCREEN), LV_PART_MAIN);
 
     // Create bezel container
     m_impl->bezel = lv_obj_create(m_impl->screen);
@@ -88,17 +89,19 @@ LVGL_LCD_Display::LVGL_LCD_Display( const std::string&              title,
     lv_obj_align(m_impl->bezel, LV_ALIGN_CENTER, 0, 0);
 
     // Bezel styling: light background, subtle border, soft shadow
-    lv_obj_set_style_bg_color(m_impl->bezel, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-    lv_obj_set_style_border_color(m_impl->bezel, lv_color_hex(0xD0D0D0), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(m_impl->bezel, lvgl_color(LVGL_COLOR_BG_BEZEL), LV_PART_MAIN);
+    lv_obj_set_style_border_color(m_impl->bezel, lvgl_color(LVGL_COLOR_BORDER_MEDIUM), LV_PART_MAIN);
     lv_obj_set_style_border_width(m_impl->bezel, 1, LV_PART_MAIN);
     lv_obj_set_style_radius(m_impl->bezel, 8, LV_PART_MAIN);
     lv_obj_set_style_pad_all(m_impl->bezel, 4, LV_PART_MAIN);
 
     // Soft shadow effect
-    lv_obj_set_style_shadow_color(m_impl->bezel, lv_color_hex(0x808080), LV_PART_MAIN);
+    lv_obj_set_style_shadow_color(m_impl->bezel, lvgl_color(LVGL_COLOR_SHADOW), LV_PART_MAIN);
     lv_obj_set_style_shadow_width(m_impl->bezel, 8, LV_PART_MAIN);
     lv_obj_set_style_shadow_opa(m_impl->bezel, LV_OPA_20, LV_PART_MAIN);
     lv_obj_set_style_shadow_spread(m_impl->bezel, 1, LV_PART_MAIN);
+    lv_obj_set_scrollbar_mode(m_impl->bezel, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_clear_flag(m_impl->bezel, LV_OBJ_FLAG_SCROLLABLE);
 
     // Create history table
     m_impl->table = lv_table_create(m_impl->bezel);
@@ -106,33 +109,44 @@ LVGL_LCD_Display::LVGL_LCD_Display( const std::string&              title,
     lv_obj_align(m_impl->table, LV_ALIGN_TOP_MID, 0, 24);
 
     // Table styling - light theme
-    lv_obj_set_style_bg_color(m_impl->table, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(m_impl->table, lvgl_color(LVGL_COLOR_BG_TABLE), LV_PART_MAIN);
     lv_obj_set_style_border_width(m_impl->table, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(m_impl->table, 2, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(m_impl->table, 0, LV_PART_MAIN);
+
+    // Compact header styling
+    lv_obj_set_style_pad_top(m_impl->table, 2, static_cast<uint32_t>(LV_PART_ITEMS));
+    lv_obj_set_style_pad_bottom(m_impl->table, 2, static_cast<uint32_t>(LV_PART_ITEMS));
+    lv_obj_set_style_pad_left(m_impl->table, 4, static_cast<uint32_t>(LV_PART_ITEMS));
+    lv_obj_set_style_pad_right(m_impl->table, 4, static_cast<uint32_t>(LV_PART_ITEMS));
 
     // Column setup: expression (wider), result
     lv_table_set_column_width(m_impl->table, 0, (width - 24) * 2 / 3);
     lv_table_set_column_width(m_impl->table, 1, (width - 24) / 3);
 
-    // Enable scrolling
+    // Enable scrolling but hide scrollbar when not needed
     lv_obj_set_scrollbar_mode(m_impl->table, LV_SCROLLBAR_MODE_AUTO);
     lv_obj_set_scroll_dir(m_impl->table, LV_DIR_VER);
 
     // Header row
     lv_table_set_cell_value(m_impl->table, 0, 0, "Expression");
     lv_table_set_cell_value(m_impl->table, 0, 1, "Result");
-    lv_obj_set_style_text_color(m_impl->table, lv_color_hex(0x666666),
-        static_cast<uint32_t>(LV_PART_ITEMS) | static_cast<uint32_t>(LV_STATE_DEFAULT));
+
+    // Table cell styling - dark text on light background
+    const auto table_parts = static_cast<uint32_t>(LV_PART_ITEMS) | static_cast<uint32_t>(LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(m_impl->table, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), table_parts);
+    lv_obj_set_style_bg_color(m_impl->table, lvgl_color(LVGL_COLOR_BG_TABLE), table_parts);
 
     // Preview area for current expression (below table)
     m_impl->preview_area = lv_obj_create(m_impl->bezel);
     lv_obj_set_size(m_impl->preview_area, width - 24, 32);
     lv_obj_align(m_impl->preview_area, LV_ALIGN_BOTTOM_MID, 0, -4);
-    lv_obj_set_style_bg_color(m_impl->preview_area, lv_color_hex(0xF8F8F8), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(m_impl->preview_area, lvgl_color(LVGL_COLOR_BG_PREVIEW), LV_PART_MAIN);
     lv_obj_set_style_border_width(m_impl->preview_area, 1, LV_PART_MAIN);
-    lv_obj_set_style_border_color(m_impl->preview_area, lv_color_hex(0xE0E0E0), LV_PART_MAIN);
+    lv_obj_set_style_border_color(m_impl->preview_area, lvgl_color(LVGL_COLOR_BORDER_LIGHT), LV_PART_MAIN);
     lv_obj_set_style_radius(m_impl->preview_area, 4, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(m_impl->preview_area, 2, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(m_impl->preview_area, 0, LV_PART_MAIN);
+    lv_obj_set_scrollbar_mode(m_impl->preview_area, LV_SCROLLBAR_MODE_OFF);
+    lv_obj_clear_flag(m_impl->preview_area, LV_OBJ_FLAG_SCROLLABLE);
 
     // Preview canvas for typeset math
     m_impl->preview_canvas = lv_canvas_create(m_impl->preview_area);
@@ -143,14 +157,14 @@ LVGL_LCD_Display::LVGL_LCD_Display( const std::string&              title,
     lv_obj_t* mode_label = lv_label_create(m_impl->bezel);
     lv_label_set_text(mode_label, "MATH");
     lv_obj_align(mode_label, LV_ALIGN_TOP_LEFT, 4, 4);
-    lv_obj_set_style_text_color(mode_label, lv_color_hex(0x32C832), LV_PART_MAIN);
+    lv_obj_set_style_text_color(mode_label, lvgl_color(LVGL_COLOR_ACCENT_GREEN), LV_PART_MAIN);
     lv_obj_set_style_text_font(mode_label, &lv_font_montserrat_12, LV_PART_MAIN);
 
     // Layer indicator (top right)
     lv_obj_t* layer_label = lv_label_create(m_impl->bezel);
     lv_label_set_text(layer_label, std::string(layers.current_layer().name).c_str());
     lv_obj_align(layer_label, LV_ALIGN_TOP_RIGHT, -4, 4);
-    lv_obj_set_style_text_color(layer_label, lv_color_hex(0x6496FF), LV_PART_MAIN);
+    lv_obj_set_style_text_color(layer_label, lvgl_color(LVGL_COLOR_ACCENT_BLUE), LV_PART_MAIN);
     lv_obj_set_style_text_font(layer_label, &lv_font_montserrat_12, LV_PART_MAIN);
 
     // Initial population
@@ -193,12 +207,6 @@ void LVGL_LCD_Display::refresh() {
         // LVGL v9: set cell value directly, rows auto-expand
         lv_table_set_cell_value(m_impl->table, row, 0, entry.input.c_str());
         lv_table_set_cell_value(m_impl->table, row, 1, entry.result.c_str());
-
-        // Style cells - light theme
-        lv_obj_set_style_bg_color(m_impl->table, lv_color_hex(0xFFFFFF),
-            static_cast<uint32_t>(LV_PART_ITEMS) | static_cast<uint32_t>(LV_STATE_DEFAULT));
-        lv_obj_set_style_text_color(m_impl->table, lv_color_hex(0x333333),
-            static_cast<uint32_t>(LV_PART_ITEMS) | static_cast<uint32_t>(LV_STATE_DEFAULT));
     }
 
     // Update preview area with current expression typeset
@@ -226,7 +234,7 @@ static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
     }
 
     // Clear canvas to light background
-    lv_canvas_fill_bg(canvas, lv_color_hex(0xF8F8F8), LV_OPA_COVER);
+    lv_canvas_fill_bg(canvas, lvgl_color(LVGL_COLOR_BG_CANVAS), LV_OPA_COVER);
 
     if (expr_str.empty()) return;
 
@@ -251,8 +259,8 @@ static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
                 // Draw text using label descriptor
                 lv_draw_label_dsc_t label_dsc;
                 lv_draw_label_dsc_init(&label_dsc);
-                label_dsc.color = lv_color_white();
-                label_dsc.font = &lv_font_montserrat_14;
+                label_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
+                label_dsc.font = LVGL_FONT_DEFAULT;
                 label_dsc.opa = LV_OPA_COVER;
 
                 lv_area_t coords = {
@@ -274,7 +282,7 @@ static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
 
                 lv_draw_rect_dsc_t rect_dsc;
                 lv_draw_rect_dsc_init(&rect_dsc);
-                rect_dsc.bg_color = lv_color_white();
+                rect_dsc.bg_color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
                 rect_dsc.bg_opa = LV_OPA_COVER;
 
                 lv_area_t bar_coords = {
@@ -304,8 +312,8 @@ static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
 
         lv_draw_label_dsc_t label_dsc;
         lv_draw_label_dsc_init(&label_dsc);
-        label_dsc.color = lv_color_hex(0xFF6060);
-        label_dsc.font = &lv_font_montserrat_14;
+        label_dsc.color = lvgl_color(0xFF6060);  // Error color - not in theme yet
+        label_dsc.font = LVGL_FONT_DEFAULT;
         label_dsc.opa = LV_OPA_COVER;
 
         lv_area_t coords = {4, 4, width - 4, height - 4};

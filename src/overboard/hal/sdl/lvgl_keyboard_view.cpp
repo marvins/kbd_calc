@@ -12,6 +12,7 @@
 // Project Libraries
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
+#include <overboard/hal/sdl/lvgl_theme.hpp>
 
 namespace ovb::hal::sdl {
 
@@ -29,7 +30,7 @@ LVGL_Keyboard_View::LVGL_Keyboard_View( lv_obj_t*                       parent,
     m_container = lv_obj_create(parent);
     lv_obj_set_size(m_container, width, height);
     lv_obj_align(m_container, LV_ALIGN_TOP_LEFT, 0, 0);
-    lv_obj_set_style_bg_color(m_container, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(m_container, lvgl_color(LVGL_COLOR_KBD_BG), LV_PART_MAIN);
     lv_obj_set_style_border_width(m_container, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(m_container, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(m_container, 0, LV_PART_MAIN);
@@ -39,7 +40,7 @@ LVGL_Keyboard_View::LVGL_Keyboard_View( lv_obj_t*                       parent,
     lv_obj_t* header = lv_obj_create(m_container);
     lv_obj_set_size(header, width, HEADER_H);
     lv_obj_align(header, LV_ALIGN_TOP_LEFT, 0, 0);
-    lv_obj_set_style_bg_color(header, lv_color_hex(0xE8E8F0), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(header, lvgl_color(LVGL_COLOR_KBD_HEADER), LV_PART_MAIN);
     lv_obj_set_style_border_width(header, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(header, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(header, 0, LV_PART_MAIN);
@@ -48,7 +49,7 @@ LVGL_Keyboard_View::LVGL_Keyboard_View( lv_obj_t*                       parent,
     lv_obj_t* header_label = lv_label_create(header);
     const std::string layer_text = "Layer: " + std::string(m_layers.current_layer().name);
     lv_label_set_text(header_label, layer_text.c_str());
-    lv_obj_set_style_text_color(header_label, lv_color_hex(0x333333), LV_PART_MAIN);
+    lv_obj_set_style_text_color(header_label, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
     lv_obj_align(header_label, LV_ALIGN_LEFT_MID, MARGIN_LEFT, 0);
 
     build_buttons(m_container);
@@ -91,9 +92,9 @@ void LVGL_Keyboard_View::build_buttons(lv_obj_t* parent) {
         lv_obj_t* btn = lv_button_create(parent);
         lv_obj_set_pos(btn, r.x, r.y);
         lv_obj_set_size(btn, r.w, r.h);
-        lv_obj_set_style_bg_color(btn, lv_color_hex(0xFFFFFF), static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_DEFAULT));
-        lv_obj_set_style_bg_color(btn, lv_color_hex(0x6496FF), static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_CHECKED));
-        lv_obj_set_style_border_color(btn, lv_color_hex(0xCCCCCC), LV_PART_MAIN);
+        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON), static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_DEFAULT));
+        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON_PRESSED), static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_CHECKED));
+        lv_obj_set_style_border_color(btn, lvgl_color(LVGL_COLOR_BORDER_DARK), LV_PART_MAIN);
         lv_obj_set_style_border_width(btn, 1, LV_PART_MAIN);
         lv_obj_set_style_radius(btn, 4, LV_PART_MAIN);
         lv_obj_set_style_pad_all(btn, 2, LV_PART_MAIN);
@@ -103,7 +104,7 @@ void LVGL_Keyboard_View::build_buttons(lv_obj_t* parent) {
         lv_obj_t* lbl = lv_label_create(btn);
         const std::string text = label_string(layer.keys[static_cast<std::size_t>(i)].label);
         lv_label_set_text(lbl, text.c_str());
-        lv_obj_set_style_text_color(lbl, lv_color_hex(0x333333), LV_PART_MAIN);
+        lv_obj_set_style_text_color(lbl, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
         lv_obj_align(lbl, LV_ALIGN_CENTER, 0, 0);
 
         m_buttons[static_cast<std::size_t>(i)] = btn;
@@ -135,15 +136,15 @@ void LVGL_Keyboard_View::apply_style(int key_index, bool pressed) {
 
     const auto sel_default = static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_DEFAULT);
     if (pressed) {
-        lv_obj_set_style_bg_color(btn, lv_color_hex(0x6496FF), sel_default);
+        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON_PRESSED), sel_default);
         lv_obj_set_style_text_color(
             m_labels[static_cast<std::size_t>(key_index)],
-            lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+            lvgl_color(LVGL_COLOR_BG_BEZEL), LV_PART_MAIN);
     } else {
-        lv_obj_set_style_bg_color(btn, lv_color_hex(0xFFFFFF), sel_default);
+        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON), sel_default);
         lv_obj_set_style_text_color(
             m_labels[static_cast<std::size_t>(key_index)],
-            lv_color_hex(0x333333), LV_PART_MAIN);
+            lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
     }
 }
 

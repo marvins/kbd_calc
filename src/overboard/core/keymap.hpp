@@ -46,12 +46,18 @@ enum class Key_Label : uint8_t {
     // Layer / meta
     LAYER_TRIG,
     LAYER_ALGEBRA,
-    LAYER_HOME,
     LAYER_CONST,
+    LAYER_VAR,
+    LAYER_HOME,
     APPROX,
+    EVAL,
 
     // Display mode
     MATH_LAYOUT,
+
+    // Navigation and variables
+    PG_UP,
+    PG_DN,
 };
 
 /**
@@ -85,6 +91,8 @@ enum class Key_Code : uint16_t {
     MULTIPLY,
     DIVIDE,
     EQUALS,
+    EVAL,
+    APPROX,
     DECIMAL,
     CLEAR,
     ALL_CLEAR,
@@ -135,12 +143,6 @@ enum class Key_Code : uint16_t {
     HEX_E,
     HEX_F,
 
-    // Cursor / editing
-    CURSOR_LEFT,
-    CURSOR_RIGHT,
-    CURSOR_UP,
-    CURSOR_DOWN,
-
     // Constants
     PHI,
     TAU,
@@ -148,13 +150,22 @@ enum class Key_Code : uint16_t {
     // Meta / control
     LAYER_NEXT,
     LAYER_PREV,
-    CONST_LAYER,
-    ALGEBRA_LAYER,
+    LAYER_CONST,
+    LAYER_ALG,
+    LAYER_TRIG,
+    LAYER_VAR,
     LAYER_HOME,
-    APPROX,
 
     // Display mode
     TOGGLE_MATH_LAYOUT,
+
+    // Navigation
+    CURSOR_LEFT,
+    CURSOR_RIGHT,
+    CURSOR_UP,
+    CURSOR_DOWN,
+    PAGE_UP,
+    PAGE_DOWN,
 };
 
 static constexpr int GRID_COLS = 8;
@@ -217,18 +228,18 @@ class Keymap {
 
             return {{
                 { "Basic", {{
-                    // 30 keys (7+7+6+4+3+3=30)
-                    // Row 0 (7 keys)
-                    { KC::LAYER_HOME, KL::LAYER_HOME }, { KC::NONE, KL::NONE }, { KC::BACKSPACE, KL::BACKSPACE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NEGATE, KL::NEGATE },
-                    // Row 1 (7 keys) - 3 left + numpad 7-9 + Approx (was +)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::DIGIT_7, KL::D_7 }, { KC::DIGIT_8, KL::D_8 }, { KC::DIGIT_9, KL::D_9 }, { KC::APPROX, KL::APPROX },
-                    // Row 2 (6 keys) - 3 left + numpad 4-6
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::DIGIT_4, KL::D_4 }, { KC::DIGIT_5, KL::D_5 }, { KC::DIGIT_6, KL::D_6 },
-                    // Row 3 (4 keys) - numpad 1-3 + Enter
-                    { KC::DIGIT_1, KL::D_1 }, { KC::DIGIT_2, KL::D_2 }, { KC::DIGIT_3, KL::D_3 }, { KC::EQUALS, KL::EQUALS },
-                    // Row 4 (3 keys) - blank, 0, period
+                    // 30 keys total
+                    // Row 0 (7 keys) - Home, empty, BSP (left) + (, ), =, +/- (right)
+                    { KC::LAYER_HOME, KL::LAYER_HOME }, { KC::NONE, KL::NONE }, { KC::BACKSPACE, KL::BACKSPACE }, { KC::PAREN_OPEN, KL::PAREN_OPEN }, { KC::PAREN_CLOSE, KL::PAREN_CLOSE }, { KC::EQUALS, KL::EQUALS }, { KC::NEGATE, KL::NEGATE },
+                    // Row 1 (7 keys) - TRG, CST, PgUp (left) + 7, 8, 9, Aprx (right)
+                    { KC::LAYER_TRIG, KL::LAYER_TRIG }, { KC::LAYER_CONST, KL::LAYER_CONST }, { KC::PAGE_UP, KL::PG_UP }, { KC::DIGIT_7, KL::D_7 }, { KC::DIGIT_8, KL::D_8 }, { KC::DIGIT_9, KL::D_9 }, { KC::APPROX, KL::APPROX },
+                    // Row 2 (6 keys) - ALG, Var, PgDn (left) + 4, 5, 6 (right)
+                    { KC::LAYER_ALG, KL::LAYER_ALGEBRA }, { KC::LAYER_VAR, KL::LAYER_VAR }, { KC::PAGE_DOWN, KL::PG_DN }, { KC::DIGIT_4, KL::D_4 }, { KC::DIGIT_5, KL::D_5 }, { KC::DIGIT_6, KL::D_6 },
+                    // Row 3 (4 keys) - 1, 2, 3, Eval (right)
+                    { KC::DIGIT_1, KL::D_1 }, { KC::DIGIT_2, KL::D_2 }, { KC::DIGIT_3, KL::D_3 }, { KC::EVAL, KL::EVAL },
+                    // Row 4 (3 keys) - 0 (double-width), . (right) + one gap
                     { KC::CURSOR_UP, KL::CURSOR_UP }, { KC::DIGIT_0, KL::D_0 }, { KC::DECIMAL, KL::DECIMAL },
-                    // Row 5 (3 keys) - <, ↓, ↑ (swapped)
+                    // Row 5 (3 keys) - arrow keys
                     { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_DOWN, KL::CURSOR_DOWN }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT },
                 }}},
                 { "TRG", {{

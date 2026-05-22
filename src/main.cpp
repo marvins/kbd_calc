@@ -90,11 +90,11 @@ int main(int /*argc*/, char* /*argv*/[]) {
                             layers.prev_layer();
                             kbd_manager.update_layer();
                             break;
-                        case Key_Code::CONST_LAYER:
+                        case Key_Code::LAYER_CONST:
                             layers.set_layer(2);
                             kbd_manager.update_layer();
                             break;
-                        case Key_Code::ALGEBRA_LAYER:
+                        case Key_Code::LAYER_ALG:
                             layers.set_layer(4);
                             kbd_manager.update_layer();
                             break;

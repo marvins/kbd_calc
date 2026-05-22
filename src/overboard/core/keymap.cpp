@@ -7,6 +7,8 @@
 std::string label_string(Key_Label lbl) {
     switch (lbl) {
         case Key_Label::NONE:                return "";
+
+        // Numbers
         case Key_Label::D_0:                 return "0";
         case Key_Label::D_1:                 return "1";
         case Key_Label::D_2:                 return "2";
@@ -23,6 +25,8 @@ std::string label_string(Key_Label lbl) {
         case Key_Label::HEX_D:               return "D";
         case Key_Label::HEX_E:               return "E";
         case Key_Label::HEX_F:               return "F";
+
+        // Operators
         case Key_Label::ADD:                 return "+";
         case Key_Label::SUBTRACT:            return "-";
         case Key_Label::MULTIPLY:            return "\xC3\x97";   // ×
@@ -63,13 +67,17 @@ std::string label_string(Key_Label lbl) {
         case Key_Label::SHIFT_LEFT:          return "<<";
         case Key_Label::SHIFT_RIGHT:         return ">>";
         case Key_Label::LAYER_TRIG:          return "TRG";
+        case Key_Label::LAYER_CONST:         return "CST";
+        case Key_Label::LAYER_VAR:           return "Var";
         case Key_Label::PHI:                 return "\xCF\x86";   // φ
         case Key_Label::TAU:                 return "\xCF\x84";   // τ
         case Key_Label::LAYER_ALGEBRA:       return "ALG";
         case Key_Label::LAYER_HOME:          return "Home";
-        case Key_Label::LAYER_CONST:         return "CST";
-        case Key_Label::APPROX:              return "\xE2\x89\x88";  // ≈
+        case Key_Label::APPROX:              return "Aprx";
+        case Key_Label::EVAL:                return "Eval";
         case Key_Label::MATH_LAYOUT:         return "MATH";
+        case Key_Label::PG_UP:               return "PgUp";
+        case Key_Label::PG_DN:               return "PgDn";
     }
     return "";
 }

@@ -48,7 +48,7 @@ void SDL_Input::pump() {
             return;
         }
 
-        // Only handle events on the keyboard window
+        // Only handle events on the keyboard window (mouse) or global (keyboard)
         if (ev.type == SDL_MOUSEBUTTONDOWN && ev.button.windowID == m_kbd_window_id) {
             int idx = hit_test(ev.button.x, ev.button.y);
             if (idx >= 0)
@@ -58,6 +58,20 @@ void SDL_Input::pump() {
             int idx = hit_test(ev.button.x, ev.button.y);
             if (idx >= 0)
                 m_event_queue.push({idx, Key_Event_Type::Release});
+        }
+
+        // Handle keyboard events (global - not tied to a specific window)
+        if (ev.type == SDL_KEYDOWN && ev.key.repeat == 0) {
+            auto key_idx = m_keymap.get_key_index(ev.key.keysym.scancode);
+            if (key_idx.has_value()) {
+                m_event_queue.push({key_idx.value(), Key_Event_Type::Press});
+            }
+        }
+        if (ev.type == SDL_KEYUP) {
+            auto key_idx = m_keymap.get_key_index(ev.key.keysym.scancode);
+            if (key_idx.has_value()) {
+                m_event_queue.push({key_idx.value(), Key_Event_Type::Release});
+            }
         }
     }
 }
