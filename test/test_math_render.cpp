@@ -221,7 +221,7 @@ static bool save_png(const char* filename, SDL_Surface* surf) {
 /*     Render Equation      */
 /****************************/
 static int render_equation(const std::string& expr, const std::string& output_file) {
-    Parser parser(expr);
+    math::Parser parser(expr);
     ovb::ast::Node_Ptr tree;
     try {
         tree = parser.parse();

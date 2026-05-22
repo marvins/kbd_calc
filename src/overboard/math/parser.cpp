@@ -11,6 +11,8 @@
 #include <cctype>
 #include <stdexcept>
 
+namespace ovb::math {
+
 Parser::Parser(const std::string& input) : m_src(input) {}
 
 // ─── Lexer helpers ────────────────────────────────────────────────────────────
@@ -250,3 +252,5 @@ ovb::ast::Node_Ptr Parser::parse_func(const std::string& name) {
     if (peek() == ')') consume();
     return std::make_unique<ovb::ast::Function_Node>(name, std::move(args));
 }
+
+} // namespace ovb::math

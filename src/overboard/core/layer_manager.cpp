@@ -1,5 +1,12 @@
-// Project Libraries
+/**
+ * @file layer_manager.cpp
+ * @author Marvin Smith
+ * @date 2026-05-21
+ * @brief Layer_Manager implementation
+ */
 #include <overboard/core/layer_manager.hpp>
+
+namespace ovb::core {
 
 Layer_Manager::Layer_Manager(const Keymap& keymap)
     : m_keymap(keymap), m_active_layer(0) {}
@@ -30,3 +37,5 @@ const Key_Def& Layer_Manager::key_at(int key_index) const {
     return m_keymap.get_key(static_cast<std::size_t>(m_active_layer),
                             static_cast<std::size_t>(key_index));
 }
+
+} // namespace ovb::core

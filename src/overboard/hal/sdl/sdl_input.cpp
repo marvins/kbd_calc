@@ -3,11 +3,14 @@
 
 namespace ovb::hal::sdl {
 
-SDL_Input::SDL_Input(SDL_Display& kbd_display,
+SDL_Input::SDL_Input(uint32_t kbd_window_id,
+                     int kbd_width,
+                     int kbd_height,
                      const ovb::core::Grid_Layout& layout,
                      int header_height, int margin_left, int margin_top)
-    : m_kbd_display(kbd_display), m_layout(layout),
-      m_header_height(header_height), m_margin_left(margin_left), m_margin_top(margin_top) {}
+    : m_kbd_window_id(kbd_window_id), m_kbd_width(kbd_width), m_kbd_height(kbd_height),
+      m_layout(layout), m_header_height(header_height),
+      m_margin_left(margin_left), m_margin_top(margin_top) {}
 
 bool SDL_Input::should_quit() const { return m_quit; }
 
@@ -20,8 +23,8 @@ int SDL_Input::hit_test(int mx, int my) const {
     //   grid origin = (m_margin_left, m_header_height + m_margin_top)
     //   cell_w = (width - m_margin_left - KEY_PAD) / layout.cols()
     //   cell_h = (height - grid_y - KEY_PAD) / layout.rows()
-    int grid_w = m_kbd_display.width()  - m_margin_left - KEY_PAD;
-    int grid_h = m_kbd_display.height() - grid_y         - KEY_PAD;
+    int grid_w = m_kbd_width  - m_margin_left - KEY_PAD;
+    int grid_h = m_kbd_height - grid_y         - KEY_PAD;
     int cell_w = grid_w / m_layout.cols();
     int cell_h = grid_h / m_layout.rows();
 
@@ -46,14 +49,12 @@ void SDL_Input::pump() {
         }
 
         // Only handle events on the keyboard window
-        Uint32 kbd_id = SDL_GetWindowID(m_kbd_display.window());
-
-        if (ev.type == SDL_MOUSEBUTTONDOWN && ev.button.windowID == kbd_id) {
+        if (ev.type == SDL_MOUSEBUTTONDOWN && ev.button.windowID == m_kbd_window_id) {
             int idx = hit_test(ev.button.x, ev.button.y);
             if (idx >= 0)
                 m_event_queue.push({idx, Key_Event_Type::Press});
         }
-        if (ev.type == SDL_MOUSEBUTTONUP && ev.button.windowID == kbd_id) {
+        if (ev.type == SDL_MOUSEBUTTONUP && ev.button.windowID == m_kbd_window_id) {
             int idx = hit_test(ev.button.x, ev.button.y);
             if (idx >= 0)
                 m_event_queue.push({idx, Key_Event_Type::Release});

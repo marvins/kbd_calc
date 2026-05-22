@@ -16,6 +16,8 @@
 // Project Libraries
 #include <overboard/math/parser.hpp>
 
+namespace ovb::math {
+
 /****************************/
 /*     Constructor/Reset    */
 /****************************/
@@ -170,4 +172,6 @@ void Calc_Engine::evaluate() {
 void Calc_Engine::toggle_math_layout() {
     m_state.use_math_layout = !m_state.use_math_layout;
 }
+
+} // namespace ovb::math
 

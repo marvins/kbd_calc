@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(calc_simulator CXX)
+project(calc_simulator C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -35,7 +35,7 @@ find_package(SDL2 REQUIRED)
 find_package(PNG REQUIRED)
 
 # ── LVGL ──────────────────────────────────────────────────────────────────────
-set(LV_CONF_PATH ${CMAKE_SOURCE_DIR}/thirdparty/lv_conf.h CACHE PATH "LVGL config file")
+set(LV_BUILD_CONF_PATH ${CMAKE_SOURCE_DIR}/thirdparty/lv_conf.h CACHE PATH "LVGL config file")
 add_subdirectory(thirdparty/lvgl)
 
 set(CORE_SOURCES
@@ -104,6 +104,10 @@ if(SIMULATOR)
     add_executable(calc_sim
         src/main.cpp
         src/overboard/hal/app_factory.cpp
+        src/overboard/hal/sdl/lvgl_keyboard.cpp
+        src/overboard/hal/sdl/lvgl_keyboard_display.cpp
+        src/overboard/hal/sdl/lvgl_keyboard_view.cpp
+        src/overboard/hal/sdl/lvgl_lcd_display.cpp
         src/overboard/hal/sdl/sdl_app.cpp
         src/overboard/hal/sdl/sdl_display.cpp
         src/overboard/hal/sdl/sdl_input.cpp
@@ -112,7 +116,10 @@ if(SIMULATOR)
     )
 
     target_include_directories(calc_sim PRIVATE src)
+
+    #  Treating 3rd party as "SYSTEM" so we ignore compiler warnings.
     target_include_directories(calc_sim SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
+    target_include_directories(calc_sim SYSTEM PRIVATE thirdparty/lvgl)
 
     target_link_libraries(calc_sim PRIVATE
         ${SDL2_LIBRARIES}
@@ -128,6 +135,10 @@ if(SIMULATOR)
     set_source_files_properties(
         src/main.cpp
         src/overboard/hal/app_factory.cpp
+        src/overboard/hal/sdl/lvgl_keyboard.cpp
+        src/overboard/hal/sdl/lvgl_keyboard_display.cpp
+        src/overboard/hal/sdl/lvgl_keyboard_view.cpp
+        src/overboard/hal/sdl/lvgl_lcd_display.cpp
         src/overboard/hal/sdl/sdl_app.cpp
         src/overboard/hal/sdl/sdl_display.cpp
         src/overboard/hal/sdl/sdl_input.cpp

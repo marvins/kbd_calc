@@ -16,6 +16,8 @@
 #include <overboard/math/expression.hpp>
 #include <overboard/core/keymap.hpp>
 
+namespace ovb::math {
+
 struct History_Entry {
     std::string input;   // expression string
     std::string result;  // evaluated result string
@@ -49,3 +51,5 @@ class Calc_Engine {
         void          try_insert(Key_Code code);
         void          evaluate();
 };
+
+} // namespace ovb::math

@@ -10,6 +10,8 @@
 // Project Libraries
 #include <overboard/math/ast/ast.hpp>
 
+namespace ovb::math {
+
 class Parser {
     public:
         explicit Parser(const std::string& input);
@@ -36,3 +38,5 @@ class Parser {
         ovb::ast::Node_Ptr parse_primary();
         ovb::ast::Node_Ptr parse_func(const std::string& name);
 };
+
+} // namespace ovb::math

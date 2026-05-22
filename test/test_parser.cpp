@@ -16,12 +16,12 @@
 
 // Helper: parse expression string and return evaluated double
 static double eval(const std::string& expr) {
-    return Parser(expr).parse()->eval();
+    return ovb::math::Parser(expr).parse()->eval();
 }
 
 // Helper: parse expression string and return LaTeX string
 static std::string to_latex(const std::string& expr) {
-    return Parser(expr).parse()->to_latex();
+    return ovb::math::Parser(expr).parse()->to_latex();
 }
 
 // ─── Basic arithmetic ────────────────────────────────────────────────────────
@@ -179,7 +179,7 @@ TEST(Parser_Whitespace, Multiple_Spaces) {
 // ─── Error cases ─────────────────────────────────────────────────────────────
 
 TEST(Parser_Errors, Empty_Throws) {
-    EXPECT_THROW(Parser("").parse(), std::exception);
+    EXPECT_THROW(ovb::math::Parser("").parse(), std::exception);
 }
 
 TEST(Parser_Errors, Trailing_Junk_Throws) {

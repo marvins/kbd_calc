@@ -10,10 +10,11 @@
 #pragma once
 
 // Project Libraries
+#include <overboard/core/keyboard_layout.hpp>
 #include <overboard/hal/i_app.hpp>
+#include <overboard/hal/sdl/lvgl_keyboard_display.hpp>
 #include <overboard/hal/sdl/sdl_display.hpp>
 #include <overboard/hal/sdl/sdl_input.hpp>
-#include <overboard/core/keyboard_layout.hpp>
 
 namespace ovb::hal::sdl {
 
@@ -42,10 +43,10 @@ class SDL_App : public I_App {
         static constexpr int MARGIN_LEFT = 20;
         static constexpr int MARGIN_TOP = 16;
 
-        core::Grid_Layout m_layout;
-        SDL_Display m_kbd_display;
-        SDL_Display m_lcd_display;
-        SDL_Input m_input;
+        core::Grid_Layout       m_layout;
+        LVGL_Keyboard_Display  m_kbd_display;
+        SDL_Display            m_lcd_display;
+        SDL_Input              m_input;
         bool m_quit = false;
 };
 

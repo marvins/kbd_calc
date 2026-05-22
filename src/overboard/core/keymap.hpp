@@ -220,8 +220,8 @@ class Keymap {
                     // 30 keys (7+7+6+4+3+3=30)
                     // Row 0 (7 keys)
                     { KC::LAYER_HOME, KL::LAYER_HOME }, { KC::NONE, KL::NONE }, { KC::BACKSPACE, KL::BACKSPACE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NEGATE, KL::NEGATE },
-                    // Row 1 (7 keys) - 3 left + numpad 7-9 + tall +
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::DIGIT_7, KL::D_7 }, { KC::DIGIT_8, KL::D_8 }, { KC::DIGIT_9, KL::D_9 }, { KC::ADD, KL::ADD },
+                    // Row 1 (7 keys) - 3 left + numpad 7-9 + Approx (was +)
+                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::DIGIT_7, KL::D_7 }, { KC::DIGIT_8, KL::D_8 }, { KC::DIGIT_9, KL::D_9 }, { KC::APPROX, KL::APPROX },
                     // Row 2 (6 keys) - 3 left + numpad 4-6
                     { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::DIGIT_4, KL::D_4 }, { KC::DIGIT_5, KL::D_5 }, { KC::DIGIT_6, KL::D_6 },
                     // Row 3 (4 keys) - numpad 1-3 + Enter
@@ -263,7 +263,7 @@ class Keymap {
                     { KC::LAYER_HOME, KL::LAYER_HOME }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::BACKSPACE, KL::BACKSPACE }, { KC::NONE, KL::NONE },
                     { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::RECIPROCAL, KL::RECIPROCAL }, { KC::FACTORIAL, KL::FACTORIAL }, { KC::PERCENT, KL::PERCENT }, { KC::NONE, KL::NONE },
                     { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::LOG, KL::LOG }, { KC::LN, KL::LN }, { KC::EXP, KL::EXP },
-                    { KC::NONE, KL::NONE }, { KC::PAREN_OPEN, KL::PAREN_OPEN }, { KC::PAREN_CLOSE, KL::PAREN_CLOSE }, { KC::ADD, KL::ADD },
+                    { KC::ADD, KL::ADD }, { KC::PAREN_OPEN, KL::PAREN_OPEN }, { KC::PAREN_CLOSE, KL::PAREN_CLOSE }, { KC::NONE, KL::NONE },
                     { KC::NONE, KL::NONE }, { KC::LAYER_HOME, KL::LAYER_HOME }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT },
                     { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_DOWN, KL::CURSOR_DOWN }, { KC::CURSOR_UP, KL::CURSOR_UP },
                 }}},

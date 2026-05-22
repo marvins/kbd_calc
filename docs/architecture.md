@@ -9,19 +9,25 @@ src/overboard/
 ├── hal/                   # Hardware Abstraction Layer
 │   ├── config/            # Build-time target configuration
 │   ├── sdl/               # SDL simulator implementation
+│   │   ├── lvgl_keyboard.hpp        # LVGL keyboard manager (window + widgets)
+│   │   ├── lvgl_keyboard_display.hpp # SDL window owner for LVGL
+│   │   ├── lvgl_keyboard_view.hpp   # LVGL button widget tree
+│   │   ├── sdl_display.hpp          # Pixel-buffer display (LCD)
+│   │   └── sdl_input.hpp            # SDL event handling
 │   └── sk30/              # Womier SK30 hardware implementation
-└── core/                  # Core portable logic (currently mixed concerns)
-    ├── ast/               # Abstract Syntax Tree nodes
-    ├── layout/            # Math expression layout/rendering engine
-    ├── calc_engine.hpp    # Calculator state machine and key handling
+├── core/                  # Core portable logic
+│   ├── keyboard_layout.hpp     # Physical keyboard grid
+│   ├── keymap.hpp         # Key codes, labels, layer definitions
+│   ├── layer_manager.hpp  # Keyboard layer state
+│   ├── display_controller.hpp  # LCD rendering coordinator
+│   ├── point.hpp          # 2D point type
+│   └── rect.hpp           # Rectangle type
+└── math/                  # Math engine (separate module)
+    ├── calc_engine.hpp    # Calculator state machine
     ├── expression.hpp     # Expression string representation
-    ├── parser.hpp         # Expression parser (string → AST)
-    ├── display_controller.hpp  # UI rendering logic
-    ├── keyboard_layout.hpp     # Physical keyboard grid
-    ├── keymap.hpp         # Key codes, labels, and layer definitions
-    ├── layer_manager.hpp  # Keyboard layer state
-    ├── point.hpp          # 2D point type
-    └── rect.hpp           # Rectangle type
+    ├── parser.hpp         # Expression parser
+    ├── ast/               # Abstract Syntax Tree nodes
+    └── layout/            # Math expression layout/rendering
 ```
 
 ### HAL (Hardware Abstraction Layer)
@@ -29,26 +35,40 @@ src/overboard/
 - **Location**: `src/overboard/hal/`
 - **Key Components**:
   - `I_App`: Platform application interface
-  - `I_Display`: Display interface
+  - `I_Display`: Display interface (pixel-buffer based)
   - `I_Input`: Input interface
   - `App_Factory`: Centralized factory — all `#ifdef` target logic lives here
   - Target config headers (`target_sdl.hpp`, `target_sk30.hpp`)
 
-### Core (Currently Mixed)
-- **Purpose**: Platform-independent logic — currently mixes concerns
+#### SDL Simulator (`hal/sdl/`)
+The SDL simulator uses a dual-display architecture:
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| `LVGL_Keyboard` | LVGL widgets | Virtual keyboard with button/label widgets |
+| `SDL_Display` (LCD) | Pixel buffer (`I_Display`) | Calculator expression/history display |
+
+**Clean Separation**: The keyboard and LCD are independent display hardware in the real device, and this is reflected in the simulator:
+- `LVGL_Keyboard` manages its own LVGL window and widget tree — no inheritance from `I_Display`
+- `Display_Controller` only handles the LCD via `I_Display`
+- `main()` coordinates both managers independently
+
+**Classes**:
+- `LVGL_Keyboard`: High-level keyboard manager — owns window + widgets, exposes `window_id()`, `set_pressed()`, `update_layer()`
+- `LVGL_Keyboard_Display`: SDL window owner for LVGL — creates SDL window, sets up LVGL display driver
+- `LVGL_Keyboard_View`: LVGL widget tree — creates `lv_button`/`lv_label` grid from `Grid_Layout`
+- `SDL_Display`: Pixel-buffer display implementing `I_Display` — used for LCD
+- `SDL_Input`: Hit testing and event handling — uses window ID from `LVGL_Keyboard`
+
+### Core
+- **Purpose**: Platform-independent keyboard types and LCD coordination
 - **Location**: `src/overboard/core/`
-- **Math Engine**:
-  - `Calc_Engine`: Calculator state machine, key dispatch, history
-  - `Expression`: Expression string/cursor representation
-  - `Parser`: Recursive-descent parser, string → AST
-  - `ast/`: AST node types and tree operations
-  - `layout/`: Math layout engine (box model for expression rendering)
-- **UI Rendering**:
-  - `Display_Controller`: Keyboard and LCD rendering
 - **Keyboard**:
   - `Keymap`: Key codes, labels, layer definitions
   - `Layer_Manager`: Active layer state
   - `Grid_Layout`: Physical keyboard grid and cell ownership
+- **LCD**:
+  - `Display_Controller`: Renders LCD via `I_Display` — math expressions, history, mode indicators
 - **Shared Types**:
   - `point.hpp`, `rect.hpp`
 
@@ -140,7 +160,14 @@ main → hal, ui, math
 ```
 
 ### Migration Path
-1. **[Next]** Create `src/overboard/math/` — move `calc_engine`, `expression`, `parser`, `ast/`, `layout/` into it
+
+**Completed**:
+- ✅ LVGL keyboard separated from `I_Display` — `LVGL_Keyboard` is standalone in `hal/sdl/`
+- ✅ `Display_Controller` slimmed — only handles LCD, no knowledge of keyboard
+- ✅ No forward declarations in `core/` — clean layer separation achieved
+
+**Remaining**:
+1. Create `src/overboard/math/` — move `calc_engine`, `expression`, `parser`, `ast/`, `layout/` into it
 2. Create `src/overboard/graphics/` — extract drawing helpers from `Display_Controller`
 3. Create `src/overboard/ui/` — move `Display_Controller` and add view widgets
 4. Slim `src/overboard/core/` to types + keyboard only
@@ -151,45 +178,68 @@ main → hal, ui, math
 ### What is LVGL?
 [LVGL](https://lvgl.io) is an open-source embedded GUI library providing widgets, layouts, animations, and font rendering. It is well-suited for embedded targets with small displays.
 
-### Integration Options
+### Implemented Architecture
 
-#### Option A: LVGL as UI Backend (Recommended)
-- Use LVGL as the rendering backend inside the `ui/` module
-- `I_Display` wraps an LVGL canvas or display driver
-- LVGL handles widget rendering, fonts, and layout
-- Our `ui/` layer uses LVGL widgets instead of manual drawing
-- `math/layout/` still owns expression layout logic; renders via LVGL draw calls
+We use LVGL **only for the keyboard display**, while keeping the LCD on the existing pixel-buffer (`I_Display`) path. This reflects the real hardware where keyboard and LCD are separate display devices.
 
-#### Option B: LVGL Only for LCD Display
-- Use LVGL specifically for the LCD calculator display
-- Keep the keyboard display rendering with our own drawing primitives
-- Easier migration path — scope-limited
-
-#### Option C: LVGL as HAL Display Driver
-- Wrap LVGL's display driver API behind `I_Display`
-- LVGL sits below the `ui/` module, above the hardware
-- Cleanest layer separation but more plumbing
-
-### Recommended Integration Strategy
-**Option A** is the closest match to the Epsilon pattern (where kandinsky provides drawing and escher provides widgets on top of it). LVGL would replace `graphics/` + parts of `ui/`, and our `math/layout/` engine would produce draw commands that LVGL executes.
-
-### Git Submodule Approach
-LVGL is best added as a git submodule:
-```bash
-git submodule add https://github.com/lvgl/lvgl.git extern/lvgl
 ```
-Then in CMake:
+┌─────────────────────────────────────────────────────────────┐
+│                         main.cpp                            │
+│  ┌──────────────────┐        ┌──────────────────────────┐ │
+│  │  LVGL_Keyboard   │        │   Display_Controller     │ │
+│  │  (LVGL widgets)    │        │   (I_Display → LCD)      │ │
+│  └────────┬───────────┘        └──────────┬───────────────┘ │
+│           │                               │                 │
+│           ▼                               ▼                 │
+│  ┌──────────────────┐        ┌──────────────────────────┐     │
+│  │  LVGL_Window     │        │   SDL_Display          │     │
+│  │  + Button Grid   │        │   (pixel buffer)       │     │
+│  └──────────────────┘        └──────────────────────────┘     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key Design Decisions**:
+1. **LVGL does not implement `I_Display`** — `LVGL_Keyboard` is a standalone manager, not a HAL display
+2. **No forward declarations in `core/`** — `Display_Controller` knows nothing about LVGL
+3. **Clean separation** — `main()` coordinates both managers; they don't know about each other
+4. **Hardware-accurate** — Real device has separate keyboard and LCD displays
+
+### LVGL Keyboard Module (`hal/sdl/`)
+
+| Class | Responsibility |
+|-------|--------------|
+| `LVGL_Keyboard` | High-level manager — owns display + view, exposes control API |
+| `LVGL_Keyboard_Display` | SDL window owner — creates SDL window, LVGL display driver |
+| `LVGL_Keyboard_View` | Widget tree — creates/destroys `lv_button`/`lv_label` widgets |
+
+**API**:
+```cpp
+class LVGL_Keyboard {
+    LVGL_Keyboard(title, width, height, Grid_Layout, Layer_Manager);
+    uint32_t window_id() const;   // For SDL_Input event filtering
+    void set_pressed(int key);    // Highlight key
+    void clear_pressed();         // Clear highlight
+    void update_layer();          // Refresh labels from current layer
+    void render();                // Flush LVGL → SDL window
+};
+```
+
+### Git Submodule
+LVGL is added as a git submodule:
+```bash
+git submodule add https://github.com/lvgl/lvgl.git thirdparty/lvgl
+```
+
+In `CMakeLists.txt`:
 ```cmake
-add_subdirectory(extern/lvgl)
+add_subdirectory(thirdparty/lvgl)
 target_link_libraries(calc_sim PRIVATE lvgl)
 ```
-This keeps LVGL pinned to a specific version and avoids vendoring the source directly.
 
-### Pending Decision
-- Confirm integration option (A, B, or C)
-- Decide LVGL version (v9.x recommended for new projects)
-- Add submodule and CMake wiring
-- Implement `I_Display` → LVGL driver bridge
+### Future Possibilities
+- Migrate LCD to LVGL widgets (unified UI framework)
+- Keep dual-path: LVGL for embedded targets, pixel-buffer for minimal SDL sim
+- Add more LVGL features: animations, themes, touch gestures
 
 ## Build System
 

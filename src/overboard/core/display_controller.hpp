@@ -28,6 +28,7 @@ namespace ovb::core {
  * layouts like the Womier SK30 with split sections and multi-cell keys.
  */
 class Display_Controller {
+
     public:
         /**
          * @brief Construct display controller with default layout
@@ -36,10 +37,10 @@ class Display_Controller {
          * @param layers Layer manager for keyboard layout
          * @param engine Calculation engine for state and expressions
          */
-        Display_Controller( I_Display&           kbd_display,
-                            I_Display&           lcd_display,
-                            const Layer_Manager& layers,
-                            const Calc_Engine&   engine );
+        Display_Controller( I_Display&               kbd_display,
+                            I_Display&               lcd_display,
+                            const Layer_Manager&     layers,
+                            const math::Calc_Engine& engine );
 
         /**
          * @brief Construct display controller with custom layout
@@ -49,11 +50,13 @@ class Display_Controller {
          * @param engine Calculation engine for state and expressions
          * @param layout Custom grid layout for key positioning
          */
-        Display_Controller( I_Display&           kbd_display,
-                            I_Display&           lcd_display,
-                            const Layer_Manager& layers,
-                            const Calc_Engine&   engine,
-                            Grid_Layout          layout );
+        Display_Controller( I_Display&               kbd_display,
+                            I_Display&               lcd_display,
+                            const Layer_Manager&     layers,
+                            const math::Calc_Engine& engine,
+                            Grid_Layout              layout );
+
+        ~Display_Controller() = default;
 
         /// @brief Render both keyboard and LCD displays
         void render();
@@ -69,7 +72,7 @@ class Display_Controller {
         I_Display&            m_kbd_display;       ///< Keyboard display interface
         I_Display&            m_lcd_display;       ///< LCD display interface
         const Layer_Manager&  m_layers;            ///< Keymap layer manager
-        const Calc_Engine&    m_engine;            ///< Calculator state engine
+        const math::Calc_Engine& m_engine;         ///< Calculator state engine
         Grid_Layout           m_layout;            ///< Keyboard grid layout
         int                   m_pressed_key = -1;  ///< Currently pressed key index (-1 if none)
         layout::Layout_Engine m_layout_engine{2};  ///< Math layout engine (scale 2)

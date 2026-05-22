@@ -14,9 +14,9 @@
 #include <string>
 
 // Project Libraries
-#include <overboard/math/parser.hpp>
 #include <overboard/core/point.hpp>
 #include <overboard/hal/lcd_config.hpp>
+#include <overboard/math/parser.hpp>
 
 namespace ovb::core {
 
@@ -26,22 +26,28 @@ namespace ovb::core {
 Display_Controller::Display_Controller( I_Display&           kbd_display,
                                         I_Display&           lcd_display,
                                         const Layer_Manager& layers,
-                                        const Calc_Engine&   engine )
+                                        const math::Calc_Engine& engine )
     : m_kbd_display(kbd_display), m_lcd_display(lcd_display),
       m_layers(layers), m_engine(engine), m_layout(Grid_Layout::standard_5x6()) {}
 
 Display_Controller::Display_Controller( I_Display&           kbd_display,
                                         I_Display&           lcd_display,
                                         const Layer_Manager& layers,
-                                        const Calc_Engine&   engine,
+                                        const math::Calc_Engine& engine,
                                         Grid_Layout          layout )
     : m_kbd_display(kbd_display), m_lcd_display(lcd_display),
       m_layers(layers), m_engine(engine), m_layout(std::move(layout)) {}
 
+/*****************************************/
+/*          Set the Pressed Key          */
+/*****************************************/
 void Display_Controller::set_pressed_key(int key_index) {
     m_pressed_key = key_index;
 }
 
+/*****************************************/
+/*          Clear the Pressed Key        */
+/*****************************************/
 void Display_Controller::clear_pressed_key() {
     m_pressed_key = -1;
 }
@@ -304,7 +310,7 @@ void Display_Controller::render_lcd() {
 
         // Build AST from current expression for preview
         try {
-            Parser p(st.expression.eval_string());
+            math::Parser p(st.expression.eval_string());
             auto preview_ast = p.parse();
             auto box = m_layout_engine.build(preview_ast.get());
             m_layout_engine.prepare(box, Point<int>(hal::PREVIEW_MAX_WIDTH, hal::PREVIEW_MAX_HEIGHT));

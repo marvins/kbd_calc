@@ -16,7 +16,7 @@ Usage: $(basename "$0") [options]
 
 Options:
   -h           Show this help message
-  -c           Clean build directory before building
+  -c           Clean build directory, then build
   -d           Debug build (default)
   -r           Release build
   -t <target>  Target device: SDL or SK30 (default: SDL)
@@ -27,7 +27,7 @@ Examples:
   $(basename "$0") -t SK30      # SK30 target, simulator off
   $(basename "$0") -t SDL -r    # SDL simulator, release build
   $(basename "$0") -c -r         # Clean then release build
-  $(basename "$0") -c            # Clean only (no build)
+  $(basename "$0") -c            # Clean then build
 EOF
 }
 
@@ -54,10 +54,7 @@ esac
 if ${CLEAN}; then
     echo "Cleaning build directory: ${BUILD_DIR}"
     rm -rf "${BUILD_DIR}"
-    if [[ "${OPTIND}" -gt "$#" ]] && ! ${CLEAN} || [[ $# -eq 0 ]] || [[ "$*" == *"-c"* && "$*" != *"-r"* && "$*" != *"-d"* && "$*" != *"-t"* ]]; then
-        echo "Clean complete."
-        exit 0
-    fi
+    echo "Clean complete."
 fi
 
 echo "Build type    : ${BUILD_TYPE}"

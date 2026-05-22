@@ -19,10 +19,10 @@ namespace ovb::hal::sdl {
 
 SDL_App::SDL_App(const core::Grid_Layout& layout)
     : m_layout(layout),
-      m_kbd_display("Keyboard", core::Point2i(100, 100), core::Point2i(KBD_W, KBD_H)),
-      m_lcd_display("Calculator", core::Point2i(480, 100),
+      m_kbd_display("Keyboard", KBD_W, KBD_H),
+      m_lcd_display("Calculator", core::Point2i(KBD_W + 120, 100),
                     core::Point2i(hal::LCD_WIDTH, hal::LCD_HEIGHT)),
-      m_input(m_kbd_display, layout, HDR_H, MARGIN_LEFT, MARGIN_TOP) {}
+      m_input(m_kbd_display.window_id(), KBD_W, KBD_H, layout, HDR_H, MARGIN_LEFT, MARGIN_TOP) {}
 
 bool SDL_App::init() {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -31,7 +31,6 @@ bool SDL_App::init() {
     }
 
     m_lcd_display.raise_to_front();
-    m_kbd_display.raise_to_front();
 
     return true;
 }

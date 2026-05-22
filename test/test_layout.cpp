@@ -25,7 +25,7 @@ using namespace ovb;
 /*       Test Helpers       */
 /****************************/
 static layout::Layout_Box parse_and_layout(const std::string& expr, int scale = 2) {
-    Parser parser(expr);
+    math::Parser parser(expr);
     auto tree = parser.parse();
     layout::Layout_Engine engine(scale);
     auto box = engine.build(tree.get());
