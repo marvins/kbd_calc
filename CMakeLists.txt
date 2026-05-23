@@ -34,33 +34,31 @@ target_compile_options(project_warnings INTERFACE
 find_package(SDL2 REQUIRED)
 find_package(PNG REQUIRED)
 
+# ── nlohmann/json (header-only) ───────────────────────────────────────────────────
+add_library(nlohmann_json INTERFACE)
+target_include_directories(nlohmann_json SYSTEM INTERFACE thirdparty/json/include)
+
 # ── LVGL ──────────────────────────────────────────────────────────────────────
 set(LV_BUILD_CONF_PATH ${CMAKE_SOURCE_DIR}/thirdparty/lv_conf.h CACHE PATH "LVGL config file")
 add_subdirectory(thirdparty/lvgl)
 
 set(CORE_SOURCES
-    src/overboard/core/keymap.cpp
-    src/overboard/core/layer_manager.cpp
-    src/overboard/core/keyboard_layout.cpp
+    src/overboard/core/config.cpp
     src/overboard/core/display_controller.cpp
+    src/overboard/core/keymap.cpp
+    src/overboard/core/keyboard_layout.cpp
+    src/overboard/core/layer_manager.cpp
+    src/overboard/io/via_layout.cpp
     src/overboard/math/ast/ast.cpp
-    src/overboard/math/expression.cpp
     src/overboard/math/calc_engine.cpp
-    src/overboard/math/parser.cpp
+    src/overboard/math/expression.cpp
     src/overboard/math/layout/engine.cpp
+    src/overboard/math/parser.cpp
 )
 
 # ── GoogleTest ────────────────────────────────────────────────────────────────
 if(BUILD_TESTS)
-    include(FetchContent)
-    FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG        v1.14.0
-    )
-    set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
+    add_subdirectory(thirdparty/gtest)
 
     enable_testing()
 
@@ -121,11 +119,13 @@ if(SIMULATOR)
     #  Treating 3rd party as "SYSTEM" so we ignore compiler warnings.
     target_include_directories(calc_sim SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
     target_include_directories(calc_sim SYSTEM PRIVATE thirdparty/lvgl)
+    target_include_directories(calc_sim SYSTEM PRIVATE thirdparty/json/include)
 
     target_link_libraries(calc_sim PRIVATE
         ${SDL2_LIBRARIES}
         lvgl
         project_warnings
+        nlohmann_json
     )
 
     target_compile_definitions(calc_sim PRIVATE
@@ -135,12 +135,23 @@ if(SIMULATOR)
 
     # Keylogger utility for mapping physical keys
     add_executable(keylogger
-        src/utils/keylogger.cpp
+        src/tools/keylogger.cpp
         src/overboard/log/stdout_logger.cpp
     )
     target_include_directories(keylogger PRIVATE src)
     target_include_directories(keylogger SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
     target_link_libraries(keylogger PRIVATE ${SDL2_LIBRARIES} project_warnings)
+
+    # VIA layout renderer tool
+    add_executable(render_layout
+        src/tools/render_layout.cpp
+        src/overboard/io/via_layout.cpp
+        src/overboard/core/keyboard_layout.cpp
+        src/overboard/log/stdout_logger.cpp
+    )
+    target_include_directories(render_layout PRIVATE src)
+    target_include_directories(render_layout SYSTEM PRIVATE thirdparty/json/include ${PNG_INCLUDE_DIRS})
+    target_link_libraries(render_layout PRIVATE nlohmann_json PNG::PNG project_warnings)
 endif()
 
 # KN34 Embedded target (when not building simulator)

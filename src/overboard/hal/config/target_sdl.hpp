@@ -8,17 +8,27 @@
 
 #pragma once
 
+// C++ Standard Libraries
+#include <filesystem>
+
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
+#include <overboard/io/via_layout.hpp>
 
 namespace ovb::hal::config {
 
-/// @brief SDL simulator uses the KISNT KN34 layout for visual consistency
-inline core::Grid_Layout create_layout() {
-    return core::Grid_Layout::kn34();
+/// @brief SDL simulator loads layout from VIA JSON files
+inline core::Grid_Layout create_layout(
+    const std::filesystem::path& layout_path,
+    const std::filesystem::path& mapping_path)
+{
+    io::Via_Layout via_layout = io::parse_via_layout(layout_path);
+    io::Via_Mapping mapping = io::parse_via_mapping(mapping_path);
+    io::apply_mapping(via_layout, mapping);
+    return io::to_grid_layout(via_layout);
 }
 
 /// Target identifier
-inline constexpr const char* TARGET_NAME = "SDL Simulator";
+inline constexpr std::string_view TARGET_NAME = "SDL Simulator";
 
 } // namespace ovb::hal::config

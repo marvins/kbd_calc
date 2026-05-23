@@ -8,17 +8,27 @@
 
 #pragma once
 
+// C++ Standard Libraries
+#include <filesystem>
+
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
+#include <overboard/io/via_layout.hpp>
 
 namespace ovb::hal::config {
 
-/// @brief KN34 uses its native asymmetric layout
-inline core::Grid_Layout create_layout() {
-    return core::Grid_Layout::kn34();
+/// @brief KN34 loads layout from VIA JSON files
+inline core::Grid_Layout create_layout(
+    const std::filesystem::path& layout_path,
+    const std::filesystem::path& mapping_path)
+{
+    io::Via_Layout via_layout = io::parse_via_layout(layout_path);
+    io::Via_Mapping mapping = io::parse_via_mapping(mapping_path);
+    io::apply_mapping(via_layout, mapping);
+    return io::to_grid_layout(via_layout);
 }
 
 /// Target identifier
-inline constexpr const char* TARGET_NAME = "KISNT KN34";
+inline constexpr std::string_view TARGET_NAME = "KISNT KN34";
 
 } // namespace ovb::hal::config
