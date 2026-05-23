@@ -14,6 +14,9 @@ SDL_Input::SDL_Input(uint32_t kbd_window_id,
 
 bool SDL_Input::should_quit() const { return m_quit; }
 
+/*****************************************/
+/*         Hit Test                     */
+/*****************************************/
 int SDL_Input::hit_test(int mx, int my) const {
     const int grid_y = m_header_height + m_margin_top;
     if (my < grid_y) return -1;
@@ -40,6 +43,9 @@ int SDL_Input::hit_test(int mx, int my) const {
     return m_layout.get_cell_owner(col, row);
 }
 
+/*****************************************/
+/*         Pump SDL Events               */
+/*****************************************/
 void SDL_Input::pump() {
     SDL_Event ev;
     while (SDL_PollEvent(&ev)) {
@@ -83,6 +89,9 @@ void SDL_Input::pump() {
     }
 }
 
+/*****************************************/
+/*         Poll the keyboard events      */
+/*****************************************/
 bool SDL_Input::poll(Key_Event& out_event) {
     if (m_event_queue.empty()) return false;
     out_event = m_event_queue.front();

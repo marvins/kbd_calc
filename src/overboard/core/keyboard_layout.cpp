@@ -209,83 +209,79 @@ Grid_Layout Grid_Layout::standard_5x6() {
  * Grid: 8 columns × 6 rows (3 left + 1 gap + 4 right)
  */
 Grid_Layout Grid_Layout::kn34() {
-    // 9×7 grid for better spacing:
+    // 8 cols × 8 rows:
     //   Cols 0-2 = left section (3 keys wide)
-    //   Col 3 = gap between left function and arrows
-    //   Col 4 = arrows column (centered)
-    //   Col 5 = gap to right section
-    //   Cols 6-9 = right section (4 keys wide, numpad)
-    //
-    // Actually simpler: use 8 cols but add empty rows for spacing
+    //   Col  3   = gap column between left and right sections
+    //   Cols 4-7 = right section (4 keys wide, numpad)
+    //   Row  1   = gap row (right side only, left section starts at row 2)
 
     std::vector<Key_Position> positions;
-    positions.reserve(30);
+    positions.reserve(34);
 
-    // Layout structure (8 cols × 7 rows with spacing rows):
-    //       Cols 0-2     | gap | Cols 4-7
-    // Row 0: [0] [1] [2]  |     | [3] [4] [5] [6]     <- Top row (no gap in grid, just empty col 3)
-    // Row 1:               |     |                     <- GAP ROW (empty)
-    // Row 2: [←] [↑] [→]  |     | [7] [8] [9] [10tall] <- Arrows (upside-down T start) + numpad
-    // Row 3:      [↓]     |     | [11][12][13][10tall] <- Down arrow (centered) + numpad
-    // Row 4:               |     |                     <- GAP ROW (empty)
-    // Row 5: [14][15][16] |     | [17wide]   [18][19tall] <- Bottom left + wide 0 + Enter
-    // Row 6:               |     |                     <- Row 5 continued for tall keys
-    //
-    // 10tall = + (spans rows 2-3), 19tall = Enter (spans rows 5-6... need to check)
-
-    // Let's use 8 cols × 6 rows with proper key placement:
+    // Layout structure (8 cols × 8 rows with spacing rows):
+    //       Cols 0-2       | gap | Cols 4-7
+    // Row 0: [0] [1]  [2]  |     | [3]  [4]  [5]  [6]      <- Top row
+    // Row 1:                |     |                          <- GAP ROW (right side only)
+    // Row 2: [11][12] [13]  |     | [7]  [8]  [9]  [10]     <- Left func row 1 + right extra row
+    // Row 3: [18][19] [20]  |     | [14] [15] [16] [17tall] <- Left func row 2 + numpad 7,8,9 + tall Aprx
+    // Row 4:                |     | [21] [22] [23] [17tall] <- numpad 4,5,6
+    // Row 5:                |     | [24] [25] [26] [27tall] <- numpad 1,2,3 + tall Eval
+    // Row 6:      [28]      |     | [29wide]  [30] [27tall] <- blank + wide 0 + .
+    // Row 7: [31][32] [33]  |     |                          <- Arrow keys
 
     // --- Row 0: Top function row ---
-    positions.push_back({0, 0, 1, 1});  // 0
-    positions.push_back({1, 0, 1, 1});  // 1
-    positions.push_back({2, 0, 1, 1});  // 2
-    positions.push_back({4, 0, 1, 1});  // 3
-    positions.push_back({5, 0, 1, 1});  // 4
-    positions.push_back({6, 0, 1, 1});  // 5
-    positions.push_back({7, 0, 1, 1});  // 6
+    positions.push_back({0, 0, 1, 1});  // 0: Home
+    positions.push_back({1, 0, 1, 1});  // 1: _
+    positions.push_back({2, 0, 1, 1});  // 2: BSP
+    positions.push_back({4, 0, 1, 1});  // 3: right-0
+    positions.push_back({5, 0, 1, 1});  // 4: right-1
+    positions.push_back({6, 0, 1, 1});  // 5: right-2
+    positions.push_back({7, 0, 1, 1});  // 6: right-3
 
-    // --- Row 1: 4 blank buttons above numpad ---
-    positions.push_back({4, 1, 1, 1});  // 7: Extra 1
-    positions.push_back({5, 1, 1, 1});  // 8: Extra 2
-    positions.push_back({6, 1, 1, 1});  // 9: Extra 3
-    positions.push_back({7, 1, 1, 1});  // 10: Extra 4
+    // --- Row 1: GAP right side only (no keys placed) ---
 
-    // --- Row 2: Left section + Numpad 7,8,9 + tall + ---
-    positions.push_back({0, 2, 1, 1});  // 11: (was r2c0)
-    positions.push_back({1, 2, 1, 1});  // 12: (was r2c1)
-    positions.push_back({2, 2, 1, 1});  // 13: (was r2c2)
-    positions.push_back({4, 2, 1, 1});  // 14: 7
-    positions.push_back({5, 2, 1, 1});  // 15: 8
-    positions.push_back({6, 2, 1, 1});  // 16: 9
-    positions.push_back({7, 2, 1, 2});  // 17: TALL PLUS (spans rows 2-3)
+    // --- Row 2: Left function row 1 + right extra row ---
+    positions.push_back({4, 2, 1, 1});  // 7: right extra 1
+    positions.push_back({5, 2, 1, 1});  // 8: right extra 2
+    positions.push_back({6, 2, 1, 1});  // 9: right extra 3
+    positions.push_back({7, 2, 1, 1});  // 10: right extra 4
+    positions.push_back({0, 2, 1, 1});  // 11: left func 1
+    positions.push_back({1, 2, 1, 1});  // 12: left func 2
+    positions.push_back({2, 2, 1, 1});  // 13: left func 3
 
-    // --- Row 3: Left section (was r3) + numpad 4,5,6 ---
-    positions.push_back({0, 3, 1, 1});  // 18: (was r3c0)
-    positions.push_back({1, 3, 1, 1});  // 19: (was r3c1)
-    positions.push_back({2, 3, 1, 1});  // 20: (was r3c2)
-    positions.push_back({4, 3, 1, 1});  // 21: 4
-    positions.push_back({5, 3, 1, 1});  // 22: 5
-    positions.push_back({6, 3, 1, 1});  // 23: 6
+    // --- Row 3: Left function row 2 + numpad 7,8,9 + tall Aprx ---
+    positions.push_back({4, 3, 1, 1});  // 14: 7
+    positions.push_back({5, 3, 1, 1});  // 15: 8
+    positions.push_back({6, 3, 1, 1});  // 16: 9
+    positions.push_back({7, 3, 1, 2});  // 17: TALL Aprx (spans rows 3-4)
+    positions.push_back({0, 3, 1, 1});  // 18: left func 4
+    positions.push_back({1, 3, 1, 1});  // 19: left func 5
+    positions.push_back({2, 3, 1, 1});  // 20: left func 6
+
+    // --- Row 4: Numpad 4,5,6 (Aprx continues) ---
+    positions.push_back({4, 4, 1, 1});  // 21: 4
+    positions.push_back({5, 4, 1, 1});  // 22: 5
+    positions.push_back({6, 4, 1, 1});  // 23: 6
     // (key 17 continues here)
 
-    // --- Row 4: Empty left + numpad 1,2,3 + Enter ---
-    positions.push_back({4, 4, 1, 1});  // 24: 1
-    positions.push_back({5, 4, 1, 1});  // 25: 2
-    positions.push_back({6, 4, 1, 1});  // 26: 3
-    positions.push_back({7, 4, 1, 2});  // 27: TALL ENTER (spans rows 4-5)
+    // --- Row 5: Numpad 1,2,3 + tall Eval ---
+    positions.push_back({4, 5, 1, 1});  // 24: 1
+    positions.push_back({5, 5, 1, 1});  // 25: 2
+    positions.push_back({6, 5, 1, 1});  // 26: 3
+    positions.push_back({7, 5, 1, 2});  // 27: TALL Eval (spans rows 5-6)
 
-    // --- Row 5: [blank] + wide 0 (c4-5) + [→] at c6 + Enter cont ---
-    positions.push_back({1, 5, 1, 1});  // Blank
-    positions.push_back({4, 5, 2, 1});  // WIDE 0 (spans cols 4-5, moved right)
-    positions.push_back({6, 5, 1, 1});  // Right arrow (moved to c6)
+    // --- Row 6: blank + wide 0 + . ---
+    positions.push_back({1, 6, 1, 1});  // 28: blank
+    positions.push_back({4, 6, 2, 1});  // 29: WIDE 0 (spans cols 4-5)
+    positions.push_back({6, 6, 1, 1});  // 30: .
     // (key 27 continues here)
 
-    // --- Row 6: [↑][←][↓] arrows ---
-    positions.push_back({0, 6, 1, 1});  // Up arrow
-    positions.push_back({1, 6, 1, 1});  // Left arrow (moved down and right)
-    positions.push_back({2, 6, 1, 1});  // Down arrow
+    // --- Row 7: Arrow keys ---
+    positions.push_back({0, 7, 1, 1});  // 31: ↑
+    positions.push_back({1, 7, 1, 1});  // 32: ←
+    positions.push_back({2, 7, 1, 1});  // 33: ↓
 
-    return Grid_Layout(8, 7, std::move(positions));
+    return Grid_Layout(8, 8, std::move(positions));
 }
 
 } // namespace ovb::core
