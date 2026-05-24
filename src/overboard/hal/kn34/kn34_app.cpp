@@ -48,6 +48,9 @@ I_Display& KN34_App::get_lcd_display() {
     throw std::runtime_error("Not implemented");
 }
 
+/********************************/
+/*          Get Input           */
+/********************************/
 I_Input& KN34_App::get_input() {
     // TODO: Return platform-specific input implementation
     throw std::runtime_error("Not implemented");

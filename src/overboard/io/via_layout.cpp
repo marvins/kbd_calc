@@ -44,6 +44,19 @@ Via_Layout parse_via_layout(const std::filesystem::path& json_path) {
         layout.matrix_cols = j["matrix"]["cols"].get<int>();
     }
 
+    // Parse scancode mapping (matrix position -> SDL scancode name)
+    std::map<std::pair<int,int>, std::string> scancode_map;
+    if (j.contains("scancodes")) {
+        for (auto& [key_str, val] : j["scancodes"].items()) {
+            size_t comma = key_str.find(',');
+            if (comma != std::string::npos) {
+                int r = std::stoi(key_str.substr(0, comma));
+                int c = std::stoi(key_str.substr(comma + 1));
+                scancode_map[{r, c}] = val.get<std::string>();
+            }
+        }
+    }
+
     // Parse keymap layout
     if (j.contains("layouts") && j["layouts"].contains("keymap")) {
         const auto& keymap = j["layouts"]["keymap"];
@@ -89,6 +102,12 @@ Via_Layout parse_via_layout(const std::filesystem::path& json_path) {
                     key.w = pending_w;
                     key.h = pending_h;
                     key.label = key_str;
+
+                    // Attach scancode if present
+                    auto it = scancode_map.find({key.row, key.col});
+                    if (it != scancode_map.end()) {
+                        key.scancode = it->second;
+                    }
 
                     layout.keys.push_back(key);
                     cursor_x += key.w; // Advance cursor by key width
@@ -219,20 +238,73 @@ core::Grid_Layout to_grid_layout(const Via_Layout& via_layout) {
     positions.reserve(via_layout.keys.size());
 
     for (const auto& key : via_layout.keys) {
-        core::Key_Position pos;
-        pos.col = static_cast<int>(key.x);
-        pos.row = static_cast<int>(key.y);
-        pos.col_span = static_cast<int>(key.w);
-        pos.row_span = static_cast<int>(key.h);
-        positions.push_back(pos);
+        int col = static_cast<int>(key.x);
+        int row = static_cast<int>(key.y);
+        int col_span = static_cast<int>(key.w);
+        int row_span = static_cast<int>(key.h);
+
+        // Capture fractional gaps (e.g., x=4.5 becomes col=4, col_gap=0.5)
+        float col_gap = static_cast<float>(key.x - static_cast<double>(col));
+        float row_gap = static_cast<float>(key.y - static_cast<double>(row));
+
+        positions.emplace_back(col, row, col_span, row_span, col_gap, row_gap);
     }
 
-    // Calculate grid dimensions from bounds
+    // Calculate grid dimensions from bounds (use ceiling to account for gaps)
     auto bounds = calculate_bounds(via_layout);
-    int grid_cols = static_cast<int>(bounds.x) + 1;
-    int grid_rows = static_cast<int>(bounds.y) + 1;
+    int grid_cols = static_cast<int>(std::ceil(bounds.x));
+    int grid_rows = static_cast<int>(std::ceil(bounds.y));
 
     return core::Grid_Layout(grid_cols, grid_rows, std::move(positions));
+}
+
+/***********************************************/
+/*   Apply scancodes from keymap JSON file    */
+/***********************************************/
+void apply_scancodes_from_json(Via_Layout& layout, const std::filesystem::path& keymap_path) {
+    std::ifstream file(keymap_path);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open keymap file: " + keymap_path.string());
+    }
+
+    nlohmann::json j;
+    file >> j;
+
+    if (!j.contains("scancodes")) {
+        return;
+    }
+
+    // Build row,col -> Via_Key* lookup
+    std::map<std::pair<int,int>, Via_Key*> key_map;
+    for (auto& key : layout.keys) {
+        key_map[{key.row, key.col}] = &key;
+    }
+
+    for (auto& [key_str, val] : j["scancodes"].items()) {
+        size_t comma = key_str.find(',');
+        if (comma != std::string::npos) {
+            int r = std::stoi(key_str.substr(0, comma));
+            int c = std::stoi(key_str.substr(comma + 1));
+            auto it = key_map.find({r, c});
+            if (it != key_map.end()) {
+                it->second->scancode = val.get<std::string>();
+            }
+        }
+    }
+}
+
+/***********************************************/
+/*      Build scancode name -> key index map  */
+/***********************************************/
+std::map<std::string, int> build_scancode_index_map(const Via_Layout& layout) {
+    std::map<std::string, int> result;
+    for (int i = 0; i < static_cast<int>(layout.keys.size()); ++i) {
+        const auto& key = layout.keys[static_cast<std::size_t>(i)];
+        if (!key.scancode.empty()) {
+            result[key.scancode] = i;
+        }
+    }
+    return result;
 }
 
 } // namespace ovb::io

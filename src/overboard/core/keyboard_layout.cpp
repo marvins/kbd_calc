@@ -136,9 +136,12 @@ std::optional<core::Rect<int>> Grid_Layout::get_key_rect(
     int total_w = pos.col_span * cell_size.x;
     int total_h = pos.row_span * cell_size.y;
 
-    // Position is based on start cell
-    int x = grid_origin.x + pos.col * cell_size.x + padding / 2;
-    int y = grid_origin.y + pos.row * cell_size.y + padding / 2;
+    // Position is based on start cell, with fractional gap offset
+    int gap_x = static_cast<int>(pos.col_gap * static_cast<float>(cell_size.x));
+    int gap_y = static_cast<int>(pos.row_gap * static_cast<float>(cell_size.y));
+
+    int x = grid_origin.x + pos.col * cell_size.x + gap_x + padding / 2;
+    int y = grid_origin.y + pos.row * cell_size.y + gap_y + padding / 2;
 
     // Adjust for padding (only apply padding between keys, not inside)
     int w = total_w - padding;

@@ -31,10 +31,15 @@ enum class Cell_Type : uint8_t {
  * @brief Definition of a key's position and size in grid cells
  */
 struct Key_Position {
-    int col;        ///< Starting column (0-based)
-    int row;        ///< Starting row (0-based)
-    int col_span;   ///< Number of columns this key occupies (>= 1)
-    int row_span;   ///< Number of rows this key occupies (>= 1)
+    int col;           ///< Starting column (0-based)
+    int row;           ///< Starting row (0-based)
+    int col_span;      ///< Number of columns this key occupies (>= 1)
+    int row_span;      ///< Number of rows this key occupies (>= 1)
+    float col_gap;     ///< Fractional column offset (gap) in key units
+    float row_gap;     ///< Fractional row offset (gap) in key units
+
+    Key_Position(int c=0, int r=0, int cs=1, int rs=1, float cg=0.0f, float rg=0.0f)
+        : col(c), row(r), col_span(cs), row_span(rs), col_gap(cg), row_gap(rg) {}
 };
 
 /**

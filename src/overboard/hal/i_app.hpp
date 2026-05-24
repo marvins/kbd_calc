@@ -47,7 +47,7 @@ class I_App {
         virtual I_Display& get_lcd_display() = 0;
 
         /// @brief Get the input interface
-        virtual I_Input& get_input() = 0;
+        virtual ovb::hal::I_Input& get_input() = 0;
 };
 
 } // namespace ovb::hal

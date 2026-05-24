@@ -10,6 +10,7 @@
 #pragma once
 
 // C++ Standard Libraries
+#include <filesystem>
 #include <memory>
 
 // Project Libraries
@@ -30,12 +31,15 @@ class App_Factory {
         /**
          * @brief Create a platform-specific application instance
          * @param layout Keyboard layout for the target device
+         * @param keymap_path Path to JSON keymap file
          * @return Unique pointer to the created application
          *
          * The implementation is selected at compile time based on
          * the TARGET_* define passed from CMake.
          */
-        static std::unique_ptr<I_App> create(const core::Grid_Layout& layout);
+        static std::unique_ptr<I_App> create( const core::Grid_Layout&     layout,
+                                              const std::filesystem::path& layout_path,
+                                              const std::filesystem::path& keymap_path );
 };
 
 } // namespace ovb::hal

@@ -22,7 +22,7 @@ namespace ovb::hal::kn34 {
  * Maps physical key matrix positions to logical key indices
  * based on the Grid_Layout configuration.
  */
-class KN34_Input : public I_Input {
+class KN34_Input : public ovb::hal::I_Input {
     public:
         explicit KN34_Input(const core::Grid_Layout& layout);
 

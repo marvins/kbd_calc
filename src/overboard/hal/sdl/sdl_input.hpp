@@ -17,7 +17,7 @@
 
 namespace ovb::hal::sdl {
 
-class SDL_Input : public I_Input {
+class SDL_Input : public ovb::hal::I_Input {
     public:
         /**
          * @brief Construct SDL input handler

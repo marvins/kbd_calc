@@ -4,10 +4,11 @@
 // Platform-specific implementations
 #ifdef TARGET_SDL
     #include <overboard/hal/sdl/sdl_app.hpp>
-#elif defined(TARGET_KN34)
-    #include <overboard/hal/kn34/kn34_app.hpp>
+#elif defined(TARGET_RP2350)
+    // RP2350 HAL to be implemented
+    #error "RP2350 HAL not yet implemented"
 #else
-    #error "No target defined. Define TARGET_SDL or TARGET_KN34."
+    #error "No target defined. Define TARGET_SDL or TARGET_RP2350."
 #endif
 
 namespace ovb::hal {
@@ -15,11 +16,15 @@ namespace ovb::hal {
 /*********************************/
 /*      Create App Instance      */
 /*********************************/
-std::unique_ptr<I_App> App_Factory::create(const core::Grid_Layout& layout) {
+std::unique_ptr<I_App> App_Factory::create(const core::Grid_Layout& layout,
+                                           const std::filesystem::path& layout_path,
+                                           const std::filesystem::path& keymap_path) {
 #ifdef TARGET_SDL
-    return sdl::SDL_App::create(layout);
-#elif defined(TARGET_KN34)
-    return std::make_unique<kn34::KN34_App>(layout);
+    return sdl::SDL_App::create(layout, layout_path, keymap_path);
+#elif defined(TARGET_RP2350)
+    // RP2350 HAL to be implemented
+    (void)layout; (void)layout_path; (void)keymap_path;
+    return nullptr;
 #else
     #error "No target defined"
 #endif

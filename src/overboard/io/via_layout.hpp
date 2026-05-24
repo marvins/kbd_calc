@@ -12,6 +12,7 @@
 
 // C++ Standard Libraries
 #include <filesystem>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -31,8 +32,9 @@ struct Via_Key {
     double y;        ///< Y offset in key units
     double w;        ///< Width in key units (default 1.0)
     double h;        ///< Height in key units (default 1.0)
-    std::string label; ///< Display label
-    std::string code;  ///< Internal key code
+    std::string label;    ///< Display label
+    std::string code;     ///< Internal key code
+    std::string scancode; ///< HAL scancode name (e.g. "SDL_SCANCODE_F13")
 };
 
 /**
@@ -87,6 +89,21 @@ core::Size2d calculate_bounds(const Via_Layout& layout);
  * @param via_layout Parsed VIA layout
  * @return Grid_Layout for use in display/input systems
  */
-core::Grid_Layout to_grid_layout(const Via_Layout& via_layout);
+core::Grid_Layout to_grid_layout( const Via_Layout& via_layout );
+
+/**
+ * @brief Build a map from SDL scancode name -> key index
+ * @param layout Parsed VIA layout (must have scancode fields populated)
+ * @return Map of scancode name string -> key index
+ */
+std::map<std::string, int> build_scancode_index_map( const Via_Layout& layout );
+
+/**
+ * @brief Load scancodes from a keymap JSON file and apply to an existing layout
+ * @param layout Layout to update with scancode data
+ * @param keymap_path Path to the keymap JSON file (contains top-level "scancodes" object)
+ */
+void apply_scancodes_from_json( Via_Layout&                  layout,
+                                const std::filesystem::path& keymap_path );
 
 } // namespace ovb::io

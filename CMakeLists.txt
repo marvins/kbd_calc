@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(SIMULATOR "Build simulator target (requires SDL2)" ON)
 option(BUILD_TESTS "Build unit tests" ON)
 
-# Target device selection: SDL or KN34
-set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, KN34)")
-set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL KN34)
+# Target device selection: SDL or RP2350
+set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, RP2350)")
+set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL RP2350)
 
 # ── Strict warning flags ───────────────────────────────────────────────────────
 add_library(project_warnings INTERFACE)
@@ -31,8 +31,14 @@ target_compile_options(project_warnings INTERFACE
     -Wimplicit-fallthrough
 )
 
-find_package(SDL2 REQUIRED)
-find_package(PNG REQUIRED)
+# Include hardware-specific configuration
+if(TARGET_DEVICE STREQUAL "SDL")
+    include(data/hardware/sdl/CMakeLists.txt)
+elseif(TARGET_DEVICE STREQUAL "RP2350")
+    include(data/hardware/rp2350/CMakeLists.txt)
+else()
+    message(FATAL_ERROR "Unknown TARGET_DEVICE: ${TARGET_DEVICE}")
+endif()
 
 # ── nlohmann/json (header-only) ───────────────────────────────────────────────────
 add_library(nlohmann_json INTERFACE)
@@ -69,6 +75,7 @@ if(BUILD_TESTS)
         test/test_calc_engine.cpp
         test/test_expression.cpp
         test/test_layout.cpp
+        test/test_keymap.cpp
         src/overboard/core/keymap.cpp
         src/overboard/core/layer_manager.cpp
         src/overboard/math/ast/ast.cpp
@@ -98,42 +105,31 @@ if(BUILD_TESTS)
     target_compile_options(math_render_test PRIVATE -Wno-old-style-cast -Wno-sign-conversion)
 endif()
 
-if(SIMULATOR)
+if(TARGET_DEVICE STREQUAL "SDL")
     # SDL Simulator target
     add_executable(calc_sim
         src/main.cpp
         src/overboard/hal/app_factory.cpp
-        src/overboard/hal/sdl/sdl_app.cpp
-        src/overboard/hal/sdl/sdl_keyboard.cpp
-        src/overboard/hal/sdl/sdl_keyboard_display.cpp
-        src/overboard/hal/sdl/sdl_keyboard_view.cpp
-        src/overboard/hal/sdl/sdl_lcd_display.cpp
-        src/overboard/hal/sdl/sdl_input.cpp
-        src/overboard/hal/sdl/sdl_keymap.cpp
+        ${HARDWARE_SOURCES}
         src/overboard/log/stdout_logger.cpp
         ${CORE_SOURCES}
     )
 
     target_include_directories(calc_sim PRIVATE src)
-
-    #  Treating 3rd party as "SYSTEM" so we ignore compiler warnings.
-    target_include_directories(calc_sim SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
     target_include_directories(calc_sim SYSTEM PRIVATE thirdparty/lvgl)
     target_include_directories(calc_sim SYSTEM PRIVATE thirdparty/json/include)
+    target_include_directories(calc_sim SYSTEM PRIVATE ${HARDWARE_INCLUDE_DIRS})
 
     target_link_libraries(calc_sim PRIVATE
-        ${SDL2_LIBRARIES}
+        ${HARDWARE_LIBRARIES}
         lvgl
         project_warnings
         nlohmann_json
     )
 
-    target_compile_definitions(calc_sim PRIVATE
-        SIMULATOR=1
-        TARGET_SDL=1
-    )
+    target_compile_definitions(calc_sim PRIVATE ${HARDWARE_COMPILE_DEFINITIONS})
 
-    # Keylogger utility for mapping physical keys
+    # Keylogger utility for mapping physical keys (SDL only)
     add_executable(keylogger
         src/tools/keylogger.cpp
         src/overboard/log/stdout_logger.cpp
@@ -142,7 +138,7 @@ if(SIMULATOR)
     target_include_directories(keylogger SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
     target_link_libraries(keylogger PRIVATE ${SDL2_LIBRARIES} project_warnings)
 
-    # VIA layout renderer tool
+    # VIA layout renderer tool (SDL only)
     add_executable(render_layout
         src/tools/render_layout.cpp
         src/overboard/io/via_layout.cpp
@@ -154,23 +150,27 @@ if(SIMULATOR)
     target_link_libraries(render_layout PRIVATE nlohmann_json PNG::PNG project_warnings)
 endif()
 
-# KN34 Embedded target (when not building simulator)
-if(NOT SIMULATOR AND TARGET_DEVICE STREQUAL "KN34")
+# RP2350 Embedded target
+if(TARGET_DEVICE STREQUAL "RP2350")
     add_executable(calc_firmware
         src/main.cpp
         src/overboard/hal/app_factory.cpp
-        src/overboard/hal/kn34/kn34_app.cpp
-        src/overboard/hal/kn34/kn34_input.cpp
+        ${HARDWARE_SOURCES}
+        src/overboard/log/stdout_logger.cpp
         ${CORE_SOURCES}
     )
 
     target_include_directories(calc_firmware PRIVATE src)
+    target_include_directories(calc_firmware SYSTEM PRIVATE ${HARDWARE_INCLUDE_DIRS})
 
     target_link_libraries(calc_firmware PRIVATE
+        ${HARDWARE_LIBRARIES}
         project_warnings
+        nlohmann_json
     )
 
-    target_compile_definitions(calc_firmware PRIVATE
-        TARGET_KN34=1
-    )
+    target_compile_definitions(calc_firmware PRIVATE ${HARDWARE_COMPILE_DEFINITIONS})
+
+    # Enable USB booting for RP2350
+    pico_add_extra_outputs(calc_firmware)
 endif()

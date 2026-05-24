@@ -240,14 +240,14 @@ static int render_equation(const std::string& expr, const std::string& output_fi
     SDL_FillRect( surf, nullptr, SDL_MapRGB( surf->format, COLOR_BLACK, COLOR_BLACK, COLOR_BLACK ) );
 
     // Use Layout_Engine to build and position layout tree
-    layout::Layout_Engine engine( RENDER_SCALE );
-    auto root = engine.build( tree.get() );
-    engine.prepare( root, core::Point<int>( RENDER_WIDTH, RENDER_HEIGHT ) );
+    layout::Layout_Engine engine(RENDER_SCALE);
+    auto root = engine.build(tree.get());
+    engine.prepare(root, core::Point<int>(RENDER_WIDTH, RENDER_HEIGHT));
 
     uint32_t white = SDL_MapRGB( surf->format, COLOR_WHITE, COLOR_WHITE, COLOR_WHITE );
-    render_box( surf, root, white );
+    render_box(surf, root, white);
 
-    if ( !save_png( output_file.c_str(), surf ) ) {
+    if (!save_png(output_file.c_str(), surf)) {
         std::cerr << "Failed to save PNG\n";
         SDL_FreeSurface(surf);
         return 1;

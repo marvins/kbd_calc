@@ -13,6 +13,7 @@
 
 // C++ Standard Libraries
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 
 // Project Libraries
@@ -39,9 +40,12 @@ class SDL_App : public I_App {
         /**
          * @brief Factory method to create and initialize SDL application
          * @param layout Keyboard layout for the target device
+         * @param keymap_path Path to JSON keymap file
          * @return Unique pointer to initialized SDL_App, or nullptr on failure
          */
-        static std::unique_ptr<SDL_App> create(const core::Grid_Layout& layout);
+        static std::unique_ptr<SDL_App> create(const core::Grid_Layout& layout,
+                                               const std::filesystem::path& layout_path,
+                                               const std::filesystem::path& keymap_path);
 
         ~SDL_App() override;
 
@@ -60,9 +64,11 @@ class SDL_App : public I_App {
          */
         explicit SDL_App(const core::Grid_Layout& layout);
 
-        const core::Grid_Layout& m_layout;
-        bool m_initialized = false;
-        bool m_should_quit = false;
+        const core::Grid_Layout&          m_layout;
+        std::filesystem::path             m_layout_path;
+        std::filesystem::path             m_keymap_path;
+        bool                              m_initialized = false;
+        bool                              m_should_quit = false;
 
         // Core components
         Keymap m_keymap;

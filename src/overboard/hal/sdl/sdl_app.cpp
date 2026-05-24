@@ -21,6 +21,8 @@
 
 // Project Libraries
 #include <overboard/hal/lcd_config.hpp>
+#include <overboard/core/keymap.hpp>
+#include <overboard/io/via_layout.hpp>
 
 namespace ovb::hal::sdl {
 
@@ -35,14 +37,35 @@ SDL_App::~SDL_App() {
     }
 }
 
-std::unique_ptr<SDL_App> SDL_App::create(const core::Grid_Layout& layout) {
+/************************************/
+/*          Create the app          */
+/************************************/
+std::unique_ptr<SDL_App> SDL_App::create(const core::Grid_Layout& layout,
+                                         const std::filesystem::path& layout_path,
+                                         const std::filesystem::path& keymap_path) {
     auto app = std::unique_ptr<SDL_App>(new SDL_App(layout));
+
+    // Load keymap from JSON
+    try {
+        auto layers = core::load_layers_from_json(keymap_path.string());
+        app->m_keymap = core::Keymap(layers);
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to load keymap from " << keymap_path << ": " << e.what() << "\n";
+        return nullptr;
+    }
+
+    app->m_layout_path  = layout_path;
+    app->m_keymap_path  = keymap_path;
+
     if (!app->init()) {
         return nullptr;
     }
     return app;
 }
 
+/****************************************************/
+/*          Initialize the SDL application          */
+/****************************************************/
 bool SDL_App::init() {
     // Initialise LVGL before SDL so the SDL driver is registered
     lv_init();
@@ -74,6 +97,20 @@ bool SDL_App::init() {
                                                MARGIN_LEFT,
                                                MARGIN_TOP);
 
+        // Load scancode bindings from keymap JSON into the input keymap
+        if (!m_layout_path.empty() && !m_keymap_path.empty()) {
+            try {
+                auto via_layout = io::parse_via_layout(m_layout_path);
+                io::apply_scancodes_from_json(via_layout, m_keymap_path);
+                auto sc_map = io::build_scancode_index_map(via_layout);
+                if (!sc_map.empty()) {
+                    m_input->keymap().load_from_map(sc_map);
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Warning: failed to load scancodes: " << e.what() << "\n";
+            }
+        }
+
         m_keyboard->render();
         m_lcd_display->render();
 
@@ -84,6 +121,9 @@ bool SDL_App::init() {
     }
 }
 
+/************************************/
+/*          Run the app             */
+/************************************/
 void SDL_App::run() {
     while (!m_should_quit) {
         m_input->pump();
@@ -143,18 +183,30 @@ void SDL_App::run() {
     }
 }
 
+/****************************************/
+/*      Check if the app should quit    */
+/****************************************/
 bool SDL_App::should_quit() const {
     return m_should_quit;
 }
 
+/****************************************/
+/*      Get the Keyboard Display        */
+/****************************************/
 I_Display& SDL_App::get_keyboard_display() {
     return m_keyboard->get_display();
 }
 
+/****************************************/
+/*          Get the LCD Display         */
+/****************************************/
 I_Display& SDL_App::get_lcd_display() {
     return *m_lcd_display;
 }
 
+/************************************/
+/*      Get Input Device Handle     */
+/************************************/
 I_Input& SDL_App::get_input() {
     return *m_input;
 }

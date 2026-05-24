@@ -20,27 +20,27 @@ Options:
   -c           Clean build directory, then build
   -d           Debug build (default)
   -r           Release build
-  -t <target>  Target device: SDL or KN34 (default: SDL)
+  -p <target>  Hardware target: SDL or RP2350 (default: SDL)
   -s <on|off>  Simulator mode: on or off (default: on)
   -j <jobs>    Parallel jobs (default: 1)
 
 Examples:
   $(basename "$0")              # SDL simulator, debug build
-  $(basename "$0") -t KN34      # KN34 target, simulator off
-  $(basename "$0") -t SDL -r    # SDL simulator, release build
+  $(basename "$0") -p RP2350    # RP2350 target, simulator off
+  $(basename "$0") -p SDL -r    # SDL simulator, release build
   $(basename "$0") -c -r         # Clean then release build
   $(basename "$0") -c            # Clean then build
   $(basename "$0") -j 4          # Use 4 parallel jobs
 EOF
 }
 
-while getopts ":hcdrt:s:j:" opt; do
+while getopts ":hcdrp:s:j:" opt; do
     case "${opt}" in
         h) usage; exit 0 ;;
         c) CLEAN=true ;;
         d) BUILD_TYPE="Debug" ;;
         r) BUILD_TYPE="Release" ;;
-        t) TARGET_DEVICE="${OPTARG}" ;;
+        p) TARGET_DEVICE="${OPTARG}" ;;
         s) SIMULATOR="${OPTARG}" ;;
         j) JOBS="${OPTARG}" ;;
         :) echo "Error: option -${OPTARG} requires an argument." >&2; usage; exit 1 ;;

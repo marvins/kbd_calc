@@ -10,7 +10,11 @@
 #include <array>
 #include <cstdint>
 #include <stdexcept>
+#include <string>
 #include <string_view>
+#include <vector>
+
+namespace ovb::core {
 
 /**
  * @brief Key label enumeration
@@ -170,7 +174,8 @@ enum class Key_Code : uint16_t {
 
 static constexpr int GRID_COLS = 8;
 static constexpr int GRID_ROWS = 7;
-static constexpr int GRID_KEYS = 34;  // Actual key count (not grid cells)
+static constexpr int DEFAULT_GRID_KEYS = 34;  // Default key count for MF34
+static constexpr int LAYER_COUNT = 5;         // Number of keyboard layers
 
 struct Key_Def {
     Key_Code  code;
@@ -178,21 +183,33 @@ struct Key_Def {
 };
 
 struct Layer {
-    std::string_view                    name;
-    std::array<Key_Def, GRID_KEYS>      keys;
+    std::string                   name;
+    std::vector<Key_Def>         keys;
 };
+
+/**
+ * @brief Load keymap layers from JSON file
+ * @param json_path Path to JSON file containing layer definitions
+ * @return Array of layers loaded from JSON
+ * @throws std::runtime_error if file cannot be read or parsed
+ */
+std::array<Layer, LAYER_COUNT> load_layers_from_json(const std::string& json_path);
 
 /**
  * @brief Manages keyboard layer definitions and key mappings.
  *
- * The Keymap class provides access to predefined keyboard layers, each containing
- * a mapping of key indices to key codes and labels. It supports layer-based
- * keyboard layouts where different functional sets can be switched between.
+ * The Keymap class provides access to keyboard layers loaded from JSON,
+ * each containing a mapping of key indices to key codes and labels.
+ * It supports layer-based keyboard layouts where different functional
+ * sets can be switched between.
  */
 class Keymap {
     public:
-        /// Number of predefined keyboard layers
-        static constexpr int LAYER_COUNT = 5;
+        /**
+         * @brief Constructor with custom layers
+         * @param layers Array of layer definitions
+         */
+        explicit Keymap(const std::array<Layer, LAYER_COUNT>& layers);
 
         /**
          * @brief Returns the total number of layers in the keymap.
@@ -213,116 +230,11 @@ class Keymap {
          * @param key_index The key index within that layer.
          * @return Reference to the Key_Def containing code and label.
          */
-        constexpr const Key_Def& get_key(std::size_t layer, std::size_t key_index) const;
+        const Key_Def& get_key( std::size_t layer,
+                                std::size_t key_index ) const;
 
-        /**
-         * @brief Builds and returns the array of all predefined layers.
-         * @return An array containing LAYER_COUNT Layer objects.
-         *
-         * This static factory method creates the layer definitions for Basic,
-         * TRG, Constants, Programmer, and Algebra modes.
-         */
-        static constexpr std::array<Layer, LAYER_COUNT> build_layers() {
-            using KC = Key_Code;
-            using KL = Key_Label;
-
-            return {{
-                { "Basic", {{
-                    // 34 keys (7+4+7+6+4+3+3), matching kn34() key index layout
-                    // Row 0 [0-6]:  Home, _, BSP (left) | NONE, NONE, NONE, NONE (right)
-                    { KC::LAYER_HOME, KL::LAYER_HOME }, { KC::NONE, KL::NONE }, { KC::BACKSPACE, KL::BACKSPACE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 1 [7-10]: (, ), =, +/- (right only)
-                    { KC::PAREN_OPEN, KL::PAREN_OPEN }, { KC::PAREN_CLOSE, KL::PAREN_CLOSE }, { KC::EQUALS, KL::EQUALS }, { KC::NEGATE, KL::NEGATE },
-                    // Row 2 [11-17]: TRG, CST, PgUp (left) | 7, 8, 9, Aprx (right — Aprx spans rows 2-3)
-                    { KC::LAYER_TRIG, KL::LAYER_TRIG }, { KC::LAYER_CONST, KL::LAYER_CONST }, { KC::PAGE_UP, KL::PG_UP }, { KC::DIGIT_7, KL::D_7 }, { KC::DIGIT_8, KL::D_8 }, { KC::DIGIT_9, KL::D_9 }, { KC::APPROX, KL::APPROX },
-                    // Row 3 [18-23]: ALG, Var, PgDn (left) | 4, 5, 6 (right — Aprx spans from row 2)
-                    { KC::LAYER_ALG, KL::LAYER_ALGEBRA }, { KC::LAYER_VAR, KL::LAYER_VAR }, { KC::PAGE_DOWN, KL::PG_DN }, { KC::DIGIT_4, KL::D_4 }, { KC::DIGIT_5, KL::D_5 }, { KC::DIGIT_6, KL::D_6 },
-                    // Row 4 [24-27]: 1, 2, 3, Eval (right — Eval spans rows 4-5)
-                    { KC::DIGIT_1, KL::D_1 }, { KC::DIGIT_2, KL::D_2 }, { KC::DIGIT_3, KL::D_3 }, { KC::EVAL, KL::EVAL },
-                    // Row 5 [28-30]: _, 0 (double-width), . (Eval spans from row 4)
-                    { KC::CURSOR_UP, KL::CURSOR_UP }, { KC::DIGIT_0, KL::D_0 }, { KC::DECIMAL, KL::DECIMAL },
-                    // Row 6 [31-33]: ↑, ←, ↓
-                    { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_DOWN, KL::CURSOR_DOWN }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT },
-                }}},
-                { "TRG", {{
-                    // 34 keys (7+4+7+6+4+3+3)
-                    // Row 0 [0-6]:  Home, _, BSP (left) | NONE x4 (right)
-                    { KC::LAYER_HOME, KL::LAYER_HOME }, { KC::NONE, KL::NONE }, { KC::BACKSPACE, KL::BACKSPACE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 1 [7-10]: NONE x4 (right only)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 2 [11-17]: NONE x3 (left) | sin, cos, tan, NONE (right)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::SIN, KL::SIN }, { KC::COS, KL::COS }, { KC::TAN, KL::TAN }, { KC::NONE, KL::NONE },
-                    // Row 3 [18-23]: NONE x3 (left) | asin, acos, atan (right)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::ASIN, KL::ASIN }, { KC::ACOS, KL::ACOS }, { KC::ATAN, KL::ATAN },
-                    // Row 4 [24-27]: NONE x4
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 5 [28-30]: NONE x3
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 6 [31-33]: ↑, ←, ↓
-                    { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_DOWN, KL::CURSOR_DOWN }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT },
-                }}},
-                { "Constants", {{
-                    // 34 keys (7+4+7+6+4+3+3)
-                    // Row 0 [0-6]:  Home, _, BSP (left) | NONE x4 (right)
-                    { KC::LAYER_HOME, KL::LAYER_HOME }, { KC::NONE, KL::NONE }, { KC::BACKSPACE, KL::BACKSPACE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 1 [7-10]: NONE x4 (right only)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 2 [11-17]: NONE x3 (left) | π, e, φ, τ (right)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::PI, KL::PI }, { KC::EULER, KL::EULER }, { KC::PHI, KL::PHI }, { KC::TAU, KL::TAU },
-                    // Row 3 [18-23]: NONE x6
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 4 [24-27]: NONE x4
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 5 [28-30]: NONE x3
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 6 [31-33]: ↑, ←, ↓
-                    { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_DOWN, KL::CURSOR_DOWN }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT },
-                }}},
-                { "Programmer", {{
-                    // 34 keys (7+4+7+6+4+3+3)
-                    // Row 0 [0-6]:  Home, _, BSP (left) | NONE, NONE, AC, NONE (right)
-                    { KC::LAYER_HOME, KL::LAYER_HOME }, { KC::NONE, KL::NONE }, { KC::BACKSPACE, KL::BACKSPACE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::ALL_CLEAR, KL::ALL_CLEAR }, { KC::NONE, KL::NONE },
-                    // Row 1 [7-10]: NONE x4 (right only)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 2 [11-17]: NONE x3 (left) | AND, OR, XOR, NONE (right)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::BIT_AND, KL::BIT_AND }, { KC::BIT_OR, KL::BIT_OR }, { KC::BIT_XOR, KL::BIT_XOR }, { KC::NONE, KL::NONE },
-                    // Row 3 [18-23]: NONE x3 (left) | A, B, C (right)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::HEX_A, KL::HEX_A }, { KC::HEX_B, KL::HEX_B }, { KC::HEX_C, KL::HEX_C },
-                    // Row 4 [24-27]: D, E, F, NONE
-                    { KC::HEX_D, KL::HEX_D }, { KC::HEX_E, KL::HEX_E }, { KC::HEX_F, KL::HEX_F }, { KC::NONE, KL::NONE },
-                    // Row 5 [28-30]: _, 0 (double-width), .
-                    { KC::NONE, KL::NONE }, { KC::DIGIT_0, KL::D_0 }, { KC::NONE, KL::NONE },
-                    // Row 6 [31-33]: ↑, ←, ↓
-                    { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_DOWN, KL::CURSOR_DOWN }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT },
-                }}},
-                { "Algebra", {{
-                    // 34 keys (7+4+7+6+4+3+3)
-                    // Row 0 [0-6]:  Home, _, BSP (left) | NONE x4 (right)
-                    { KC::LAYER_HOME, KL::LAYER_HOME }, { KC::NONE, KL::NONE }, { KC::BACKSPACE, KL::BACKSPACE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 1 [7-10]: NONE x4 (right only)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE },
-                    // Row 2 [11-17]: NONE x3 (left) | 1/x, n!, %, NONE (right)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::RECIPROCAL, KL::RECIPROCAL }, { KC::FACTORIAL, KL::FACTORIAL }, { KC::PERCENT, KL::PERCENT }, { KC::NONE, KL::NONE },
-                    // Row 3 [18-23]: NONE x3 (left) | log, ln, exp (right)
-                    { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::NONE, KL::NONE }, { KC::LOG, KL::LOG }, { KC::LN, KL::LN }, { KC::EXP, KL::EXP },
-                    // Row 4 [24-27]: +, (, ), NONE
-                    { KC::ADD, KL::ADD }, { KC::PAREN_OPEN, KL::PAREN_OPEN }, { KC::PAREN_CLOSE, KL::PAREN_CLOSE }, { KC::NONE, KL::NONE },
-                    // Row 5 [28-30]: _, Home, →
-                    { KC::NONE, KL::NONE }, { KC::LAYER_HOME, KL::LAYER_HOME }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT },
-                    // Row 6 [31-33]: ↑, ←, ↓
-                    { KC::CURSOR_LEFT, KL::CURSOR_LEFT }, { KC::CURSOR_DOWN, KL::CURSOR_DOWN }, { KC::CURSOR_RIGHT, KL::CURSOR_RIGHT },
-                }}},
-            }};
-        }
-
+    private:
+        std::array<Layer, LAYER_COUNT> m_layers;  ///< Layer definitions
 };
 
-inline constexpr std::array<Layer, Keymap::LAYER_COUNT> KEYMAP_LAYERS = Keymap::build_layers();
-
-inline constexpr const Layer& Keymap::get_layer(std::size_t index) const {
-    return KEYMAP_LAYERS[index];
-}
-
-inline constexpr const Key_Def& Keymap::get_key(std::size_t layer, std::size_t key_index) const {
-    return KEYMAP_LAYERS[layer].keys[key_index];
-}
+} // namespace ovb::core

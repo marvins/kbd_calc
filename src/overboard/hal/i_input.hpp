@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace ovb::hal {
+
 enum class Key_Event_Type {
     Press,
     Release
@@ -20,3 +22,5 @@ class I_Input {
         virtual bool should_quit() const = 0;
         virtual void pump() = 0;
 };
+
+} // namespace ovb::hal

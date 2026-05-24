@@ -18,7 +18,9 @@
 // C++ Standard Libraries
 #include <array>
 #include <cstdint>
+#include <map>
 #include <optional>
+#include <string>
 
 // Third-Party Libraries
 #pragma GCC diagnostic push
@@ -70,14 +72,18 @@ class SDL_Keymap {
         void unbind(SDL_Scancode scancode);
 
         /**
-         * @brief Reset to default mapping
-         *
-         * Default layout:
-         *   Arrows: Cursor keys
-         *   qwe/asd/zxc: Top-left 3x3 (keys 0-8)
-         *   0-9: Digit keys mapped to numpad positions
+         * @brief Clear all scancode bindings (all keys unmapped)
          */
         void reset_to_defaults();
+
+        /**
+         * @brief Load scancode bindings from a pre-built name->index map
+         * @param scancode_map Map of SDL scancode name strings to key indices
+         *
+         * Clears all existing bindings, then applies the provided map.
+         * Unrecognised scancode name strings are silently ignored.
+         */
+        void load_from_map(const std::map<std::string, int>& scancode_map);
 
     private:
         // Map SDL scancode to calculator key index

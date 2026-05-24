@@ -39,7 +39,7 @@ class Calc_Engine {
     public:
         Calc_Engine();
 
-        void              handle_key(Key_Code code);
+        void              handle_key( ovb::core::Key_Code code );
         const Calc_State& state() const;
         void              reset();
         void              toggle_math_layout();  // Toggle between math layout and single-line
@@ -48,7 +48,7 @@ class Calc_Engine {
         Calc_State m_state;
         bool       m_result_shown;
 
-        void          try_insert(Key_Code code);
+        void          try_insert( ovb::core::Key_Code code );
         void          evaluate();
 };
 
