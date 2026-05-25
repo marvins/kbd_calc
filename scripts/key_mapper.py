@@ -508,6 +508,10 @@ class KeyMapperWindow(QMainWindow):
         reload_btn.clicked.connect(self.reload)
         toolbar.addWidget(reload_btn)
 
+        clear_all_btn = QPushButton("Clear All")
+        clear_all_btn.clicked.connect(self.clear_all)
+        toolbar.addWidget(clear_all_btn)
+
         toolbar.addStretch()
         main_layout.addLayout(toolbar)
 
@@ -713,6 +717,34 @@ class KeyMapperWindow(QMainWindow):
             self.key_buttons_per_layer.append(key_buttons)
 
         self.status_label.setText("Reloaded")
+
+    def clear_all(self):
+        """Clear all key codes to NONE across all layers."""
+        reply = QMessageBox.question(
+            self, "Clear All",
+            "This will remove all key code assignments from all layers. Continue?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.No:
+            return
+
+        # Clear all codes in layers data
+        for layer in self.layers_data.get("layers", []):
+            for key in layer.get("keys", []):
+                key["code"] = "NONE"
+
+        # Refresh assigned codes
+        self.refresh_assigned_codes()
+
+        # Update all button displays
+        for key_buttons in self.key_buttons_per_layer:
+            for btn in key_buttons:
+                btn.code = "NONE"
+                btn.key_data["code"] = "NONE"
+                btn.update_display()
+
+        self.mapping_changed = True
+        self.status_label.setText("Cleared all key codes")
 
     def clear_layout(self, layout):
         """Recursively clear a layout."""

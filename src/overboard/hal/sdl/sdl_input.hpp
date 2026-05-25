@@ -21,19 +21,8 @@ class SDL_Input : public ovb::hal::I_Input {
     public:
         /**
          * @brief Construct SDL input handler
-         * @param kbd_window_id SDL window ID to filter events to
-         * @param kbd_width     Keyboard window pixel width
-         * @param kbd_height    Keyboard window pixel height
-         * @param layout        Grid layout for hit testing
-         * @param header_height Header bar height in pixels
-         * @param margin_left   Left margin in pixels
-         * @param margin_top    Top margin in pixels
          */
-        SDL_Input(uint32_t                      kbd_window_id,
-                  int                           kbd_width,
-                  int                           kbd_height,
-                  const ovb::core::Grid_Layout& layout,
-                  int header_height, int margin_left, int margin_top);
+        SDL_Input() = default;
 
         /**
          * @brief Access the keyboard keymap for customization
@@ -45,21 +34,10 @@ class SDL_Input : public ovb::hal::I_Input {
         bool should_quit() const override;
         void pump() override;
 
-        int  hit_test(int mouse_x, int mouse_y) const;
-
     private:
-        uint32_t                        m_kbd_window_id;
-        int                             m_kbd_width;
-        int                             m_kbd_height;
-        const ovb::core::Grid_Layout&   m_layout;
-        int                             m_header_height;
-        int                             m_margin_left;
-        int                             m_margin_top;
-        bool                            m_quit = false;
-        std::queue<Key_Event>           m_event_queue;
-        SDL_Keymap                      m_keymap;
-
-        static constexpr int KEY_PAD = 4;
+        bool                    m_quit = false;
+        std::queue<Key_Event>   m_event_queue;
+        SDL_Keymap              m_keymap;
 };
 
 } // namespace ovb::hal::sdl

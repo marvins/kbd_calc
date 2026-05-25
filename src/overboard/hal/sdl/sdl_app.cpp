@@ -109,11 +109,8 @@ bool SDL_App::init() {
         // Wire LVGL button click callback (mouse clicks)
         m_keyboard->view().set_click_callback(on_key_clicked, this);
 
-        // Create SDL input handler for physical keyboard and mouse hit-testing
-        auto* kbd_window = m_keyboard->get_keyboard_display().sdl_window();
-        uint32_t window_id = SDL_GetWindowID(kbd_window);
-        m_input = std::make_unique<SDL_Input>(window_id, KBD_W, KBD_H, m_layout,
-                                               26, 20, 16); // header_height, margin_left, margin_top
+        // Create SDL input handler for physical keyboard mapping
+        m_input = std::make_unique<SDL_Input>();
         m_input->keymap() = m_sdl_keymap;
 
         m_keyboard->render();

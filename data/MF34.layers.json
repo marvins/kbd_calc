@@ -42,13 +42,13 @@
                 {
                     "row": 0,
                     "col": 6,
-                    "code": "NONE",
+                    "code": "BACKSPACE",
                     "label": ""
                 },
                 {
                     "row": 1,
                     "col": 0,
-                    "code": "NONE",
+                    "code": "LAYER_ALG",
                     "label": ""
                 },
                 {
@@ -359,7 +359,7 @@
                 {
                     "row": 4,
                     "col": 1,
-                    "code": "NONE",
+                    "code": "CURSOR_UP",
                     "label": ""
                 },
                 {
@@ -484,7 +484,7 @@
                 {
                     "row": 1,
                     "col": 3,
-                    "code": "NONE",
+                    "code": "PI",
                     "label": ""
                 },
                 {
@@ -508,25 +508,25 @@
                 {
                     "row": 2,
                     "col": 0,
-                    "code": "PI",
+                    "code": "NONE",
                     "label": "\u03c0"
                 },
                 {
                     "row": 2,
                     "col": 1,
-                    "code": "EULER",
+                    "code": "NONE",
                     "label": "e"
                 },
                 {
                     "row": 2,
                     "col": 2,
-                    "code": "PHI",
+                    "code": "NONE",
                     "label": "\u03c6"
                 },
                 {
                     "row": 2,
                     "col": 3,
-                    "code": "TAU",
+                    "code": "NONE",
                     "label": "\u03c4"
                 },
                 {
@@ -544,7 +544,7 @@
                 {
                     "row": 3,
                     "col": 6,
-                    "code": "NONE",
+                    "code": "APPROX",
                     "label": ""
                 },
                 {
@@ -568,7 +568,7 @@
                 {
                     "row": 4,
                     "col": 1,
-                    "code": "NONE",
+                    "code": "CURSOR_UP",
                     "label": ""
                 },
                 {
@@ -592,31 +592,31 @@
                 {
                     "row": 5,
                     "col": 6,
-                    "code": "NONE",
+                    "code": "EVAL",
                     "label": ""
                 },
                 {
                     "row": 5,
                     "col": 0,
-                    "code": "NONE",
+                    "code": "CURSOR_LEFT",
                     "label": ""
                 },
                 {
                     "row": 5,
                     "col": 1,
-                    "code": "CURSOR_LEFT",
+                    "code": "CURSOR_DOWN",
                     "label": "\u2190"
                 },
                 {
                     "row": 5,
                     "col": 2,
-                    "code": "CURSOR_DOWN",
+                    "code": "CURSOR_RIGHT",
                     "label": "\u2193"
                 },
                 {
                     "row": 5,
                     "col": 4,
-                    "code": "CURSOR_RIGHT",
+                    "code": "NONE",
                     "label": "\u2192"
                 },
                 {
@@ -663,7 +663,7 @@
                 {
                     "row": 0,
                     "col": 5,
-                    "code": "ALL_CLEAR",
+                    "code": "NONE",
                     "label": "AC"
                 },
                 {
@@ -711,19 +711,19 @@
                 {
                     "row": 1,
                     "col": 6,
-                    "code": "BIT_AND",
+                    "code": "NONE",
                     "label": "&"
                 },
                 {
                     "row": 2,
                     "col": 0,
-                    "code": "BIT_OR",
+                    "code": "NONE",
                     "label": "|"
                 },
                 {
                     "row": 2,
                     "col": 1,
-                    "code": "BIT_XOR",
+                    "code": "NONE",
                     "label": "^"
                 },
                 {
@@ -747,37 +747,37 @@
                 {
                     "row": 2,
                     "col": 5,
-                    "code": "HEX_A",
+                    "code": "NONE",
                     "label": "A"
                 },
                 {
                     "row": 3,
                     "col": 6,
-                    "code": "HEX_B",
+                    "code": "NONE",
                     "label": "B"
                 },
                 {
                     "row": 3,
                     "col": 3,
-                    "code": "HEX_C",
+                    "code": "NONE",
                     "label": "C"
                 },
                 {
                     "row": 3,
                     "col": 4,
-                    "code": "HEX_D",
+                    "code": "NONE",
                     "label": "D"
                 },
                 {
                     "row": 3,
                     "col": 5,
-                    "code": "HEX_E",
+                    "code": "NONE",
                     "label": "E"
                 },
                 {
                     "row": 4,
                     "col": 1,
-                    "code": "HEX_F",
+                    "code": "CURSOR_UP",
                     "label": "F"
                 },
                 {
@@ -795,7 +795,7 @@
                 {
                     "row": 4,
                     "col": 5,
-                    "code": "DIGIT_0",
+                    "code": "NONE",
                     "label": "0"
                 },
                 {
@@ -902,37 +902,37 @@
                 {
                     "row": 1,
                     "col": 3,
-                    "code": "NONE",
+                    "code": "ADD",
                     "label": ""
                 },
                 {
                     "row": 1,
                     "col": 4,
-                    "code": "NONE",
+                    "code": "SUBTRACT",
                     "label": ""
                 },
                 {
                     "row": 1,
                     "col": 5,
-                    "code": "NONE",
+                    "code": "MULTIPLY",
                     "label": ""
                 },
                 {
                     "row": 1,
                     "col": 6,
-                    "code": "RECIPROCAL",
+                    "code": "DIVIDE",
                     "label": "1/x"
                 },
                 {
                     "row": 2,
                     "col": 0,
-                    "code": "FACTORIAL",
+                    "code": "NONE",
                     "label": "n!"
                 },
                 {
                     "row": 2,
                     "col": 1,
-                    "code": "PERCENT",
+                    "code": "NONE",
                     "label": "%"
                 },
                 {
@@ -944,49 +944,49 @@
                 {
                     "row": 2,
                     "col": 3,
-                    "code": "NONE",
+                    "code": "POWER_2",
                     "label": ""
                 },
                 {
                     "row": 2,
                     "col": 4,
-                    "code": "NONE",
+                    "code": "POWER_3",
                     "label": ""
                 },
                 {
                     "row": 2,
                     "col": 5,
-                    "code": "LOG",
+                    "code": "POWER_N",
                     "label": "log"
                 },
                 {
                     "row": 3,
                     "col": 6,
-                    "code": "LN",
+                    "code": "APPROX",
                     "label": "ln"
                 },
                 {
                     "row": 3,
                     "col": 3,
-                    "code": "EXP",
+                    "code": "SQRT",
                     "label": "e^x"
                 },
                 {
                     "row": 3,
                     "col": 4,
-                    "code": "ADD",
+                    "code": "RECIPROCAL",
                     "label": "+"
                 },
                 {
                     "row": 3,
                     "col": 5,
-                    "code": "PAREN_OPEN",
+                    "code": "FACTORIAL",
                     "label": "("
                 },
                 {
                     "row": 4,
                     "col": 1,
-                    "code": "PAREN_CLOSE",
+                    "code": "CURSOR_UP",
                     "label": ")"
                 },
                 {
@@ -1004,13 +1004,13 @@
                 {
                     "row": 4,
                     "col": 5,
-                    "code": "LAYER_HOME",
+                    "code": "NONE",
                     "label": "Home"
                 },
                 {
                     "row": 5,
                     "col": 6,
-                    "code": "NONE",
+                    "code": "EVAL",
                     "label": ""
                 },
                 {
