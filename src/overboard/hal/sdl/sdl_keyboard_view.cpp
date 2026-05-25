@@ -93,21 +93,23 @@ void SDL_Keyboard_View::build_buttons(lv_obj_t* parent) {
         lv_obj_t* btn = lv_button_create(parent);
         lv_obj_set_pos(btn, r.x, r.y);
         lv_obj_set_size(btn, r.w, r.h);
-        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON), static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_DEFAULT));
-        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON_PRESSED), static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_CHECKED));
+        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON),      static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_DEFAULT));
+        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON_HOVER), static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_HOVERED));
         lv_obj_set_style_border_color(btn, lvgl_color(LVGL_COLOR_BORDER_DARK), LV_PART_MAIN);
         lv_obj_set_style_border_width(btn, 1, LV_PART_MAIN);
         lv_obj_set_style_radius(btn, 4, LV_PART_MAIN);
         lv_obj_set_style_pad_all(btn, 2, LV_PART_MAIN);
-        lv_obj_clear_flag(btn, LV_OBJ_FLAG_CLICKABLE); // input handled by SDL_Input, not LVGL
+        lv_obj_add_flag(btn, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(btn, button_event_cb, LV_EVENT_ALL, this);
 
         // Label
         lv_obj_t* lbl = lv_label_create(btn);
-        const std::string text = label_string(layer.keys[static_cast<std::size_t>(i)].label);
+        const std::string text = core::key_code_to_display(layer.keys[static_cast<std::size_t>(i)]);
         lv_label_set_text(lbl, text.c_str());
         lv_obj_set_style_text_color(lbl, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
         lv_obj_align(lbl, LV_ALIGN_CENTER, 0, 0);
 
+        m_key_indices.push_back(i);
         m_buttons[static_cast<std::size_t>(i)] = btn;
         m_labels[static_cast<std::size_t>(i)]  = lbl;
     }
@@ -122,50 +124,56 @@ void SDL_Keyboard_View::update_layer() {
 
     for (std::size_t i = 0; i < key_count; ++i) {
         if (!m_labels[i]) continue;
-        const std::string text = label_string(layer.keys[i].label);
+        const std::string text = core::key_code_to_display(layer.keys[i]);
         lv_label_set_text(m_labels[i], text.c_str());
     }
 }
 
-/****************************/
-/*    Press Highlighting    */
-/****************************/
-void SDL_Keyboard_View::apply_style(int key_index, bool pressed) {
-    if (key_index < 0 || key_index >= static_cast<int>(m_buttons.size())) return;
-    lv_obj_t* btn = m_buttons[static_cast<std::size_t>(key_index)];
-    if (!btn) return;
+/******************************/
+/*     Click Callback Setup   */
+/*****************************/
+void SDL_Keyboard_View::set_click_callback( void (*cb)(int key_index, void* user_data),
+                                             void* user_data ) {
+    m_click_cb        = cb;
+    m_click_user_data = user_data;
+}
 
-    const auto sel_default = static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_DEFAULT);
-    if (pressed) {
-        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON_PRESSED), sel_default);
-        lv_obj_set_style_text_color(
-            m_labels[static_cast<std::size_t>(key_index)],
-            lvgl_color(LVGL_COLOR_BG_BEZEL), LV_PART_MAIN);
-    } else {
-        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON), sel_default);
-        lv_obj_set_style_text_color(
-            m_labels[static_cast<std::size_t>(key_index)],
-            lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
+/****************************/
+/*      LVGL Event Callback  */
+/****************************/
+void SDL_Keyboard_View::button_event_cb(lv_event_t* e) {
+    const lv_event_code_t code = lv_event_get_code(e);
+    if (code != LV_EVENT_PRESSED &&
+        code != LV_EVENT_RELEASED &&
+        code != LV_EVENT_PRESS_LOST &&
+        code != LV_EVENT_CLICKED) return;
+
+    lv_obj_t* btn  = static_cast<lv_obj_t*>(lv_event_get_target(e));
+    auto*     view = static_cast<SDL_Keyboard_View*>(lv_event_get_user_data(e));
+    if (!view) return;
+
+    int key_index = -1;
+    for (const int idx : view->m_key_indices) {
+        if (view->m_buttons[static_cast<std::size_t>(idx)] == btn) {
+            key_index = idx;
+            break;
+        }
     }
-}
+    if (key_index < 0) return;
 
-/************************************/
-/*      Set the Pressed Button      */
-/************************************/
-void SDL_Keyboard_View::set_pressed(int key_index) {
-    if (m_pressed_key == key_index) return;
-    clear_pressed();
-    m_pressed_key = key_index;
-    apply_style(key_index, true);
-}
+    lv_obj_t* lbl = view->m_labels[static_cast<std::size_t>(key_index)];
+    const auto sel = static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_DEFAULT);
 
-/************************************/
-/*      Clear the Pressed Button    */
-/************************************/
-void SDL_Keyboard_View::clear_pressed() {
-    if (m_pressed_key >= 0) {
-        apply_style(m_pressed_key, false);
-        m_pressed_key = -1;
+    if (code == LV_EVENT_PRESSED) {
+        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON_PRESSED), sel);
+        lv_obj_set_style_text_color(lbl, lvgl_color(LVGL_COLOR_BG_BEZEL), LV_PART_MAIN);
+    } else if (code == LV_EVENT_RELEASED || code == LV_EVENT_PRESS_LOST) {
+        lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON), sel);
+        lv_obj_set_style_text_color(lbl, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
+    } else if (code == LV_EVENT_CLICKED) {
+        if (view->m_click_cb) {
+            view->m_click_cb(key_index, view->m_click_user_data);
+        }
     }
 }
 

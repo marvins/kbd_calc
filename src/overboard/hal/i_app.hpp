@@ -12,6 +12,7 @@
 
 // C++ Standard Libraries
 #include <memory>
+#include <stdexcept>
 
 // Project Libraries
 #include <overboard/hal/i_display.hpp>
@@ -46,8 +47,10 @@ class I_App {
         /// @brief Get the LCD display interface
         virtual I_Display& get_lcd_display() = 0;
 
-        /// @brief Get the input interface
-        virtual ovb::hal::I_Input& get_input() = 0;
+        /// @brief Get the input interface (only for embedded targets with physical matrix)
+        virtual ovb::hal::I_Input& get_input() {
+            throw std::runtime_error("get_input not implemented for this platform");
+        }
 };
 
 } // namespace ovb::hal

@@ -26,6 +26,7 @@
 
 // Project Libraries
 #include <overboard/hal/i_display.hpp>
+#include <overboard/hal/sdl/sdl_keymap.hpp>
 
 namespace ovb::hal::sdl {
 
@@ -55,7 +56,7 @@ class SDL_Keyboard_Display : public I_Display {
         int    width()     const override;
         int    height()    const override;
 
-        /// @return SDL window ID for event filtering in SDL_Input
+        /// @return SDL window ID
         uint32_t window_id() const;
 
         /// @return LVGL screen object for attaching child widgets
@@ -70,11 +71,23 @@ class SDL_Keyboard_Display : public I_Display {
         /// @brief Drive lv_timer_handler() to flush widget renders to the SDL window
         void flush() override;
 
+        /// @brief Set the scancode keymap for physical keyboard mapping
+        void set_keymap(const SDL_Keymap* keymap) {
+            m_keymap = keymap;
+            g_keymap = keymap;
+        }
+
+        /// @brief Set the callback for physical keyboard key presses
+        void set_key_callback(void (*callback)(int key_index)) { g_key_callback = callback; }
+
     private:
         int           m_width;
         int           m_height;
         lv_display_t* m_display    = nullptr;
         SDL_Window*   m_sdl_window = nullptr;
+        lv_indev_t*   m_key_indev  = nullptr;
+
+        const SDL_Keymap* m_keymap = nullptr;
 };
 
 } // namespace ovb::hal::sdl

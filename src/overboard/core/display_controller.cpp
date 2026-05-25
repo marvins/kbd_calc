@@ -124,7 +124,7 @@ void Display_Controller::render_keyboard() {
                                                  Point<int>(cell_w, cell_h), KEY_PAD);
         if (!rect_opt) continue;
 
-        draw_key(i, layer.keys[static_cast<std::size_t>(i)], *rect_opt, i == m_pressed_key);
+        draw_key(layer.keys[static_cast<std::size_t>(i)], *rect_opt, i == m_pressed_key);
     }
 
     m_kbd_display.flush();
@@ -133,8 +133,9 @@ void Display_Controller::render_keyboard() {
 /****************************/
 /*       Key Drawing        */
 /****************************/
-void Display_Controller::draw_key(int index, const Key_Def& key, core::Rect<int> rect, bool pressed) {
-    (void)index; // Unused, reserved for future features
+void Display_Controller::draw_key( Key_Code        code,
+                                   core::Rect<int> rect,
+                                   bool            pressed ) {
     int x = rect.x;
     int y = rect.y;
     int w = rect.w;
@@ -148,7 +149,7 @@ void Display_Controller::draw_key(int index, const Key_Def& key, core::Rect<int>
     m_kbd_display.draw_rect(Point<int>(x, y), Point<int>(w, h), border, true);
     m_kbd_display.draw_rect(Point<int>(x + 1, y + 1), Point<int>(w - 2, h - 2), bg, true);
 
-    const std::string lbl = label_string(key.label);
+    const std::string lbl = key_code_to_display(code);
     if (!lbl.empty()) {
         constexpr int KEY_FONT_SCALE = 2;
         constexpr int CHAR_W = 6 * KEY_FONT_SCALE;

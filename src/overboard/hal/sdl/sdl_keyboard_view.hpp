@@ -51,35 +51,37 @@ class SDL_Keyboard_View {
         void update_layer();
 
         /**
-         * @brief Highlight a key as pressed
-         * @param key_index Key to highlight (-1 to clear all)
+         * @brief Set callback invoked when a key button is clicked
+         * @param cb        Function to call with the key index
+         * @param user_data Passed through to the callback
          */
-        void set_pressed(int key_index);
-
-        /// @brief Clear all press highlights
-        void clear_pressed();
+        void set_click_callback( void (*cb)(int key_index, void* user_data),
+                                 void* user_data );
 
     private:
         const core::Grid_Layout&   m_layout;
         const core::Layer_Manager& m_layers;
         int                        m_width;
         int                        m_height;
-        int                        m_pressed_key = -1;
 
         lv_obj_t*              m_container = nullptr;
-        std::vector<lv_obj_t*> m_buttons;   ///< One entry per key index
+        std::vector<lv_obj_t*> m_buttons;   ///< One entry per key index (sparse)
         std::vector<lv_obj_t*> m_labels;    ///< Matching label per button
+        std::vector<int>       m_key_indices; ///< key_index for each built button
 
-        static constexpr int KEY_PAD    = 4;
-        static constexpr int HEADER_H   = 26;
+        void (*m_click_cb)(int key_index, void* user_data) = nullptr;
+        void*  m_click_user_data = nullptr;
+
+        static constexpr int KEY_PAD     = 4;
+        static constexpr int HEADER_H    = 26;
         static constexpr int MARGIN_LEFT = 20;
         static constexpr int MARGIN_TOP  = 16;
 
         /// @brief Build all button widgets from current layout
         void build_buttons(lv_obj_t* parent);
 
-        /// @brief Apply normal/pressed style to a single button
-        void apply_style(int key_index, bool pressed);
+        /// @brief LVGL event callback (pressed, released, clicked)
+        static void button_event_cb(lv_event_t* e);
 };
 
 } // namespace ovb::hal::sdl

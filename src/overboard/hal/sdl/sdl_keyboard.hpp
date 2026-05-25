@@ -64,14 +64,14 @@ class SDL_Keyboard {
         /// @brief Get the display interface
         I_Display& get_display();
 
+        /// @brief Get the concrete keyboard display for LVGL callback wiring
+        SDL_Keyboard_Display& get_keyboard_display();
+
         /// @brief Refresh key labels from current layer
         void update_layer();
 
-        /// @brief Highlight key as pressed (-1 to clear)
-        void set_pressed(int key_index);
-
-        /// @brief Clear all press highlights
-        void clear_pressed();
+        /// @brief Access the keyboard view for callback wiring
+        SDL_Keyboard_View& view();
 
         /// @brief Drive LVGL render (call in main loop)
         void render();

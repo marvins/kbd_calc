@@ -28,18 +28,18 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    log::Stdout_Logger logger(config.log_level());
+    log::Stdout_Logger::initialize(config.log_level());
 
     try {
         core::Grid_Layout layout = hal::config::create_layout(
-            config.layout_path(),
-            config.mapping_path()
+            config.layout_path()
         );
 
         // Create platform-specific application via factory
         auto app = hal::App_Factory::create( layout,
                                              config.layout_path(),
-                                             config.keymap_path() );
+                                             config.keymap_path(),
+                                             config.layers_path() );
 
         if (!app) {
             std::cerr << "Failed to create application\n";

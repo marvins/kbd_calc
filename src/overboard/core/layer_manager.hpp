@@ -49,11 +49,11 @@ class Layer_Manager {
         const Layer&   current_layer() const;
 
         /**
-         * @brief Get key definition at index from current layer
+         * @brief Get key code at index from current layer
          * @param key_index Key position in the layout grid
-         * @return Key definition (code and label)
+         * @return Key code for the specified key
          */
-        const Key_Def& key_at(int key_index) const;
+        Key_Code key_at(int key_index) const;
 
     private:
         const Keymap& m_keymap;        ///< Reference to keymap with all layers

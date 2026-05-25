@@ -39,7 +39,8 @@ class App_Factory {
          */
         static std::unique_ptr<I_App> create( const core::Grid_Layout&     layout,
                                               const std::filesystem::path& layout_path,
-                                              const std::filesystem::path& keymap_path );
+                                              const std::filesystem::path& keymap_path,
+                                              const std::filesystem::path& layers_path );
 };
 
 } // namespace ovb::hal

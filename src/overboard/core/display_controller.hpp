@@ -89,12 +89,13 @@ class Display_Controller {
 
         /**
          * @brief Draw single key button at grid position
-         * @param index Key index in layer
-         * @param key Key definition (code and label)
+         * @param code Key code
          * @param rect Key rectangle in pixels
          * @param pressed Whether key is currently pressed (for highlight)
          */
-        void draw_key(int index, const Key_Def& key, core::Rect<int> rect, bool pressed);
+        void draw_key( Key_Code        code,
+                       core::Rect<int> rect,
+                       bool            pressed );
 
         /**
          * @brief Draw mode indicator panel (MATH/LINE)

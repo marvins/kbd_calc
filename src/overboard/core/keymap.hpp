@@ -9,67 +9,13 @@
 // C++ Standard Libraries
 #include <array>
 #include <cstdint>
+#include <filesystem>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
 
 namespace ovb::core {
-
-/**
- * @brief Key label enumeration
- */
-enum class Key_Label : uint8_t {
-    NONE = 0,
-
-    // Digits
-    D_0, D_1, D_2, D_3, D_4,
-    D_5, D_6, D_7, D_8, D_9,
-
-    // Hex digits
-    HEX_A, HEX_B, HEX_C, HEX_D, HEX_E, HEX_F,
-
-    // Arithmetic
-    ADD, SUBTRACT, MULTIPLY, DIVIDE, EQUALS, DECIMAL, PERCENT,
-
-    // Editing
-    BACKSPACE, CLEAR, ALL_CLEAR, NEGATE, PAREN_OPEN, PAREN_CLOSE,
-
-    // Cursor
-    CURSOR_LEFT, CURSOR_RIGHT, CURSOR_UP, CURSOR_DOWN,
-
-    // Scientific
-    SIN, COS, TAN, ASIN, ACOS, ATAN,
-    LOG, LN, EXP, SQRT, FACTORIAL, RECIPROCAL,
-    PI, EULER, PHI, TAU,
-    POWER_2, POWER_N,
-
-    // Programmer
-    BIT_AND, BIT_OR, BIT_XOR, BIT_NOT, SHIFT_LEFT, SHIFT_RIGHT,
-
-    // Layer / meta
-    LAYER_TRIG,
-    LAYER_ALGEBRA,
-    LAYER_CONST,
-    LAYER_VAR,
-    LAYER_HOME,
-    APPROX,
-    EVAL,
-
-    // Display mode
-    MATH_LAYOUT,
-
-    // Navigation and variables
-    PG_UP,
-    PG_DN,
-};
-
-/**
- * @brief Convert key label to string
- * @param lbl Key label
- * @return String representation of the key label
- */
-std::string label_string(Key_Label lbl);
 
 /**
  * @brief Key code enumeration
@@ -172,19 +118,31 @@ enum class Key_Code : uint16_t {
     PAGE_DOWN,
 };
 
+/**
+ * @brief Convert string to key code
+ * @param str String representation of key code
+ * @return Key code value, or Key_Code::NONE if not found
+ */
+Key_Code string_to_key_code(const std::string& str);
+
+/**
+ * @brief Get display string for a key code
+ * @param code Key code
+ * @return Display string suitable for LVGL rendering
+ */
+std::string key_code_to_display(Key_Code code);
+
 static constexpr int GRID_COLS = 8;
 static constexpr int GRID_ROWS = 7;
 static constexpr int DEFAULT_GRID_KEYS = 34;  // Default key count for MF34
 static constexpr int LAYER_COUNT = 5;         // Number of keyboard layers
 
-struct Key_Def {
-    Key_Code  code;
-    Key_Label label;
-};
-
+/**
+ * @brief Represents a keyboard layer with its name and key mappings
+ */
 struct Layer {
-    std::string                   name;
-    std::vector<Key_Def>         keys;
+    std::string             name;
+    std::vector<Key_Code>   keys;
 };
 
 /**
@@ -193,7 +151,7 @@ struct Layer {
  * @return Array of layers loaded from JSON
  * @throws std::runtime_error if file cannot be read or parsed
  */
-std::array<Layer, LAYER_COUNT> load_layers_from_json(const std::string& json_path);
+std::array<Layer, LAYER_COUNT> load_layers_from_json(const std::filesystem::path& json_path);
 
 /**
  * @brief Manages keyboard layer definitions and key mappings.
@@ -205,6 +163,9 @@ std::array<Layer, LAYER_COUNT> load_layers_from_json(const std::string& json_pat
  */
 class Keymap {
     public:
+
+        Keymap() = default;
+
         /**
          * @brief Constructor with custom layers
          * @param layers Array of layer definitions
@@ -222,16 +183,16 @@ class Keymap {
          * @param index The layer index (0 to LAYER_COUNT-1).
          * @return Reference to the requested Layer.
          */
-        constexpr const Layer& get_layer(std::size_t index) const;
+        const Layer& get_layer(std::size_t index) const;
 
         /**
-         * @brief Retrieves a key definition from a specific layer.
+         * @brief Retrieves a key code from a specific layer.
          * @param layer The layer index.
          * @param key_index The key index within that layer.
-         * @return Reference to the Key_Def containing code and label.
+         * @return Key code for the specified key.
          */
-        const Key_Def& get_key( std::size_t layer,
-                                std::size_t key_index ) const;
+        Key_Code get_key( std::size_t layer,
+                          std::size_t key_index ) const;
 
     private:
         std::array<Layer, LAYER_COUNT> m_layers;  ///< Layer definitions

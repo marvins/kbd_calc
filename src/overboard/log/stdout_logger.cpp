@@ -10,11 +10,26 @@
 // C++ Standard Libraries
 #include <chrono>
 #include <cstdio>
+#include <memory>
 
 namespace ovb::log {
 
+// Static unique_ptr for singleton instance
+std::unique_ptr<Stdout_Logger> Stdout_Logger::s_instance;
+
 Stdout_Logger::Stdout_Logger(Log_Level min_level)
     : m_min_level(min_level) {}
+
+Stdout_Logger& Stdout_Logger::instance() {
+    if (!s_instance) {
+        s_instance = std::make_unique<Stdout_Logger>(Log_Level::Debug);
+    }
+    return *s_instance;
+}
+
+void Stdout_Logger::initialize(Log_Level level) {
+    s_instance = std::make_unique<Stdout_Logger>(level);
+}
 
 uint64_t Stdout_Logger::now_us() const {
     using namespace std::chrono;
@@ -24,12 +39,13 @@ uint64_t Stdout_Logger::now_us() const {
 
 const char* Stdout_Logger::level_tag(Log_Level level) {
     switch (level) {
-        case Log_Level::Debug: return "DBG";
-        case Log_Level::Info:  return "INF";
-        case Log_Level::Warn:  return "WRN";
-        case Log_Level::Error: return "ERR";
+        case Log_Level::Trace: return "TRACE";
+        case Log_Level::Debug: return "DEBUG";
+        case Log_Level::Info:  return "INFO";
+        case Log_Level::Warn:  return "WARN";
+        case Log_Level::Error: return "ERROR";
+        default:               return "???";
     }
-    return "???";
 }
 
 void Stdout_Logger::log(Log_Level level, std::string_view message) {

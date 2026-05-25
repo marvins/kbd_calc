@@ -1,0 +1,1049 @@
+{
+    "layers": [
+        {
+            "name": "Basic",
+            "keys": [
+                {
+                    "row": 0,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 1,
+                    "code": "PAGE_UP",
+                    "label": "PgUp"
+                },
+                {
+                    "row": 0,
+                    "col": 2,
+                    "code": "PAGE_DOWN",
+                    "label": "PgDn"
+                },
+                {
+                    "row": 0,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 3,
+                    "code": "PAREN_OPEN",
+                    "label": "("
+                },
+                {
+                    "row": 1,
+                    "col": 4,
+                    "code": "PAREN_CLOSE",
+                    "label": ")"
+                },
+                {
+                    "row": 1,
+                    "col": 5,
+                    "code": "EQUALS",
+                    "label": "="
+                },
+                {
+                    "row": 1,
+                    "col": 6,
+                    "code": "NEGATE",
+                    "label": "+/-"
+                },
+                {
+                    "row": 2,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 3,
+                    "code": "DIGIT_7",
+                    "label": "7"
+                },
+                {
+                    "row": 2,
+                    "col": 4,
+                    "code": "DIGIT_8",
+                    "label": "8"
+                },
+                {
+                    "row": 2,
+                    "col": 5,
+                    "code": "DIGIT_9",
+                    "label": "9"
+                },
+                {
+                    "row": 3,
+                    "col": 6,
+                    "code": "APPROX",
+                    "label": "Aprx"
+                },
+                {
+                    "row": 3,
+                    "col": 3,
+                    "code": "DIGIT_4",
+                    "label": "4"
+                },
+                {
+                    "row": 3,
+                    "col": 4,
+                    "code": "DIGIT_5",
+                    "label": "5"
+                },
+                {
+                    "row": 3,
+                    "col": 5,
+                    "code": "DIGIT_6",
+                    "label": "6"
+                },
+                {
+                    "row": 4,
+                    "col": 1,
+                    "code": "CURSOR_UP",
+                    "label": "\u2191"
+                },
+                {
+                    "row": 4,
+                    "col": 3,
+                    "code": "DIGIT_1",
+                    "label": "1"
+                },
+                {
+                    "row": 4,
+                    "col": 4,
+                    "code": "DIGIT_2",
+                    "label": "2"
+                },
+                {
+                    "row": 4,
+                    "col": 5,
+                    "code": "DIGIT_3",
+                    "label": "3"
+                },
+                {
+                    "row": 5,
+                    "col": 6,
+                    "code": "EVAL",
+                    "label": "Eval"
+                },
+                {
+                    "row": 5,
+                    "col": 0,
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                {
+                    "row": 5,
+                    "col": 1,
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
+                },
+                {
+                    "row": 5,
+                    "col": 2,
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
+                },
+                {
+                    "row": 5,
+                    "col": 4,
+                    "code": "DIGIT_0",
+                    "label": "0"
+                },
+                {
+                    "row": 5,
+                    "col": 5,
+                    "code": "DECIMAL",
+                    "label": "."
+                }
+            ]
+        },
+        {
+            "name": "TRG",
+            "keys": [
+                {
+                    "row": 0,
+                    "col": 0,
+                    "code": "LAYER_HOME",
+                    "label": "Home"
+                },
+                {
+                    "row": 0,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 2,
+                    "code": "BACKSPACE",
+                    "label": "BSP"
+                },
+                {
+                    "row": 0,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 3,
+                    "code": "SIN",
+                    "label": "sin"
+                },
+                {
+                    "row": 2,
+                    "col": 4,
+                    "code": "COS",
+                    "label": "cos"
+                },
+                {
+                    "row": 2,
+                    "col": 5,
+                    "code": "TAN",
+                    "label": "tan"
+                },
+                {
+                    "row": 3,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 3,
+                    "col": 3,
+                    "code": "ASIN",
+                    "label": "asin"
+                },
+                {
+                    "row": 3,
+                    "col": 4,
+                    "code": "ACOS",
+                    "label": "acos"
+                },
+                {
+                    "row": 3,
+                    "col": 5,
+                    "code": "ATAN",
+                    "label": "atan"
+                },
+                {
+                    "row": 4,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 4,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 4,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 4,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 5,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 5,
+                    "col": 0,
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                {
+                    "row": 5,
+                    "col": 1,
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
+                },
+                {
+                    "row": 5,
+                    "col": 2,
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
+                },
+                {
+                    "row": 5,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 5,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                }
+            ]
+        },
+        {
+            "name": "Constants",
+            "keys": [
+                {
+                    "row": 0,
+                    "col": 0,
+                    "code": "LAYER_HOME",
+                    "label": "Home"
+                },
+                {
+                    "row": 0,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 2,
+                    "code": "BACKSPACE",
+                    "label": "BSP"
+                },
+                {
+                    "row": 0,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 0,
+                    "code": "PI",
+                    "label": "\u03c0"
+                },
+                {
+                    "row": 2,
+                    "col": 1,
+                    "code": "EULER",
+                    "label": "e"
+                },
+                {
+                    "row": 2,
+                    "col": 2,
+                    "code": "PHI",
+                    "label": "\u03c6"
+                },
+                {
+                    "row": 2,
+                    "col": 3,
+                    "code": "TAU",
+                    "label": "\u03c4"
+                },
+                {
+                    "row": 2,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 3,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 3,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 3,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 3,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 4,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 4,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 4,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 4,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 5,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 5,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 5,
+                    "col": 1,
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                {
+                    "row": 5,
+                    "col": 2,
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
+                },
+                {
+                    "row": 5,
+                    "col": 4,
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
+                },
+                {
+                    "row": 5,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                }
+            ]
+        },
+        {
+            "name": "Programmer",
+            "keys": [
+                {
+                    "row": 0,
+                    "col": 0,
+                    "code": "LAYER_HOME",
+                    "label": "Home"
+                },
+                {
+                    "row": 0,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 2,
+                    "code": "BACKSPACE",
+                    "label": "BSP"
+                },
+                {
+                    "row": 0,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 5,
+                    "code": "ALL_CLEAR",
+                    "label": "AC"
+                },
+                {
+                    "row": 0,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 6,
+                    "code": "BIT_AND",
+                    "label": "&"
+                },
+                {
+                    "row": 2,
+                    "col": 0,
+                    "code": "BIT_OR",
+                    "label": "|"
+                },
+                {
+                    "row": 2,
+                    "col": 1,
+                    "code": "BIT_XOR",
+                    "label": "^"
+                },
+                {
+                    "row": 2,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 5,
+                    "code": "HEX_A",
+                    "label": "A"
+                },
+                {
+                    "row": 3,
+                    "col": 6,
+                    "code": "HEX_B",
+                    "label": "B"
+                },
+                {
+                    "row": 3,
+                    "col": 3,
+                    "code": "HEX_C",
+                    "label": "C"
+                },
+                {
+                    "row": 3,
+                    "col": 4,
+                    "code": "HEX_D",
+                    "label": "D"
+                },
+                {
+                    "row": 3,
+                    "col": 5,
+                    "code": "HEX_E",
+                    "label": "E"
+                },
+                {
+                    "row": 4,
+                    "col": 1,
+                    "code": "HEX_F",
+                    "label": "F"
+                },
+                {
+                    "row": 4,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 4,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 4,
+                    "col": 5,
+                    "code": "DIGIT_0",
+                    "label": "0"
+                },
+                {
+                    "row": 5,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 5,
+                    "col": 0,
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                {
+                    "row": 5,
+                    "col": 1,
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
+                },
+                {
+                    "row": 5,
+                    "col": 2,
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
+                },
+                {
+                    "row": 5,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 5,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                }
+            ]
+        },
+        {
+            "name": "Algebra",
+            "keys": [
+                {
+                    "row": 0,
+                    "col": 0,
+                    "code": "LAYER_HOME",
+                    "label": "Home"
+                },
+                {
+                    "row": 0,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 2,
+                    "code": "BACKSPACE",
+                    "label": "BSP"
+                },
+                {
+                    "row": 0,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 0,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 1,
+                    "col": 6,
+                    "code": "RECIPROCAL",
+                    "label": "1/x"
+                },
+                {
+                    "row": 2,
+                    "col": 0,
+                    "code": "FACTORIAL",
+                    "label": "n!"
+                },
+                {
+                    "row": 2,
+                    "col": 1,
+                    "code": "PERCENT",
+                    "label": "%"
+                },
+                {
+                    "row": 2,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 2,
+                    "col": 5,
+                    "code": "LOG",
+                    "label": "log"
+                },
+                {
+                    "row": 3,
+                    "col": 6,
+                    "code": "LN",
+                    "label": "ln"
+                },
+                {
+                    "row": 3,
+                    "col": 3,
+                    "code": "EXP",
+                    "label": "e^x"
+                },
+                {
+                    "row": 3,
+                    "col": 4,
+                    "code": "ADD",
+                    "label": "+"
+                },
+                {
+                    "row": 3,
+                    "col": 5,
+                    "code": "PAREN_OPEN",
+                    "label": "("
+                },
+                {
+                    "row": 4,
+                    "col": 1,
+                    "code": "PAREN_CLOSE",
+                    "label": ")"
+                },
+                {
+                    "row": 4,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 4,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 4,
+                    "col": 5,
+                    "code": "LAYER_HOME",
+                    "label": "Home"
+                },
+                {
+                    "row": 5,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 5,
+                    "col": 0,
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                {
+                    "row": 5,
+                    "col": 1,
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
+                },
+                {
+                    "row": 5,
+                    "col": 2,
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
+                },
+                {
+                    "row": 5,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ""
+                },
+                {
+                    "row": 5,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": ""
+                }
+            ]
+        }
+    ]
+}

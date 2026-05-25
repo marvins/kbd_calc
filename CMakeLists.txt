@@ -69,13 +69,13 @@ if(BUILD_TESTS)
     enable_testing()
 
     add_executable(calc_tests
-        test/test_ast.cpp
-        test/test_parser.cpp
-        test/test_render.cpp
-        test/test_calc_engine.cpp
-        test/test_expression.cpp
-        test/test_layout.cpp
-        test/test_keymap.cpp
+        test/math/ast/test_ast.cpp
+        test/math/test_parser.cpp
+        test/math/layout/test_render.cpp
+        test/math/test_calc_engine.cpp
+        test/math/test_expression.cpp
+        test/core/test_layout.cpp
+        test/core/test_keymap.cpp
         src/overboard/core/keymap.cpp
         src/overboard/core/layer_manager.cpp
         src/overboard/math/ast/ast.cpp
@@ -86,14 +86,15 @@ if(BUILD_TESTS)
         src/overboard/log/stdout_logger.cpp
     )
 
-    target_include_directories(calc_tests PRIVATE src)
+    target_include_directories(calc_tests PRIVATE src test)
+    target_include_directories(calc_tests SYSTEM PRIVATE thirdparty/json/include)
     target_link_libraries(calc_tests PRIVATE GTest::gtest_main project_warnings)
     include(GoogleTest)
     gtest_discover_tests(calc_tests)
 
     # Standalone math render test (outputs PNG from equation string)
     add_executable(math_render_test
-        test/test_math_render.cpp
+        test/math/layout/test_math_render.cpp
         src/overboard/math/ast/ast.cpp
         src/overboard/math/parser.cpp
         src/overboard/math/layout/engine.cpp

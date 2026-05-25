@@ -26,8 +26,8 @@ namespace ovb::core {
 class Config {
     public:
         static constexpr std::string_view DEFAULT_LAYOUT_PATH  = "data/MF34.json";
-        static constexpr std::string_view DEFAULT_MAPPING_PATH = "data/MF34.mapping.json";
         static constexpr std::string_view DEFAULT_KEYMAP_PATH  = "data/MF34.keymap.json";
+        static constexpr std::string_view DEFAULT_LAYERS_PATH  = "data/MF34.layers.json";
 
         /**
          * @brief Parse command-line arguments
@@ -53,11 +53,11 @@ class Config {
         /// @return Path to VIA layout JSON file
         inline const std::filesystem::path& layout_path() const { return m_layout_path; }
 
-        /// @return Path to key mapping JSON file
-        inline const std::filesystem::path& mapping_path() const { return m_mapping_path; }
-
-        /// @return Path to keymap JSON file
+        /// @return Path to keymap JSON file (scancodes)
         inline const std::filesystem::path& keymap_path() const { return m_keymap_path; }
+
+        /// @return Path to layers JSON file (key-code assignments per layer)
+        inline const std::filesystem::path& layers_path() const { return m_layers_path; }
 
         /// @return Log severity level
         inline log::Log_Level log_level() const { return m_log_level; }
@@ -73,8 +73,8 @@ class Config {
 
         std::filesystem::path m_program_name;
         std::filesystem::path m_layout_path;
-        std::filesystem::path m_mapping_path;
         std::filesystem::path m_keymap_path;
+        std::filesystem::path m_layers_path;
         log::Log_Level m_log_level;
         bool m_help_requested = false;
 };

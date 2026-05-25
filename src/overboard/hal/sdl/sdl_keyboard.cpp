@@ -46,6 +46,13 @@ I_Display& SDL_Keyboard::get_display() {
 }
 
 /*********************************/
+/*      Get Keyboard Display      */
+/*********************************/
+SDL_Keyboard_Display& SDL_Keyboard::get_keyboard_display() {
+    return *m_display;
+}
+
+/*********************************/
 /*          Layer Management     */
 /*********************************/
 void SDL_Keyboard::update_layer() {
@@ -53,17 +60,10 @@ void SDL_Keyboard::update_layer() {
 }
 
 /*********************************/
-/*          Key Press Management */
+/*          View Access          */
 /*********************************/
-void SDL_Keyboard::set_pressed(int key_index) {
-    m_view->set_pressed(key_index);
-}
-
-/*********************************/
-/*          Clear Pressed        */
-/*********************************/
-void SDL_Keyboard::clear_pressed() {
-    m_view->clear_pressed();
+SDL_Keyboard_View& SDL_Keyboard::view() {
+    return *m_view;
 }
 
 /*********************************/

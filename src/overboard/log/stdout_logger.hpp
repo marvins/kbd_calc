@@ -12,6 +12,9 @@
  */
 #pragma once
 
+// C++ Standard Libraries
+#include <memory>
+
 // Project Libraries
 #include <overboard/log/i_logger.hpp>
 
@@ -44,10 +47,26 @@ class Stdout_Logger : public I_Logger {
          */
         uint64_t now_us() const override;
 
+        // Singleton accessor - creates default logger if none set
+        static Stdout_Logger& instance();
+
+        // Initialize with custom log level (call once from main)
+        static void initialize(Log_Level level);
+
     private:
         Log_Level m_min_level;
+
+        static std::unique_ptr<Stdout_Logger> s_instance;
 
         static const char* level_tag(Log_Level level);
 };
 
 } // namespace ovb::log
+
+// Convenience macros for accessing the singleton logger
+#define LOG_TRACE(...) ovb::log::Stdout_Logger::instance().trace(__VA_ARGS__)
+#define LOG_DEBUG(...) ovb::log::Stdout_Logger::instance().debug(__VA_ARGS__)
+#define LOG_INFO(...)  ovb::log::Stdout_Logger::instance().info(__VA_ARGS__)
+#define LOG_WARN(...)  ovb::log::Stdout_Logger::instance().warn(__VA_ARGS__)
+#define LOG_ERROR(...) ovb::log::Stdout_Logger::instance().error(__VA_ARGS__)
+

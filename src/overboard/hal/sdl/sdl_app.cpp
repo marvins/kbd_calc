@@ -22,7 +22,9 @@
 // Project Libraries
 #include <overboard/hal/lcd_config.hpp>
 #include <overboard/core/keymap.hpp>
+#include <overboard/hal/sdl/sdl_keymap.hpp>
 #include <overboard/io/via_layout.hpp>
+#include <overboard/log/stdout_logger.hpp>
 
 namespace ovb::hal::sdl {
 
@@ -42,20 +44,22 @@ SDL_App::~SDL_App() {
 /************************************/
 std::unique_ptr<SDL_App> SDL_App::create(const core::Grid_Layout& layout,
                                          const std::filesystem::path& layout_path,
-                                         const std::filesystem::path& keymap_path) {
+                                         const std::filesystem::path& keymap_path,
+                                         const std::filesystem::path& layers_path) {
     auto app = std::unique_ptr<SDL_App>(new SDL_App(layout));
 
-    // Load keymap from JSON
+    // Load layer assignments from layers JSON
     try {
-        auto layers = core::load_layers_from_json(keymap_path.string());
+        auto layers = core::load_layers_from_json(layers_path.string());
         app->m_keymap = core::Keymap(layers);
     } catch (const std::exception& e) {
-        std::cerr << "Failed to load keymap from " << keymap_path << ": " << e.what() << "\n";
+        std::cerr << "Failed to load layers from " << layers_path << ": " << e.what() << "\n";
         return nullptr;
     }
 
     app->m_layout_path  = layout_path;
     app->m_keymap_path  = keymap_path;
+    app->m_layers_path  = layers_path;
 
     if (!app->init()) {
         return nullptr;
@@ -88,28 +92,26 @@ bool SDL_App::init() {
                                                             LCD_WIDTH, LCD_HEIGHT,
                                                             m_engine, m_layers);
 
-        // Input handler
-        m_input = std::make_unique<SDL_Input>(m_keyboard->window_id(),
-                                               m_keyboard->width(),
-                                               m_keyboard->height(),
-                                               m_layout,
-                                               HDR_H,
-                                               MARGIN_LEFT,
-                                               MARGIN_TOP);
-
-        // Load scancode bindings from keymap JSON into the input keymap
+        // Load scancode bindings from keymap JSON into the SDL keymap
         if (!m_layout_path.empty() && !m_keymap_path.empty()) {
             try {
                 auto via_layout = io::parse_via_layout(m_layout_path);
                 io::apply_scancodes_from_json(via_layout, m_keymap_path);
                 auto sc_map = io::build_scancode_index_map(via_layout);
                 if (!sc_map.empty()) {
-                    m_input->keymap().load_from_map(sc_map);
+                    m_sdl_keymap.load_from_map(sc_map);
                 }
             } catch (const std::exception& e) {
                 std::cerr << "Warning: failed to load scancodes: " << e.what() << "\n";
             }
         }
+
+        // Set keymap and callback for physical keyboard indev
+        m_keyboard->display().set_keymap(&m_sdl_keymap);
+        m_keyboard->display().set_key_callback(on_key_clicked_static, this);
+
+        // Wire LVGL button click callback (mouse clicks)
+        m_keyboard->view().set_click_callback(on_key_clicked, this);
 
         m_keyboard->render();
         m_lcd_display->render();
@@ -125,62 +127,63 @@ bool SDL_App::init() {
 /*          Run the app             */
 /************************************/
 void SDL_App::run() {
+    LOG_INFO("SDL_App::run() started");
+    int loop_count = 0;
     while (!m_should_quit) {
-        m_input->pump();
-
-        Key_Event ev;
-        while (m_input->poll(ev)) {
-            const Key_Def& key = m_layers.key_at(ev.key_index);
-
-            if (ev.type == Key_Event_Type::Press) {
-                m_keyboard->set_pressed(ev.key_index);
-
-                switch (key.code) {
-                    case Key_Code::LAYER_NEXT:
-                        m_layers.next_layer();
-                        m_keyboard->update_layer();
-                        break;
-                    case Key_Code::LAYER_PREV:
-                        m_layers.prev_layer();
-                        m_keyboard->update_layer();
-                        break;
-                    case Key_Code::LAYER_CONST:
-                        m_layers.set_layer(2);
-                        m_keyboard->update_layer();
-                        break;
-                    case Key_Code::LAYER_ALG:
-                        m_layers.set_layer(4);
-                        m_keyboard->update_layer();
-                        break;
-                    case Key_Code::LAYER_HOME:
-                        m_layers.set_layer(0);
-                        m_keyboard->update_layer();
-                        break;
-                    case Key_Code::TOGGLE_MATH_LAYOUT:
-                        m_engine.toggle_math_layout();
-                        break;
-                    default:
-                        m_engine.handle_key(key.code);
-                        break;
-                }
-                m_keyboard->render();
-                m_lcd_display->refresh();
-                m_lcd_display->render();
-            }
-
-            if (ev.type == Key_Event_Type::Release) {
-                m_keyboard->clear_pressed();
-                m_keyboard->render();
-                m_lcd_display->render();
-            }
-        }
-
-        // Drive LVGL tick and timer handler every frame
         lv_tick_inc(16);
         lv_timer_handler();
-
         SDL_Delay(16);
+
+        // Log loop progress every 60 frames (~1 second)
+        if (++loop_count % 60 == 0) {
+            LOG_DEBUG("Main loop iteration " + std::to_string(loop_count));
+        }
     }
+    LOG_INFO("SDL_App::run() exiting");
+}
+
+/************************************/
+/*       Key Dispatch               */
+/************************************/
+void SDL_App::on_key_clicked(int key_index, void* user_data) {
+    LOG_DEBUG("LVGL button clicked: key_index=" + std::to_string(key_index));
+    static_cast<SDL_App*>(user_data)->handle_key(key_index);
+}
+
+void SDL_App::handle_key(int key_index) {
+    LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index));
+    const core::Key_Code code = m_layers.key_at(key_index);
+
+    switch (code) {
+        case core::Key_Code::LAYER_NEXT:
+            m_layers.next_layer();
+            m_keyboard->update_layer();
+            break;
+        case core::Key_Code::LAYER_PREV:
+            m_layers.prev_layer();
+            m_keyboard->update_layer();
+            break;
+        case core::Key_Code::LAYER_CONST:
+            m_layers.set_layer(2);
+            m_keyboard->update_layer();
+            break;
+        case core::Key_Code::LAYER_ALG:
+            m_layers.set_layer(4);
+            m_keyboard->update_layer();
+            break;
+        case core::Key_Code::LAYER_HOME:
+            m_layers.set_layer(0);
+            m_keyboard->update_layer();
+            break;
+        case core::Key_Code::TOGGLE_MATH_LAYOUT:
+            m_engine.toggle_math_layout();
+            break;
+        default:
+            m_engine.handle_key(code);
+            break;
+    }
+    m_lcd_display->refresh();
+    m_lcd_display->render();
 }
 
 /****************************************/
@@ -202,13 +205,6 @@ I_Display& SDL_App::get_keyboard_display() {
 /****************************************/
 I_Display& SDL_App::get_lcd_display() {
     return *m_lcd_display;
-}
-
-/************************************/
-/*      Get Input Device Handle     */
-/************************************/
-I_Input& SDL_App::get_input() {
-    return *m_input;
 }
 
 } // namespace ovb::hal::sdl

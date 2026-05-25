@@ -31,6 +31,5 @@ set(HARDWARE_SOURCES
     src/overboard/hal/sdl/sdl_keyboard_display.cpp
     src/overboard/hal/sdl/sdl_keyboard_view.cpp
     src/overboard/hal/sdl/sdl_lcd_display.cpp
-    src/overboard/hal/sdl/sdl_input.cpp
     src/overboard/hal/sdl/sdl_keymap.cpp
 )

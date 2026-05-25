@@ -417,16 +417,18 @@ class KeyEditDialog(QDialog):
 class KeyMapperWindow(QMainWindow):
     """Main window for the key mapper tool."""
 
-    def __init__(self, layout_path: str, keymap_path: str):
+    def __init__(self, layout_path: str, keymap_path: str, layers_path: str):
         super().__init__()
         self.layout_path = Path(layout_path)
         self.keymap_path = Path(keymap_path)
+        self.layers_path = Path(layers_path)
         self.mapping_changed = False
-        self.assigned_codes = set()  # Track currently assigned key codes per layer
-        self.current_layer_index = 0  # Currently selected layer
+        self.assigned_codes = set()
+        self.current_layer_index = 0
 
         self.layout_data = self.load_layout()
-        self.keymap_data = self.load_or_create_keymap()
+        self.keymap_data = self.load_or_create_keymap()   # scancodes only
+        self.layers_data = self.load_or_create_layers()   # layer assignments
 
         # Initialize assigned codes from existing mapping
         self.refresh_assigned_codes()
@@ -438,11 +440,12 @@ class KeyMapperWindow(QMainWindow):
     def refresh_assigned_codes(self):
         """Refresh the assigned codes set from current layer's mapping data."""
         self.assigned_codes.clear()
-        current_layer = self.keymap_data["layers"][self.current_layer_index]
-        for key in current_layer.get("keys", []):
-            code = key.get("code", "NONE")
-            if code and code != "NONE":
-                self.assigned_codes.add(code)
+        layers = self.layers_data.get("layers", [])
+        if self.current_layer_index < len(layers):
+            for key in layers[self.current_layer_index].get("keys", []):
+                code = key.get("code", "NONE")
+                if code and code != "NONE":
+                    self.assigned_codes.add(code)
 
     def get_assigned_codes(self) -> set:
         """Get the set of currently assigned key codes for current layer."""
@@ -465,78 +468,28 @@ class KeyMapperWindow(QMainWindow):
             return json.load(f)
 
     def load_or_create_keymap(self) -> Dict:
-        """Load keymap JSON or create it from layout with default layers."""
+        """Load keymap JSON (scancodes only) or create an empty one."""
         if self.keymap_path.exists():
             with open(self.keymap_path, 'r') as f:
+                data = json.load(f)
+            if "scancodes" not in data:
+                data["scancodes"] = {}
+            return data
+        return {"scancodes": {}}
+
+    def load_or_create_layers(self) -> Dict:
+        """Load layers JSON or create default layers from layout."""
+        if self.layers_path.exists():
+            with open(self.layers_path, 'r') as f:
                 return json.load(f)
-        else:
-            # Create default keymap with 5 layers (matches C++ keymap.hpp)
-            keymap = {
-                "name": f"{self.layout_data.get('name', 'Unknown')} Keymap",
-                "layout_file": self.layout_path.name,
-                "layers": []
-            }
-
-            # Default layer names from C++
-            layer_names = ["Basic", "TRG", "Constants", "Programmer", "Algebra"]
-
-            # Extract key positions from layout
-            key_positions = []
-            keymap_layout = self.layout_data.get("layouts", {}).get("keymap", [])
-            index = 0
-            cursor_x = 0.0
-            cursor_y = 0.0
-            pending_w = 1.0
-            pending_h = 1.0
-
-            for row in keymap_layout:
-                cursor_x = 0.0
-                pending_w = 1.0
-                pending_h = 1.0
-
-                for item in row:
-                    if isinstance(item, dict):
-                        if "x" in item:
-                            cursor_x += item["x"]
-                        if "y" in item:
-                            cursor_y += item["y"]
-                        if "w" in item:
-                            pending_w = item["w"]
-                        if "h" in item:
-                            pending_h = item["h"]
-                    elif isinstance(item, str):
-                        row_col = item.split(',')
-                        if len(row_col) == 2:
-                            key_positions.append({
-                                "index": index,
-                                "row": int(row_col[0]),
-                                "col": int(row_col[1]),
-                                "x": cursor_x,
-                                "y": cursor_y,
-                                "w": pending_w,
-                                "h": pending_h
-                            })
-                            index += 1
-                            cursor_x += pending_w
-                            pending_w = 1.0
-                            pending_h = 1.0
-
-                cursor_y += 1.0
-
-            # Create layers with default NONE assignments
-            for layer_name in layer_names:
-                layer_keys = []
-                for pos in key_positions:
-                    layer_keys.append({
-                        "code": "NONE",
-                        "label": "NONE"
-                    })
-                keymap["layers"].append({
-                    "name": layer_name,
-                    "keys": layer_keys
-                })
-
-            return keymap
+        layer_names = ["Basic", "TRG", "Constants", "Programmer", "Algebra"]
+        positions = self.extract_key_positions()
+        return {
+            "layers": [
+                {"name": name, "keys": [{"code": "NONE"} for _ in positions]}
+                for name in layer_names
+            ]
+        }
 
     def init_ui(self):
         """Initialize the user interface with layer tabs."""
@@ -567,7 +520,7 @@ class KeyMapperWindow(QMainWindow):
         self.key_positions = self.extract_key_positions()
 
         # Create a tab for each layer
-        for layer_idx, layer_data in enumerate(self.keymap_data.get("layers", [])):
+        for layer_idx, layer_data in enumerate(self.layers_data.get("layers", [])):
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
             scroll_content = QWidget()
@@ -587,7 +540,7 @@ class KeyMapperWindow(QMainWindow):
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
 
         # Status bar
-        self.status_label = QLabel(f"Layers: {len(self.keymap_data.get('layers', []))}")
+        self.status_label = QLabel(f"Layers: {len(self.layers_data.get('layers', []))}")
         main_layout.addWidget(self.status_label)
 
     def on_tab_changed(self, index: int):
@@ -660,17 +613,26 @@ class KeyMapperWindow(QMainWindow):
         """Build key buttons for a specific layer."""
         key_buttons = []
         layer_keys = layer_data.get("keys", [])
+        scancode_map = self.keymap_data.get("scancodes", {})
 
         # Constants for rendering (match C++ render_layout.cpp)
         KEY_SIZE = 75  # Increased for taller buttons
         PADDING = 6
         MARGIN = 20
 
-        for pos_idx, pos in enumerate(self.key_positions):
-            if pos_idx < len(layer_keys):
-                key_data = layer_keys[pos_idx]
-                # Merge position data with key data
-                full_key_data = {**pos, **key_data, "layer_index": layer_idx, "position_index": pos_idx}
+        # Build a lookup from (row,col) -> position data for rendering
+        pos_by_rc = {(p["row"], p["col"]): p for p in self.key_positions}
+
+        for pos_idx, key_data in enumerate(layer_keys):
+                r, c = key_data.get("row"), key_data.get("col")
+                pos = pos_by_rc.get((r, c))
+                if pos is None:
+                    continue
+                scancode = scancode_map.get(f"{r},{c}", "")
+                full_key_data = {**pos, **key_data,
+                                 "layer_index": layer_idx,
+                                 "position_index": pos_idx,
+                                 "scancode": scancode}
 
                 key_x = pos.get("x", 0.0)
                 key_y = pos.get("y", 0.0)
@@ -692,20 +654,28 @@ class KeyMapperWindow(QMainWindow):
         return key_buttons
 
     def save_keymap(self):
-        """Save the current keymap to JSON."""
+        """Save scancodes to keymap file and layer assignments to layers file."""
         try:
-            # Update key data from buttons
+            # Update layer key data from buttons, matched by row/col
             for layer_idx, key_buttons in enumerate(self.key_buttons_per_layer):
+                layer_keys = self.layers_data["layers"][layer_idx]["keys"]
+                rc_to_key = {(k.get("row"), k.get("col")): k for k in layer_keys}
                 for btn in key_buttons:
-                    pos_idx = btn.key_data.get("position_index")
-                    if pos_idx is not None and pos_idx < len(self.keymap_data["layers"][layer_idx]["keys"]):
-                        self.keymap_data["layers"][layer_idx]["keys"][pos_idx]["code"] = btn.code
-                        self.keymap_data["layers"][layer_idx]["keys"][pos_idx]["label"] = btn.label
+                    r, c = btn.key_data.get("row"), btn.key_data.get("col")
+                    entry = rc_to_key.get((r, c))
+                    if entry is not None:
+                        entry["code"] = btn.code
 
+            # Save scancodes (keymap file)
             with open(self.keymap_path, 'w') as f:
                 json.dump(self.keymap_data, f, indent=4)
+
+            # Save layer assignments (layers file)
+            with open(self.layers_path, 'w') as f:
+                json.dump(self.layers_data, f, indent=4)
+
             self.mapping_changed = False
-            self.status_label.setText(f"Saved to {self.keymap_path}")
+            self.status_label.setText(f"Saved")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save: {e}")
 
@@ -721,13 +691,15 @@ class KeyMapperWindow(QMainWindow):
                 return
 
         self.keymap_data = self.load_or_create_keymap()
+        self.layers_data = self.load_or_create_layers()
         self.refresh_assigned_codes()
         # Rebuild UI
         self.tab_widget.clear()
         self.layer_widgets.clear()
         self.key_buttons_per_layer.clear()
+        self.key_positions = self.extract_key_positions()
 
-        for layer_idx, layer_data in enumerate(self.keymap_data.get("layers", [])):
+        for layer_idx, layer_data in enumerate(self.layers_data.get("layers", [])):
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
             scroll_content = QWidget()
@@ -773,17 +745,21 @@ class KeyMapperWindow(QMainWindow):
 def main():
     DEFAULT_LAYOUT_PATH = "data/MF34.json"
     DEFAULT_KEYMAP_PATH = "data/MF34.keymap.json"
+    DEFAULT_LAYERS_PATH = "data/MF34.layers.json"
 
     layout_path = DEFAULT_LAYOUT_PATH
     keymap_path = DEFAULT_KEYMAP_PATH
+    layers_path = DEFAULT_LAYERS_PATH
 
     if len(sys.argv) >= 2:
         layout_path = sys.argv[1]
     if len(sys.argv) >= 3:
         keymap_path = sys.argv[2]
+    if len(sys.argv) >= 4:
+        layers_path = sys.argv[3]
 
     app = QApplication(sys.argv)
-    window = KeyMapperWindow(layout_path, keymap_path)
+    window = KeyMapperWindow(layout_path, keymap_path, layers_path)
     window.show()
     sys.exit(app.exec())
 

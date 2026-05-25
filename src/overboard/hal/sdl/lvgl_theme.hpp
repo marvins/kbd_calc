@@ -47,7 +47,8 @@ constexpr uint8_t  LVGL_SHADOW_OPA            = LV_OPA_20;   // Shadow opacity
 // Keyboard colors (light mode)
 constexpr uint32_t LVGL_COLOR_KBD_BG         = 0xF5F5F5;  // Keyboard background
 constexpr uint32_t LVGL_COLOR_KBD_HEADER     = 0xE8E8F0;  // Header bar
-constexpr uint32_t LVGL_COLOR_KBD_BUTTON     = 0xFFFFFF;  // Default button
+constexpr uint32_t LVGL_COLOR_KBD_BUTTON        = 0xFFFFFF;  // Default button
+constexpr uint32_t LVGL_COLOR_KBD_BUTTON_HOVER   = 0xEAEEFF;  // Hovered button (subtle tint)
 constexpr uint32_t LVGL_COLOR_KBD_BUTTON_PRESSED = 0x6496FF;  // Pressed button
 
 // Helper to convert hex to lv_color_t

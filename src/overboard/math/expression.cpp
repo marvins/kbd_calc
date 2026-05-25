@@ -10,10 +10,12 @@
 // C++ Standard Libraries
 #include <stdexcept>
 
+namespace ovb::math {
+
 // ── Token factory ─────────────────────────────────────────────────────────────
 
-Token Expression::make_token(Key_Code code) {
-    using KC = Key_Code;
+Token Expression::make_token(core::Key_Code code) {
+    using KC = core::Key_Code;
     switch (code) {
         // Operators
         case KC::ADD:         return { Token_Type::Operator, "+",     code };
@@ -107,7 +109,7 @@ int Expression::glyph_count(const std::string& s) {
 
 // ── insert ────────────────────────────────────────────────────────────────────
 
-void Expression::insert(Key_Code code) {
+void Expression::insert(core::Key_Code code) {
     Token t = make_token(code);
 
     if (t.type == Token_Type::Number) {
@@ -147,14 +149,14 @@ void Expression::insert(Key_Code code) {
                 cursor_token_ = insert_pos;
             }
         }
-    } else if (code == Key_Code::PAREN_OPEN) {
+    } else if ( code == core::Key_Code::PAREN_OPEN ) {
         // ── Auto-balanced parentheses ────────────────────────────────────────
         // Insert "()" with cursor between them
         if (cursor_inside_number())
             close_number();
 
-        Token open_paren = make_token(Key_Code::PAREN_OPEN);
-        Token close_paren = make_token(Key_Code::PAREN_CLOSE);
+        Token open_paren = make_token( core::Key_Code::PAREN_OPEN) ;
+        Token close_paren = make_token(core::Key_Code::PAREN_CLOSE );
 
         int insert_pos = cursor_token_ + 1;
         tokens_.insert(tokens_.begin() + insert_pos, open_paren);
@@ -306,3 +308,5 @@ int Expression::cursor_glyph_pos() const {
     }
     return glyphs;
 }
+
+} // namespace ovb::math

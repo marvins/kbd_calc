@@ -33,7 +33,7 @@ const Layer& Layer_Manager::current_layer() const {
     return m_keymap.get_layer(static_cast<std::size_t>(m_active_layer));
 }
 
-const Key_Def& Layer_Manager::key_at(int key_index) const {
+Key_Code Layer_Manager::key_at(int key_index) const {
     return m_keymap.get_key(static_cast<std::size_t>(m_active_layer),
                             static_cast<std::size_t>(key_index));
 }
