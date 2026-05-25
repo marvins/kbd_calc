@@ -24,6 +24,7 @@
 #include <overboard/math/calc_engine.hpp>
 #include <overboard/hal/sdl/sdl_keyboard.hpp>
 #include <overboard/hal/sdl/sdl_lcd_display.hpp>
+#include <overboard/hal/sdl/sdl_input.hpp>
 
 namespace ovb::hal::sdl {
 
@@ -55,6 +56,8 @@ class SDL_App : public I_App {
         I_Display& get_keyboard_display() override;
         I_Display& get_lcd_display() override;
 
+        void handle_key(int key_index);
+
     private:
 
         /**
@@ -78,11 +81,11 @@ class SDL_App : public I_App {
         // SDL HAL components (created during init)
         std::unique_ptr<SDL_Keyboard>    m_keyboard;
         std::unique_ptr<SDL_LCD_Display> m_lcd_display;
+        std::unique_ptr<SDL_Input>       m_input;
 
         SDL_Keymap m_sdl_keymap;
 
         static void on_key_clicked(int key_index, void* user_data);
-        void handle_key(int key_index);
 
         // Window dimensions
         static constexpr int KBD_W = 480;

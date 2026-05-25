@@ -106,12 +106,15 @@ bool SDL_App::init() {
             }
         }
 
-        // Set keymap and callback for physical keyboard indev
-        m_keyboard->display().set_keymap(&m_sdl_keymap);
-        m_keyboard->display().set_key_callback(on_key_clicked_static, this);
-
         // Wire LVGL button click callback (mouse clicks)
         m_keyboard->view().set_click_callback(on_key_clicked, this);
+
+        // Create SDL input handler for physical keyboard and mouse hit-testing
+        auto* kbd_window = m_keyboard->get_keyboard_display().sdl_window();
+        uint32_t window_id = SDL_GetWindowID(kbd_window);
+        m_input = std::make_unique<SDL_Input>(window_id, KBD_W, KBD_H, m_layout,
+                                               26, 20, 16); // header_height, margin_left, margin_top
+        m_input->keymap() = m_sdl_keymap;
 
         m_keyboard->render();
         m_lcd_display->render();
@@ -130,6 +133,17 @@ void SDL_App::run() {
     LOG_INFO("SDL_App::run() started");
     int loop_count = 0;
     while (!m_should_quit) {
+        // Pump SDL events (handles keyboard and mouse hit-testing)
+        m_input->pump();
+
+        // Process keyboard events from SDL_Input
+        hal::Key_Event key_event;
+        while (m_input->poll(key_event)) {
+            if (key_event.type == hal::Key_Event_Type::Press) {
+                handle_key(key_event.key_index);
+            }
+        }
+
         lv_tick_inc(16);
         lv_timer_handler();
         SDL_Delay(16);
@@ -190,7 +204,7 @@ void SDL_App::handle_key(int key_index) {
 /*      Check if the app should quit    */
 /****************************************/
 bool SDL_App::should_quit() const {
-    return m_should_quit;
+    return m_input ? m_input->should_quit() : m_should_quit;
 }
 
 /****************************************/

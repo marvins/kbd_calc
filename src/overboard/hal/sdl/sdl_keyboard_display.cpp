@@ -18,41 +18,9 @@
 #include <lvgl.h>
 
 // Project Libraries
-#include <overboard/hal/sdl/sdl_keymap.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
 namespace ovb::hal::sdl {
-
-// Structure to pass data to keyboard callback
-struct Keyboard_Data {
-    const SDL_Keymap* keymap = nullptr;
-    SDL_App* app = nullptr;
-};
-
-extern "C" {
-    static void key_read_cb(lv_indev_t* indev, lv_indev_data_t* data) {
-        (void)indev;
-        data->key = 0;
-        data->state = LV_INDEV_STATE_RELEASED;
-
-        auto* kb_data = static_cast<Keyboard_Data*>(lv_indev_get_user_data(indev));
-        if (!kb_data) return;
-
-        SDL_Event ev;
-        while (SDL_PollEvent(&ev)) {
-            if (ev.type == SDL_KEYDOWN && ev.key.repeat == 0) {
-                if (kb_data->keymap && kb_data->app) {
-                    auto key_idx = kb_data->keymap->get_key_index(ev.key.keysym.scancode);
-                    if (key_idx.has_value()) {
-                        data->key = key_idx.value();
-                        data->state = LV_INDEV_STATE_PRESSED;
-                        kb_data->app->handle_key(key_idx.value());
-                    }
-                }
-            }
-        }
-    }
-}
 
 /****************************/
 /*  Constructor/Destructor  */
