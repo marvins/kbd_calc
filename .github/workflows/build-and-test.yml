@@ -19,6 +19,9 @@ jobs:
       with:
         submodules: recursive
 
+    # Print runner environment details for debugging. CMake location is checked
+    # on Linux because the runner ships a pre-installed cmake in /usr/local/bin
+    # that can shadow the version we install later.
     - name: System information
       run: |
         echo "=== OS ==="
@@ -47,9 +50,14 @@ jobs:
         echo "=== Compiler ==="
         c++ --version
 
+    # The project requires CMake 4.0+. Ubuntu runners ship an older cmake in
+    # /usr/local/bin which takes PATH precedence. We remove it first, then add
+    # Kitware's official APT repo and install their current release.
     - name: Install CMake 4 (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
+        # Remove the pre-installed cmake so Kitware's /usr/bin/cmake wins in PATH
+        sudo rm -f /usr/local/bin/cmake /usr/local/bin/cpack /usr/local/bin/ctest
         wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | \
           gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
         echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | \
@@ -67,6 +75,8 @@ jobs:
       run: |
         sudo apt-get install -y libsdl2-dev libpng-dev
 
+    # On macOS, Homebrew installs SDL2/libpng under /opt/homebrew which is not
+    # a default CMake search path. CMAKE_PREFIX_PATH tells CMake to look there.
     - name: Build project
       run: |
         if [ "$RUNNER_OS" == "macOS" ]; then
