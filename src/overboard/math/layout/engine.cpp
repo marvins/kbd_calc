@@ -20,13 +20,13 @@ namespace ovb::layout {
 /****************************/
 /*   Layout_Box Factories   */
 /****************************/
-Layout_Box Layout_Box::atom(std::string t, int scale) {
-    int sw = static_cast<int>(t.size()) * 6 * scale;
-    int sh = 7 * scale;
-    return {Box_Kind::ATOM, core::Point<int>(0, 0), core::Size<int>(sw, sh), sh - 2 * scale, scale, std::move(t), {}};
+Layout_Box Layout_Box::atom( std::string t, float scale ) {
+    int sw = static_cast<int>(t.size()) * 6 * static_cast<int>(scale);
+    int sh = 7 * static_cast<int>(scale);
+    return {Box_Kind::ATOM, core::Point<int>(0, 0), core::Size<int>(sw, sh), sh - 2 * static_cast<int>(scale), scale, std::move(t), {}};
 }
 
-Layout_Box Layout_Box::fraction(Layout_Box num, Layout_Box den, int scale) {
+Layout_Box Layout_Box::fraction(Layout_Box num, Layout_Box den, float scale) {
     return { Box_Kind::FRACTION,
              core::Point<int>(0, 0),
              core::Size<int>(0, 0),
@@ -37,7 +37,7 @@ Layout_Box Layout_Box::fraction(Layout_Box num, Layout_Box den, int scale) {
                std::move(den) } };
 }
 
-Layout_Box Layout_Box::power(Layout_Box base, Layout_Box exp, int scale) {
+Layout_Box Layout_Box::power(Layout_Box base, Layout_Box exp, float scale) {
     return { Box_Kind::POWER,
              core::Point<int>(0, 0),
              core::Size<int>(0, 0),
@@ -48,7 +48,7 @@ Layout_Box Layout_Box::power(Layout_Box base, Layout_Box exp, int scale) {
                std::move(exp) } };
 }
 
-Layout_Box Layout_Box::sequence(std::vector<Layout_Box> boxes, int scale) {
+Layout_Box Layout_Box::sequence( std::vector<Layout_Box> boxes, float scale ) {
     return { Box_Kind::SEQUENCE,
              core::Point<int>(0, 0),
              core::Size<int>(0, 0),
@@ -61,7 +61,7 @@ Layout_Box Layout_Box::sequence(std::vector<Layout_Box> boxes, int scale) {
 /****************************************/
 /*          Handle Square Root          */
 /****************************************/
-Layout_Box Layout_Box::sqrt(Layout_Box arg, int scale) {
+Layout_Box Layout_Box::sqrt( Layout_Box arg, float scale ) {
     return { Box_Kind::SQRT,
              core::Point<int>(0, 0),
              core::Size<int>(0, 0),
@@ -74,7 +74,8 @@ Layout_Box Layout_Box::sqrt(Layout_Box arg, int scale) {
 /****************************/
 /*      Layout Engine       */
 /****************************/
-Layout_Engine::Layout_Engine(const font::Font_Metrics& metrics, int default_scale)
+Layout_Engine::Layout_Engine( const font::Font_Metrics& metrics,
+                              float default_scale )
     : m_metrics(metrics), m_default_scale(default_scale) {}
 
 
@@ -88,7 +89,7 @@ Layout_Box Layout_Engine::build(const ovb::ast::Node* node) {
 /****************************/
 /*       Build (scale)      */
 /****************************/
-Layout_Box Layout_Engine::build(const ovb::ast::Node* node, int scale) {
+Layout_Box Layout_Engine::build( const ast::Node* node, float scale ) {
     switch (node->kind) {
         case Node_Kind::NUMBER:
             return Layout_Box::atom(node->to_string(), scale);
@@ -118,7 +119,7 @@ Layout_Box Layout_Engine::build(const ovb::ast::Node* node, int scale) {
 /****************************/
 /*     Build Binary Op      */
 /****************************/
-Layout_Box Layout_Engine::build_binary_op(const ovb::ast::Binary_Op_Node* node, int scale) {
+Layout_Box Layout_Engine::build_binary_op( const ast::Binary_Op_Node* node, float scale) {
     auto left = build(node->left.get(), scale);
     auto right = build(node->right.get(), scale);
 
@@ -162,7 +163,7 @@ Layout_Box Layout_Engine::build_binary_op(const ovb::ast::Binary_Op_Node* node, 
 /****************************/
 /*     Build Unary Op       */
 /****************************/
-Layout_Box Layout_Engine::build_unary_op(const ovb::ast::Unary_Op_Node* node, int scale) {
+Layout_Box Layout_Engine::build_unary_op( const ast::Unary_Op_Node* node, float scale ) {
     auto operand = build(node->operand.get(), scale);
 
     if (node->op == Unary_Op::NEGATE) {
@@ -178,7 +179,7 @@ Layout_Box Layout_Engine::build_unary_op(const ovb::ast::Unary_Op_Node* node, in
 /****************************/
 /*      Build Function      */
 /****************************/
-Layout_Box Layout_Engine::build_function(const ovb::ast::Function_Node* node, int scale) {
+Layout_Box Layout_Engine::build_function( const ast::Function_Node* node, float scale ) {
     // Special case: sqrt function uses proper mathematical notation
     if (node->name == "sqrt" && node->args.size() == 1) {
         return Layout_Box::sqrt(build(node->args[0].get(), scale), scale);
@@ -216,9 +217,9 @@ void Layout_Engine::measure(Layout_Box& box) {
 
     switch (box.kind) {
         case Box_Kind::ATOM:
-            box.size.x = m_metrics.string_width(box.text) * box.scale;
-            box.size.y = m_metrics.line_height() * box.scale;
-            box.baseline = m_metrics.ascent * box.scale;
+            box.size.x = m_metrics.string_width(box.text) * static_cast<int>(box.scale);
+            box.size.y = m_metrics.line_height() * static_cast<int>(box.scale);
+            box.baseline = m_metrics.ascent * static_cast<int>(box.scale);
             break;
 
         case Box_Kind::SEQUENCE: {
@@ -243,7 +244,7 @@ void Layout_Engine::measure(Layout_Box& box) {
             measure(num);
             measure(den);
 
-            int line_height = box.scale;  // Vbar thickness
+            int line_height = static_cast<int>(box.scale);  // Vbar thickness
             int inner_w = std::max(num.size.x, den.size.x) + 2 * pad;
             int inner_h = num.size.y + line_height + den.size.y + 2 * pad;
 
@@ -258,7 +259,7 @@ void Layout_Engine::measure(Layout_Box& box) {
             auto& exp = box.children[1];
 
             // Exponent is smaller
-            exp.scale = std::max(1, base.scale - 1);
+            exp.scale = std::max(1.0f, base.scale - 1.0f);
             measure(base);
             measure(exp);
 
@@ -279,10 +280,10 @@ void Layout_Engine::measure(Layout_Box& box) {
             measure(arg);
 
             // Space for √ symbol (reduced to bring tick closer to text)
-            int symbol_width = 2 * box.scale;
+            int symbol_width = 2 * static_cast<int>(box.scale);
 
             // Vertical padding for horizontal bar above text
-            int top_pad = 2 * box.scale;
+            int top_pad = 2 * static_cast<int>(box.scale);
 
             // Text offset from bars (2 pixels right and down)
             int text_offset = 2;
@@ -324,7 +325,7 @@ void Layout_Engine::layout(Layout_Box& box, core::Point<int> pos) {
             auto& num = box.children[0];
             auto& den = box.children[1];
 
-            int line_height = box.scale;
+            int line_height = static_cast<int>(box.scale);
 
             // Center numerator above line
             int num_x = pos.x + (box.size.x - num.size.x) / 2;
@@ -358,8 +359,8 @@ void Layout_Engine::layout(Layout_Box& box, core::Point<int> pos) {
 
         case Box_Kind::SQRT: {
             auto& arg = box.children[0];
-            int symbol_width = 2 * box.scale;
-            int top_pad = 2 * box.scale;
+            int symbol_width = 2 * static_cast<int>(box.scale);
+            int top_pad = 2 * static_cast<int>(box.scale);
             int text_offset = 2;
 
             // Argument positioned to the right of the √ symbol, below top padding, with offset

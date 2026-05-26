@@ -211,11 +211,11 @@ void draw_box_recursive( const layout::Layout_Box& box,
     if (box.kind == layout::Box_Kind::ATOM && !box.text.empty()) {
         if (use_5x7) {
             // 5x7 bitmap font rendering
-            int char_width = 5 * box.scale;
+            int char_width = 5 * static_cast<int>(box.scale);
             int total_width = static_cast<int>(box.text.size()) * char_width;
             int offset_x = box.position().x + (box.width() - total_width) / 2;
             int offset_y = box.position().y;
-            render_text_5x7(box.text, img, img_width, img_height, offset_x, offset_y, box.scale);
+            render_text_5x7(box.text, img, img_width, img_height, offset_x, offset_y, static_cast<int>(box.scale));
         } else {
             // TTF font rendering
             float font_size = metrics.base_px * box.scale;
@@ -248,15 +248,15 @@ void draw_box_recursive( const layout::Layout_Box& box,
 
     // If this is a SQRT box, draw the √ symbol and horizontal bar
     if (box.kind == layout::Box_Kind::SQRT) {
-        int symbol_width = 2 * box.scale;  // Match layout engine reservation
-        int top_pad = 2 * box.scale;      // Match layout engine top padding
+        int symbol_width = 2 * static_cast<int>(box.scale);  // Match layout engine reservation
+        int top_pad = 2 * static_cast<int>(box.scale);      // Match layout engine top padding
 
         // Draw √ symbol manually with lines (using Bresenham-like approach)
         // Standard √ shape: vertical tick, diagonal, horizontal top bar
-        int tick_x = box.position().x + 2 * box.scale;  // Moved right
+        int tick_x = box.position().x + 2 * static_cast<int>(box.scale);  // Moved right
         int tick_bottom = box.children[0].position().y + box.children[0].height();  // Go to base of variable (absolute position)
         int tick_top = box.position().y + top_pad;  // Start at top bar
-        int diag_end_x = box.position().x + symbol_width + 1 * box.scale;  // Extend diagonal slightly
+        int diag_end_x = box.position().x + symbol_width + 1 * static_cast<int>(box.scale);  // Extend diagonal slightly
         int diag_end_y = box.position().y + top_pad;
 
         // Helper to draw a pixel
@@ -303,7 +303,7 @@ void draw_box_recursive( const layout::Layout_Box& box,
         }
 
         // Draw tick in lower-left corner (up-2, left-1 for ~4 pixels)
-        int tick_len = 4 * box.scale;
+        int tick_len = 4 * static_cast<int>(box.scale);
         int tick_start_x = tick_x;
         int tick_start_y = tick_bottom;
         int tick_end_x = tick_x - tick_len / 2;  // left-1 slope

@@ -49,7 +49,7 @@ struct Layout_Box {
     core::Point<int> pos;             ///< Position (set by layout pass)
     core::Size<int> size;             ///< Size (set by measure pass)
     int baseline = 0;           ///< Distance from y to text baseline
-    int scale = 2;              ///< Font scale (1, 2, 3...)
+    float scale = 2.0f;         ///< Font scale (1.0, 2.0, 3.0...)
     std::string text;           ///< Text content (for ATOM boxes)
     std::vector<Layout_Box> children;  ///< Child boxes (for composite types)
 
@@ -61,7 +61,7 @@ struct Layout_Box {
      * @param scale Font scale (default 2)
      * @return Layout_Box Atom box with pre-computed size
      */
-    static Layout_Box atom(std::string t, int scale = 2);
+    static Layout_Box atom( std::string t, float scale = 2.0f );
 
     /**
      * @brief Create a fraction box
@@ -74,7 +74,7 @@ struct Layout_Box {
      * @param scale Font scale (default 2)
      * @return Layout_Box Fraction box
      */
-    static Layout_Box fraction(Layout_Box num, Layout_Box den, int scale = 2);
+    static Layout_Box fraction( Layout_Box num, Layout_Box den, float scale = 2.0f );
 
     /**
      * @brief Create a power/exponent box
@@ -87,7 +87,7 @@ struct Layout_Box {
      * @param scale Font scale (default 2)
      * @return Layout_Box Power box
      */
-    static Layout_Box power(Layout_Box base, Layout_Box exp, int scale = 2);
+    static Layout_Box power( Layout_Box base, Layout_Box exp, float scale = 2.0f );
 
     /**
      * @brief Create a horizontal sequence of boxes
@@ -98,7 +98,7 @@ struct Layout_Box {
      * @param scale Font scale (default 2)
      * @return Layout_Box Sequence box
      */
-    static Layout_Box sequence(std::vector<Layout_Box> boxes, int scale = 2);
+    static Layout_Box sequence( std::vector<Layout_Box> boxes, float scale = 2.0f );
 
     /**
      * @brief Create a square root box
@@ -109,7 +109,7 @@ struct Layout_Box {
      * @param scale Font scale (default 2)
      * @return Layout_Box Square root box
      */
-    static Layout_Box sqrt(Layout_Box arg, int scale = 2);
+    static Layout_Box sqrt( Layout_Box arg, float scale = 2.0f );
 
     /**
      * @brief Position accessor

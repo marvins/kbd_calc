@@ -49,7 +49,8 @@ class Layout_Engine {
          * @param metrics  Font metrics from the actual font being used
          * @param default_scale Font scale for top-level boxes (default 2)
          */
-        explicit Layout_Engine(const font::Font_Metrics& metrics, int default_scale = 2);
+        explicit Layout_Engine( const font::Font_Metrics& metrics,
+                                float                     default_scale = 2.0f );
 
         /**
          * @brief Build layout box tree from AST
@@ -70,7 +71,7 @@ class Layout_Engine {
          * @param scale Font scale for this subtree
          * @return Layout_Box Root of layout tree
          */
-        Layout_Box build(const ovb::ast::Node* node, int scale);
+        Layout_Box build( const ast::Node* node, float scale );
 
         /**
          * @brief Measure box sizes (bottom-up pass)
@@ -108,7 +109,7 @@ class Layout_Engine {
 
     private:
         font::Font_Metrics m_metrics;       ///< Font metrics for box sizing
-        int                m_default_scale; ///< Default font scale
+        float              m_default_scale; ///< Default font scale
 
         /**
          * @brief Build layout for binary operation node
@@ -122,7 +123,7 @@ class Layout_Engine {
          * @param scale Font scale
          * @return Layout_Box Layout representation
          */
-        Layout_Box build_binary_op(const ovb::ast::Binary_Op_Node* node, int scale);
+        Layout_Box build_binary_op( const ovb::ast::Binary_Op_Node* node, float scale );
 
         /**
          * @brief Build layout for unary operation node
@@ -133,7 +134,7 @@ class Layout_Engine {
          * @param scale Font scale
          * @return Layout_Box Layout representation
          */
-        Layout_Box build_unary_op(const ovb::ast::Unary_Op_Node* node, int scale);
+        Layout_Box build_unary_op( const ovb::ast::Unary_Op_Node* node, float scale );
 
         /**
          * @brief Build layout for function node
@@ -145,7 +146,7 @@ class Layout_Engine {
          * @param scale Font scale
          * @return Layout_Box Layout representation
          */
-        Layout_Box build_function(const ovb::ast::Function_Node* node, int scale);
+        Layout_Box build_function( const ovb::ast::Function_Node* node, float scale );
 };
 
 } // namespace ovb::layout

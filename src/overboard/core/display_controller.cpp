@@ -325,7 +325,7 @@ void Display_Controller::render_lcd() {
                 auto pos = b.pos + offset;
                 // Draw text for ATOM boxes
                 if (b.kind == ovb::layout::Box_Kind::ATOM && !b.text.empty()) {
-                    m_lcd_display.draw_text(pos, b.text, Color::white(), Color::black(), b.scale);
+                    m_lcd_display.draw_text(pos, b.text, Color::white(), Color::black(), static_cast<int>(b.scale));
                 }
                 for (const auto& child : b.children) {
                     draw_box(child, offset);
