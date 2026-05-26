@@ -48,6 +48,10 @@ target_include_directories(nlohmann_json SYSTEM INTERFACE thirdparty/json/includ
 set(LV_BUILD_CONF_PATH ${CMAKE_SOURCE_DIR}/thirdparty/lv_conf.h CACHE PATH "LVGL config file")
 add_subdirectory(thirdparty/lvgl)
 
+if(TARGET lvgl AND SDL2_INCLUDE_DIRS)
+    target_include_directories(lvgl SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
+endif()
+
 set(CORE_SOURCES
     src/overboard/core/config.cpp
     src/overboard/core/display_controller.cpp
