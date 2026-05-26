@@ -1,0 +1,42 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install sdl2 libpng
+
+    - name: Install dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libsdl2-dev libpng-dev
+
+    - name: Build project
+      run: |
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          ./scripts/build.sh -j$(sysctl -n hw.ncpu)
+        else
+          ./scripts/build.sh -j$(nproc)
+        fi
+
+    - name: Run unit tests
+      run: |
+        cd build
+        ./calc_tests
