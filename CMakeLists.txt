@@ -48,8 +48,13 @@ target_include_directories(nlohmann_json SYSTEM INTERFACE thirdparty/json/includ
 set(LV_BUILD_CONF_PATH ${CMAKE_SOURCE_DIR}/thirdparty/lv_conf.h CACHE PATH "LVGL config file")
 add_subdirectory(thirdparty/lvgl)
 
-if(TARGET lvgl AND SDL2_INCLUDE_DIRS)
-    target_include_directories(lvgl SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
+if(TARGET lvgl AND TARGET SDL2::SDL2)
+    if(NOT SDL2_INCLUDE_DIRS)
+        get_target_property(SDL2_INCLUDE_DIRS SDL2::SDL2 INTERFACE_INCLUDE_DIRECTORIES)
+    endif()
+    if(SDL2_INCLUDE_DIRS)
+        target_include_directories(lvgl SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
+    endif()
 endif()
 
 set(CORE_SOURCES
