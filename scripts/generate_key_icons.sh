@@ -14,9 +14,6 @@ echo "Building test_math_render..."
 cd "${PROJECT_DIR}"
 ./scripts/build.sh -j8 > /dev/null 2>&1
 
-# Font file (adjust path as needed)
-FONT_FILE="/System/Library/Fonts/Helvetica.ttc"
-
 # Define expressions to render
 declare -a EXPRESSIONS=(
     "x^2:power_2.png"
@@ -26,22 +23,14 @@ declare -a EXPRESSIONS=(
     "pi:pi.png"
     "phi:phi.png"
     "tau:tau.png"
-    "e:e.png"
     "1/2:fraction.png"
-    "2*3:multiply.png"
-    "2-3:subtract.png"
-    "sin(x):sin.png"
-    "cos(x):cos.png"
-    "tan(x):tan.png"
-    "log(x):log.png"
-    "ln(x):ln.png"
 )
 
 # Render each expression
 for expr in "${EXPRESSIONS[@]}"; do
     IFS=':' read -r math_expr output_file <<< "$expr"
     echo "Rendering: $math_expr -> $output_file"
-    "${BUILD_DIR}/test_math_render" "$FONT_FILE" "$math_expr" "${OUTPUT_DIR}/${output_file}"
+    "${BUILD_DIR}/test_math_render" "$math_expr" -o "${OUTPUT_DIR}/${output_file}"
 done
 
 echo ""

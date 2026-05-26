@@ -246,6 +246,28 @@ void draw_box_recursive( const layout::Layout_Box& box,
         }
     }
 
+    // If this is a FRACTION box, draw the horizontal divider bar
+    if (box.kind == layout::Box_Kind::FRACTION && box.children.size() == 2) {
+        const int pad = 2;
+        const auto& num = box.children[0];
+        int bar_y     = box.position().y + num.size.y + pad;
+        int bar_thick = std::max(1, static_cast<int>(box.scale));
+        int bar_x0    = box.position().x;
+        int bar_x1    = box.position().x + box.width();
+
+        for (int y = bar_y; y < bar_y + bar_thick; ++y) {
+            for (int x = bar_x0; x < bar_x1; ++x) {
+                if (x >= 0 && x < img_width && y >= 0 && y < img_height) {
+                    size_t idx = (static_cast<size_t>(y) * static_cast<size_t>(img_width) + static_cast<size_t>(x)) * 4;
+                    img[idx + 0] = 0;
+                    img[idx + 1] = 0;
+                    img[idx + 2] = 0;
+                    img[idx + 3] = 255;
+                }
+            }
+        }
+    }
+
     // If this is a SQRT box, draw the √ symbol and horizontal bar
     if (box.kind == layout::Box_Kind::SQRT) {
         int symbol_width = 2 * static_cast<int>(box.scale);  // Match layout engine reservation
