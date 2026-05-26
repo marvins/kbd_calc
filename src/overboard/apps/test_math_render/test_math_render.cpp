@@ -17,6 +17,8 @@
 #include <vector>
 
 // Project Libraries
+#include <overboard/apps/test_math_render/config.hpp>
+#include <overboard/hal/font_5x7.hpp>
 #include <overboard/log/stdout_logger.hpp>
 #include <overboard/math/layout/engine.hpp>
 #include <overboard/font/font_metrics.hpp>
@@ -146,9 +148,58 @@ void render_text(const std::string& text, std::vector<uint8_t>& img, int img_wid
 }
 
 /**
+ * @brief Render text using 5x7 bitmap font
+ */
+void render_text_5x7(const std::string& text, std::vector<uint8_t>& img, int img_width, int img_height, int x, int y, int scale) {
+    int char_width = 5 * scale;
+    int char_height = 7 * scale;
+
+    for (size_t i = 0; i < text.size(); ++i) {
+        uint32_t codepoint;
+        size_t pos = i;
+        codepoint = hal::utf8_decode(text, pos);
+        i = pos - 1;  // Update loop index
+
+        const auto* glyph = hal::get_glyph(codepoint);
+        if (!glyph) continue;
+
+        // Draw 5x7 glyph scaled
+        for (int row = 0; row < 7; ++row) {
+            uint8_t glyph_row = (*glyph)[row];
+            for (int col = 0; col < 5; ++col) {
+                if (glyph_row & (0x10 >> col)) {  // MSB is leftmost
+                    // Draw scaled pixel
+                    for (int sy = 0; sy < scale; ++sy) {
+                        for (int sx = 0; sx < scale; ++sx) {
+                            int px = x + (static_cast<int>(i) * char_width) + (col * scale) + sx;
+                            int py = y + (row * scale) + sy;
+                            if (px >= 0 && px < img_width && py >= 0 && py < img_height) {
+                                size_t idx = (static_cast<size_t>(py) * static_cast<size_t>(img_width) + static_cast<size_t>(px)) * 4;
+                                img[idx + 0] = 0;    // R (black)
+                                img[idx + 1] = 0;    // G (black)
+                                img[idx + 2] = 0;    // B (black)
+                                img[idx + 3] = 255;  // A
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * @brief Recursively draw layout boxes to image buffer
  */
-void draw_box_recursive(const layout::Layout_Box& box, const font::Font_Metrics& metrics, std::vector<uint8_t>& img, int img_width, int img_height, bool debug_boxes = false, int depth = 0) {
+void draw_box_recursive( const layout::Layout_Box& box,
+                         const font::Font_Metrics& metrics,
+                         std::vector<uint8_t>& img,
+                         int img_width,
+                         int img_height,
+                         bool use_5x7,
+                         bool debug_boxes = false,
+                         int depth = 0,
+                         float scale = 1.0f ) {
     // Debug: print box info
     if (debug_boxes) {
         printf("[DEBUG] depth=%d, kind=%d, pos=(%d,%d), size=(%d,%d), baseline=%d, text='%s', children=%zu\n",
@@ -158,32 +209,41 @@ void draw_box_recursive(const layout::Layout_Box& box, const font::Font_Metrics&
 
     // If this is an ATOM box with text, render the text
     if (box.kind == layout::Box_Kind::ATOM && !box.text.empty()) {
-        // Font size matches the base_px used to build the metrics, scaled by box.scale
-        float font_size = metrics.base_px * box.scale;
-        float scale = stbtt_ScaleForPixelHeight(&g_font, font_size);
+        if (use_5x7) {
+            // 5x7 bitmap font rendering
+            int char_width = 5 * box.scale;
+            int total_width = static_cast<int>(box.text.size()) * char_width;
+            int offset_x = box.position().x + (box.width() - total_width) / 2;
+            int offset_y = box.position().y;
+            render_text_5x7(box.text, img, img_width, img_height, offset_x, offset_y, box.scale);
+        } else {
+            // TTF font rendering
+            float font_size = metrics.base_px * box.scale;
+            float scale = stbtt_ScaleForPixelHeight(&g_font, font_size);
 
-        // Measure total advance width of the text
-        int total_width = 0;
-        for (char c : box.text) {
-            int glyph_index = stbtt_FindGlyphIndex(&g_font, c);
-            int advance, lsb;
-            stbtt_GetGlyphHMetrics(&g_font, glyph_index, &advance, &lsb);
-            total_width += static_cast<int>(advance * scale);
+            // Measure total advance width of the text
+            int total_width = 0;
+            for (char c : box.text) {
+                int glyph_index = stbtt_FindGlyphIndex(&g_font, c);
+                int advance, lsb;
+                stbtt_GetGlyphHMetrics(&g_font, glyph_index, &advance, &lsb);
+                total_width += static_cast<int>(advance * scale);
+            }
+
+            // Center text horizontally in box
+            int offset_x = box.position().x + (box.width() - total_width) / 2;
+
+            // Place baseline at box.position().y + box.baseline
+            // render_text(x, y) uses y as the top of the line and adds ascent internally
+            // So: render_text y = baseline_y - (ascent * scale)
+            // Since box.baseline == metrics.ascent * box.scale, those cancel cleanly
+            int baseline_y = box.position().y + box.baseline;
+            int ascent_raw, descent_raw, line_gap_raw;
+            stbtt_GetFontVMetrics(&g_font, &ascent_raw, &descent_raw, &line_gap_raw);
+            int offset_y = baseline_y - static_cast<int>(ascent_raw * scale);
+
+            render_text(box.text, img, img_width, img_height, offset_x, offset_y, font_size);
         }
-
-        // Center text horizontally in box
-        int offset_x = box.position().x + (box.width() - total_width) / 2;
-
-        // Place baseline at box.position().y + box.baseline
-        // render_text(x, y) uses y as the top of the line and adds ascent internally
-        // So: render_text y = baseline_y - (ascent * scale)
-        // Since box.baseline == metrics.ascent * box.scale, those cancel cleanly
-        int baseline_y = box.position().y + box.baseline;
-        int ascent_raw, descent_raw, line_gap_raw;
-        stbtt_GetFontVMetrics(&g_font, &ascent_raw, &descent_raw, &line_gap_raw);
-        int offset_y = baseline_y - static_cast<int>(ascent_raw * scale);
-
-        render_text(box.text, img, img_width, img_height, offset_x, offset_y, font_size);
     }
 
     // If this is a SQRT box, draw the √ symbol and horizontal bar
@@ -253,7 +313,7 @@ void draw_box_recursive(const layout::Layout_Box& box, const font::Font_Metrics&
 
     // Recursively draw children (they have their own absolute positions)
     for (const auto& child : box.children) {
-        draw_box_recursive(child, metrics, img, img_width, img_height, debug_boxes, depth + 1);
+        draw_box_recursive(child, metrics, img, img_width, img_height, use_5x7, debug_boxes, depth + 1, scale);
     }
 
     // Draw debug box if enabled (draw after children so it's on top)
@@ -327,7 +387,9 @@ void render_box_to_png( const layout::Layout_Box& box,
                         const std::filesystem::path& output_path,
                         int width  = 60,
                         int height = 60,
-                        bool debug_boxes = false) {
+                        bool debug_boxes = false,
+                        bool use_5x7 = false,
+                        float scale = 1.0f) {
 
     // Create image buffer (RGBA for transparency)
     std::vector<uint8_t> img( static_cast<size_t>(width) * static_cast<size_t>(height) * 4, 0 ); // Transparent background
@@ -350,7 +412,7 @@ void render_box_to_png( const layout::Layout_Box& box,
     }
 
     // Recursively draw all boxes (positions are absolute from prepare())
-    draw_box_recursive(box, metrics, img, width, height, debug_boxes);
+    draw_box_recursive(box, metrics, img, width, height, use_5x7, debug_boxes, 0, scale);
 
     // Write PNG using libpng
     FILE* fp = fopen(output_path.c_str(), "wb");
@@ -400,14 +462,24 @@ void render_expression( const std::string&           expr,
                         int                          width  = 60,
                         int                          height = 60,
                         bool                         debug_boxes = false,
-                        float                        scale = 1.0f ) {
+                        float                        scale = 1.0f,
+                        bool                         use_5x7 = false ) {
     log::Stdout_Logger logger(log::Log_Level::Info);
 
     logger.info("Rendering expression: " + expr);
 
-    // Build font metrics from the loaded font at base_px * scale
-    float base_px = 10.0f * scale;
-    font::Font_Metrics metrics = build_font_metrics(base_px);
+    // Build font metrics
+    font::Font_Metrics metrics;
+    if (use_5x7) {
+        metrics = font::Font_Metrics::make_5x7();
+        if (!metrics.scale(scale)) {
+            logger.error("Failed to scale font metrics");
+            return;
+        }
+    } else {
+        float base_px = 10.0f * scale;
+        metrics = build_font_metrics(base_px);
+    }
 
     // Parse the expression into an AST
     math::Parser parser(expr);
@@ -419,12 +491,12 @@ void render_expression( const std::string&           expr,
     }
 
     // Build layout from AST using real font metrics
-    layout::Layout_Engine engine(metrics, 2);
+    layout::Layout_Engine engine(metrics, scale);
     layout::Layout_Box box = engine.build(ast.get());
     engine.prepare(box, core::Point<int>(width, height));
 
     // Render to PNG
-    render_box_to_png(box, metrics, output_path, width, height, debug_boxes);
+    render_box_to_png(box, metrics, output_path, width, height, debug_boxes, use_5x7, scale);
 
     logger.info("Saved to: " + output_path.string());
 }
@@ -432,40 +504,35 @@ void render_expression( const std::string&           expr,
 /**
  * @brief Main function
  */
-int main(int argc, char* argv[]) {
-    log::Stdout_Logger logger(log::Log_Level::Info);
+int main(int argc, char* argv[], char* envp[]) {
+    // Parse configuration
+    ovb::Config config = ovb::Config::parse_command_line(argc, argv, envp);
 
-    if (argc < 4) {
-        logger.error("Usage: " + std::string(argv[0]) + " <font.ttf> <expression> <output.png> [--debug] [--scale <factor>]");
-        logger.error("Example: " + std::string(argv[0]) + " DejaVuSans.ttf \"2^2\" output/power_2.png");
-        logger.error("         " + std::string(argv[0]) + " DejaVuSans.ttf \"sqrt(x)\" output/sqrt.png --debug --scale 2.0");
-        return 1;
-    }
+    // Configure logging
+    config.configure_logging();
+
+    log::Stdout_Logger logger(config.log_severity());
+
+    // Log configuration
+    logger.info(config.to_string());
 
     try {
-        std::filesystem::path font_path = argv[1];
-        std::string expr = argv[2];
-        std::filesystem::path output_path = argv[3];
-        bool debug_boxes = false;
-        float scale = 1.0f;
-
-        // Parse optional flags
-        for (int i = 4; i < argc; ++i) {
-            std::string arg = argv[i];
-            if (arg == "--debug") {
-                debug_boxes = true;
-            } else if (arg == "--scale" && i + 1 < argc) {
-                scale = std::stof(argv[++i]);
+        // Load font if not using 5x7
+        if (!config.use_5x7()) {
+            if (!load_font(config.font_path())) {
+                logger.error("Failed to load font: " + config.font_path().string());
+                return 1;
             }
         }
 
-        // Load font
-        if (!load_font(font_path)) {
-            logger.error("Failed to load font: " + font_path.string());
-            return 1;
-        }
-
-        render_expression(expr, output_path, 60, 60, debug_boxes, scale);
+        // Render expression
+        render_expression( config.expression(),
+                           config.output_path(),
+                           config.width(),
+                           config.height(),
+                           config.debug_boxes(),
+                           config.scale(),
+                           config.use_5x7() );
         return 0;
     } catch (const std::exception& e) {
         logger.error(std::string("Error: ") + e.what());

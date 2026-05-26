@@ -54,6 +54,7 @@ set(CORE_SOURCES
     src/overboard/core/keymap.cpp
     src/overboard/core/keyboard_layout.cpp
     src/overboard/core/layer_manager.cpp
+    src/overboard/font/font_metrics.cpp
     src/overboard/io/via_layout.cpp
     src/overboard/math/ast/ast.cpp
     src/overboard/math/calc_engine.cpp
@@ -78,12 +79,14 @@ if(BUILD_TESTS)
         test/core/test_keymap.cpp
         src/overboard/core/keymap.cpp
         src/overboard/core/layer_manager.cpp
+        src/overboard/font/font_metrics.cpp
         src/overboard/math/ast/ast.cpp
         src/overboard/math/expression.cpp
         src/overboard/math/calc_engine.cpp
         src/overboard/math/parser.cpp
         src/overboard/math/layout/engine.cpp
         src/overboard/log/stdout_logger.cpp
+        src/overboard/log/log_level.cpp
     )
 
     target_include_directories(calc_tests PRIVATE src test)
@@ -92,18 +95,6 @@ if(BUILD_TESTS)
     include(GoogleTest)
     gtest_discover_tests(calc_tests)
 
-    # Standalone math render test (outputs PNG from equation string)
-    add_executable(math_render_test
-        test/math/layout/test_math_render.cpp
-        src/overboard/math/ast/ast.cpp
-        src/overboard/math/parser.cpp
-        src/overboard/math/layout/engine.cpp
-    )
-    target_include_directories(math_render_test PRIVATE src)
-    target_include_directories(math_render_test SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS} ${PNG_INCLUDE_DIRS})
-    target_link_libraries(math_render_test PRIVATE ${SDL2_LIBRARIES} PNG::PNG)
-    # Disable strict warnings for this test to avoid SDL header issues
-    target_compile_options(math_render_test PRIVATE -Wno-old-style-cast -Wno-sign-conversion)
 endif()
 
 if(TARGET_DEVICE STREQUAL "SDL")
@@ -113,6 +104,7 @@ if(TARGET_DEVICE STREQUAL "SDL")
         src/overboard/hal/app_factory.cpp
         ${HARDWARE_SOURCES}
         src/overboard/log/stdout_logger.cpp
+        src/overboard/log/log_level.cpp
         ${CORE_SOURCES}
     )
 
@@ -134,6 +126,7 @@ if(TARGET_DEVICE STREQUAL "SDL")
     add_executable(keylogger
         src/tools/keylogger.cpp
         src/overboard/log/stdout_logger.cpp
+        src/overboard/log/log_level.cpp
     )
     target_include_directories(keylogger PRIVATE src)
     target_include_directories(keylogger SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
@@ -141,10 +134,13 @@ if(TARGET_DEVICE STREQUAL "SDL")
     # Test math rendering tool (SDL only)
     add_executable(test_math_render
         src/overboard/apps/test_math_render/test_math_render.cpp
+        src/overboard/apps/test_math_render/config.cpp
+        src/overboard/font/font_metrics.cpp
         src/overboard/math/ast/ast.cpp
         src/overboard/math/parser.cpp
         src/overboard/math/layout/engine.cpp
         src/overboard/log/stdout_logger.cpp
+        src/overboard/log/log_level.cpp
     )
     target_include_directories(test_math_render PRIVATE src)
     target_include_directories(test_math_render PRIVATE thirdparty/stb)
@@ -155,10 +151,11 @@ if(TARGET_DEVICE STREQUAL "SDL")
 
     # VIA layout renderer tool (SDL only)
     add_executable(render_layout
-        src/tools/render_layout.cpp
-        src/overboard/io/via_layout.cpp
         src/overboard/core/keyboard_layout.cpp
+        src/overboard/io/via_layout.cpp
+        src/overboard/log/log_level.cpp
         src/overboard/log/stdout_logger.cpp
+        src/tools/render_layout.cpp
     )
     target_include_directories(render_layout PRIVATE src)
     target_include_directories(render_layout SYSTEM PRIVATE thirdparty/json/include ${PNG_INCLUDE_DIRS})
@@ -172,6 +169,7 @@ if(TARGET_DEVICE STREQUAL "RP2350")
         src/overboard/hal/app_factory.cpp
         ${HARDWARE_SOURCES}
         src/overboard/log/stdout_logger.cpp
+        src/overboard/log/log_level.cpp
         ${CORE_SOURCES}
     )
 

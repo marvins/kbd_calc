@@ -77,21 +77,27 @@ struct Font_Metrics {
     int char_width() const { return em / 2; }
 
     /**
+     * @brief Scale all metrics by a factor
+     * @param factor Scale factor (e.g., 2.0 for double size)
+     * @return true if scaling succeeded, false otherwise
+     */
+    bool scale(float factor);
+
+    /**
      * @brief Construct a reasonable default for use in tests or headless contexts.
      *
      * Based on rough pixel values for a ~10px font. Not tied to any real font.
      */
-    static Font_Metrics make_default() {
-        Font_Metrics m;
-        m.base_px  = 10.0f;
-        m.ascent   = 8;
-        m.descent  = 2;
-        m.em       = 8;
-        m.ex       = 5;
-        m.line_gap = 0;
-        m.advances.fill(5);  // Reasonable monospace fallback
-        return m;
-    }
+    static Font_Metrics make_default();
+
+    /**
+     * @brief Construct metrics for the 5x7 bitmap font.
+     *
+     * The 5x7 font is a fixed-size bitmap font where each character is
+     * 5 pixels wide by 7 pixels tall. This is commonly used on embedded
+     * displays and matches the HAL's FONT_5X7.
+     */
+    static Font_Metrics make_5x7();
 };
 
 } // namespace ovb::font
