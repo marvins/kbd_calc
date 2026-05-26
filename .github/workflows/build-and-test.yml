@@ -19,6 +19,38 @@ jobs:
       with:
         submodules: recursive
 
+    - name: System information
+      run: |
+        echo "=== OS ==="
+        uname -a
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          sw_vers
+          echo "=== CPUs ==="
+          sysctl -n hw.ncpu
+          echo "=== RAM ==="
+          sysctl -n hw.memsize | awk '{printf "%.1f GB\n", $1/1024/1024/1024}'
+        else
+          cat /etc/os-release
+          echo "=== CPUs ==="
+          nproc
+          echo "=== RAM ==="
+          free -h | awk '/^Mem:/ {print $2}'
+        fi
+        echo "=== CMake ==="
+        cmake --version || echo "CMake not yet installed"
+        echo "=== Compiler ==="
+        c++ --version
+
+    - name: Install CMake 4 (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | \
+          gpg --dearmor - | sudo tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
+        echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | \
+          sudo tee /etc/apt/sources.list.d/kitware.list
+        sudo apt-get update
+        sudo apt-get install -y cmake
+
     - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
@@ -27,7 +59,6 @@ jobs:
     - name: Install dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt-get update
         sudo apt-get install -y libsdl2-dev libpng-dev
 
     - name: Build project
