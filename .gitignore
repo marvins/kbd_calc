@@ -2,3 +2,4 @@ build/
 .DS_Store
 output.png
 __pycache__
+output/
