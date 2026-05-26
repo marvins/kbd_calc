@@ -70,7 +70,7 @@ jobs:
     - name: Build project
       run: |
         if [ "$RUNNER_OS" == "macOS" ]; then
-          ./scripts/build.sh -j$(sysctl -n hw.ncpu)
+          CMAKE_PREFIX_PATH=$(brew --prefix) ./scripts/build.sh -j$(sysctl -n hw.ncpu)
         else
           ./scripts/build.sh -j$(nproc)
         fi
