@@ -58,9 +58,9 @@ TEST_F(LayoutTest, number_atom) {
     EXPECT_EQ(box.kind, layout::Box_Kind::ATOM);
     EXPECT_EQ(box.text, "42");
     EXPECT_EQ(box.scale, 2);
-    // "42" = 2 chars * 6px * scale2 = 24px wide, 7*2 = 14px tall
-    EXPECT_EQ(box.size.x, 24);
-    EXPECT_EQ(box.size.y, 14);
+    // "42" = 2 chars * 5px * scale2 = 20px wide, (ascent8+descent2)*2 = 20px tall
+    EXPECT_EQ(box.size.x, 20);
+    EXPECT_EQ(box.size.y, 20);
 }
 
 TEST_F(LayoutTest, constant_atom) {
