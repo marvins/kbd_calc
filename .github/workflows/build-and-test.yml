@@ -38,6 +38,12 @@ jobs:
         fi
         echo "=== CMake ==="
         cmake --version || echo "CMake not yet installed"
+        if [ "$RUNNER_OS" != "macOS" ]; then
+          echo "=== CMake location ==="
+          which cmake || echo "cmake not in PATH"
+          echo "=== All cmake binaries ==="
+          find /usr /opt /home/runner -name "cmake*" -type f 2>/dev/null
+        fi
         echo "=== Compiler ==="
         c++ --version
 
