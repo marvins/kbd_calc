@@ -123,7 +123,7 @@ TEST(Key_Code_To_Display, Digit_Codes) {
 TEST(Key_Code_To_Display, Basic_Operators) {
     EXPECT_EQ( core::key_code_to_display(core::Key_Code::ADD),       "+" );
     EXPECT_EQ( core::key_code_to_display(core::Key_Code::SUBTRACT),  "-" );
-    EXPECT_EQ( core::key_code_to_display(core::Key_Code::MULTIPLY),  "\xC3\x97" );
+    EXPECT_EQ( core::key_code_to_display(core::Key_Code::MULTIPLY),  "x" );
     EXPECT_EQ( core::key_code_to_display(core::Key_Code::DIVIDE),    "\xC3\xB7" );
     EXPECT_EQ( core::key_code_to_display(core::Key_Code::EQUALS),    "=" );
     EXPECT_EQ( core::key_code_to_display(core::Key_Code::DECIMAL),   "." );

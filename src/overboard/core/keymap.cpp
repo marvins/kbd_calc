@@ -157,7 +157,7 @@ std::string key_code_to_display(Key_Code code) {
         case Key_Code::DIGIT_9:            return "9";
         case Key_Code::ADD:                return "+";
         case Key_Code::SUBTRACT:           return "-";
-        case Key_Code::MULTIPLY:           return "*";
+        case Key_Code::MULTIPLY:           return "x";
         case Key_Code::DIVIDE:             return "\xC3\xB7";
         case Key_Code::EQUALS:             return "=";
         case Key_Code::EVAL:               return "Eval";
