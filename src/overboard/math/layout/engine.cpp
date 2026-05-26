@@ -58,11 +58,25 @@ Layout_Box Layout_Box::sequence(std::vector<Layout_Box> boxes, int scale) {
              std::move(boxes)};
 }
 
+/****************************************/
+/*          Handle Square Root          */
+/****************************************/
+Layout_Box Layout_Box::sqrt(Layout_Box arg, int scale) {
+    return { Box_Kind::SQRT,
+             core::Point<int>(0, 0),
+             core::Size<int>(0, 0),
+             0,
+             scale,
+             "",
+             { std::move(arg) } };
+}
+
 /****************************/
 /*      Layout Engine       */
 /****************************/
-Layout_Engine::Layout_Engine(int default_scale)
-    : m_default_scale(default_scale) {}
+Layout_Engine::Layout_Engine(const font::Font_Metrics& metrics, int default_scale)
+    : m_metrics(metrics), m_default_scale(default_scale) {}
+
 
 /****************************/
 /*         Build            */
@@ -80,6 +94,9 @@ Layout_Box Layout_Engine::build(const ovb::ast::Node* node, int scale) {
             return Layout_Box::atom(node->to_string(), scale);
 
         case Node_Kind::CONSTANT:
+            return Layout_Box::atom(node->to_string(), scale);
+
+        case Node_Kind::VARIABLE:
             return Layout_Box::atom(node->to_string(), scale);
 
         case Node_Kind::BINARY_OP:
@@ -162,6 +179,11 @@ Layout_Box Layout_Engine::build_unary_op(const ovb::ast::Unary_Op_Node* node, in
 /*      Build Function      */
 /****************************/
 Layout_Box Layout_Engine::build_function(const ovb::ast::Function_Node* node, int scale) {
+    // Special case: sqrt function uses proper mathematical notation
+    if (node->name == "sqrt" && node->args.size() == 1) {
+        return Layout_Box::sqrt(build(node->args[0].get(), scale), scale);
+    }
+
     std::vector<Layout_Box> seq;
     // Reserve: name + ( + args + commas + )
     seq.reserve(node->args.size() * 2 + 3);
@@ -194,9 +216,9 @@ void Layout_Engine::measure(Layout_Box& box) {
 
     switch (box.kind) {
         case Box_Kind::ATOM:
-            box.size.x = static_cast<int>(box.text.size()) * 6 * box.scale;
-            box.size.y = 7 * box.scale;
-            box.baseline = box.size.y - 2 * box.scale;
+            box.size.x = m_metrics.string_width(box.text) * box.scale;
+            box.size.y = m_metrics.line_height() * box.scale;
+            box.baseline = m_metrics.ascent * box.scale;
             break;
 
         case Box_Kind::SEQUENCE: {
@@ -251,6 +273,26 @@ void Layout_Engine::measure(Layout_Box& box) {
         case Box_Kind::SUPERSCRIPT:
             // TODO: Implement if needed
             break;
+
+        case Box_Kind::SQRT: {
+            auto& arg = box.children[0];
+            measure(arg);
+
+            // Space for √ symbol (reduced to bring tick closer to text)
+            int symbol_width = 2 * box.scale;
+
+            // Vertical padding for horizontal bar above text
+            int top_pad = 2 * box.scale;
+
+            // Text offset from bars (2 pixels right and down)
+            int text_offset = 2;
+
+            // Total width: symbol + argument + padding + text offset
+            box.size.x = symbol_width + arg.size.x + 2 + text_offset;
+            box.size.y = arg.size.y + top_pad + text_offset;
+            box.baseline = arg.baseline + top_pad + text_offset;  // Shift baseline down
+            break;
+        }
     }
 }
 
@@ -300,11 +342,12 @@ void Layout_Engine::layout(Layout_Box& box, core::Point<int> pos) {
             auto& exp = box.children[1];
 
             // Base at normal position
-            layout(base, core::Point<int>(pos.x, pos.y + box.baseline - base.baseline));
+            int base_y = pos.y + box.baseline - base.baseline;
+            layout(base, core::Point<int>(pos.x, base_y));
 
             // Exponent raised above baseline and to the right
             int raise = base.size.y * 4 / 5;  // 80% raise for higher superscript
-            int exp_y = pos.y + box.baseline - exp.baseline - raise / 2;
+            int exp_y = pos.y + box.baseline - exp.baseline - raise;
             layout(exp, core::Point<int>(pos.x + base.size.x, exp_y));
             break;
         }
@@ -312,6 +355,17 @@ void Layout_Engine::layout(Layout_Box& box, core::Point<int> pos) {
         case Box_Kind::SUPERSCRIPT:
             // TODO: Implement if needed
             break;
+
+        case Box_Kind::SQRT: {
+            auto& arg = box.children[0];
+            int symbol_width = 2 * box.scale;
+            int top_pad = 2 * box.scale;
+            int text_offset = 2;
+
+            // Argument positioned to the right of the √ symbol, below top padding, with offset
+            layout(arg, core::Point<int>(pos.x + symbol_width + text_offset, pos.y + top_pad + text_offset));
+            break;
+        }
     }
 }
 

@@ -13,6 +13,7 @@
 #include <overboard/hal/i_display.hpp>
 #include <overboard/math/calc_engine.hpp>
 #include <overboard/math/layout/engine.hpp>
+#include <overboard/font/font_metrics.hpp>
 
 namespace ovb::core {
 
@@ -75,7 +76,7 @@ class Display_Controller {
         const math::Calc_Engine& m_engine;         ///< Calculator state engine
         Grid_Layout           m_layout;            ///< Keyboard grid layout
         int                   m_pressed_key = -1;  ///< Currently pressed key index (-1 if none)
-        layout::Layout_Engine m_layout_engine{2};  ///< Math layout engine (scale 2)
+        layout::Layout_Engine m_layout_engine{font::Font_Metrics::make_default(), 2};  ///< Math layout engine (scale 2)
 
         static constexpr int KEY_PAD    = 4;          ///< Padding between keys
         static constexpr int MARGIN_LEFT = 20;        ///< Left margin for row labels

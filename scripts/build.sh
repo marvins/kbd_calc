@@ -10,6 +10,7 @@ CLEAN=false
 TARGET_DEVICE="SDL"
 SIMULATOR=ON
 JOBS="1"
+VERBOSE=false
 
 usage() {
     cat <<EOF
@@ -23,6 +24,7 @@ Options:
   -p <target>  Hardware target: SDL or RP2350 (default: SDL)
   -s <on|off>  Simulator mode: on or off (default: on)
   -j <jobs>    Parallel jobs (default: 1)
+  -t           Trace/verbose build output
 
 Examples:
   $(basename "$0")              # SDL simulator, debug build
@@ -34,7 +36,7 @@ Examples:
 EOF
 }
 
-while getopts ":hcdrp:s:j:" opt; do
+while getopts ":hcdrp:s:j:t" opt; do
     case "${opt}" in
         h) usage; exit 0 ;;
         c) CLEAN=true ;;
@@ -43,6 +45,7 @@ while getopts ":hcdrp:s:j:" opt; do
         p) TARGET_DEVICE="${OPTARG}" ;;
         s) SIMULATOR="${OPTARG}" ;;
         j) JOBS="${OPTARG}" ;;
+        t) VERBOSE=true ;;
         :) echo "Error: option -${OPTARG} requires an argument." >&2; usage; exit 1 ;;
         \?) echo "Error: unknown option -${OPTARG}" >&2; usage; exit 1 ;;
     esac
@@ -73,7 +76,11 @@ cmake -S "${PROJECT_DIR}" -B "${BUILD_DIR}" \
     -DSIMULATOR="${SIMULATOR}" \
     -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
 
-cmake --build "${BUILD_DIR}" --parallel "${JOBS}"
+if ${VERBOSE}; then
+    cmake --build "${BUILD_DIR}" --parallel "${JOBS}" --verbose
+else
+    cmake --build "${BUILD_DIR}" --parallel "${JOBS}"
+fi
 
 echo ""
 if [[ "${SIMULATOR}" == "ON" ]]; then

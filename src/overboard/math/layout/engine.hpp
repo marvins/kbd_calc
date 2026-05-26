@@ -15,9 +15,10 @@
 #include <string>
 
 // Project Libraries
+#include <overboard/core/point.hpp>
 #include <overboard/math/ast/ast.hpp>
 #include <overboard/math/layout/box.hpp>
-#include <overboard/core/point.hpp>
+#include <overboard/font/font_metrics.hpp>
 
 namespace ovb::layout {
 
@@ -41,11 +42,14 @@ namespace ovb::layout {
 class Layout_Engine {
     public:
         /**
-         * @brief Construct with default scale
+         * @brief Construct with font metrics
          *
+         * Font metrics drive all box sizing so layout matches rendering.
+         *
+         * @param metrics  Font metrics from the actual font being used
          * @param default_scale Font scale for top-level boxes (default 2)
          */
-        explicit Layout_Engine(int default_scale = 2);
+        explicit Layout_Engine(const font::Font_Metrics& metrics, int default_scale = 2);
 
         /**
          * @brief Build layout box tree from AST
@@ -103,7 +107,8 @@ class Layout_Engine {
         void prepare(Layout_Box& box, core::Point<int> container_size);
 
     private:
-        int m_default_scale;  ///< Default font scale
+        font::Font_Metrics m_metrics;       ///< Font metrics for box sizing
+        int                m_default_scale; ///< Default font scale
 
         /**
          * @brief Build layout for binary operation node

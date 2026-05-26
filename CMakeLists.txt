@@ -137,6 +137,20 @@ if(TARGET_DEVICE STREQUAL "SDL")
     )
     target_include_directories(keylogger PRIVATE src)
     target_include_directories(keylogger SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
+
+    # Test math rendering tool (SDL only)
+    add_executable(test_math_render
+        src/overboard/apps/test_math_render/test_math_render.cpp
+        src/overboard/math/ast/ast.cpp
+        src/overboard/math/parser.cpp
+        src/overboard/math/layout/engine.cpp
+        src/overboard/log/stdout_logger.cpp
+    )
+    target_include_directories(test_math_render PRIVATE src)
+    target_include_directories(test_math_render PRIVATE thirdparty/stb)
+    target_include_directories(test_math_render SYSTEM PRIVATE ${PNG_INCLUDE_DIRS})
+    target_link_libraries(test_math_render PRIVATE PNG::PNG)
+    target_compile_options(test_math_render PRIVATE -Wno-old-style-cast -Wno-sign-conversion)
     target_link_libraries(keylogger PRIVATE ${SDL2_LIBRARIES} project_warnings)
 
     # VIA layout renderer tool (SDL only)

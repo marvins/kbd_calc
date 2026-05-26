@@ -186,7 +186,7 @@ std::string key_code_to_display(Key_Code code) {
         case Key_Code::SQRT:               return "\xE2\x88\x9A";
         case Key_Code::POWER_2:            return "x\xC2\xB2";
         case Key_Code::POWER_3:            return "x\xC2\xB3";
-        case Key_Code::POWER_N:            return "x^n";
+        case Key_Code::POWER_N:            return "x\xE2\x81\xBF";
         case Key_Code::FACTORIAL:          return "n!";
         case Key_Code::RECIPROCAL:         return "1/x";
         case Key_Code::PI:                 return "\xCF\x80";

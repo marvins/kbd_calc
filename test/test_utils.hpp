@@ -10,38 +10,43 @@
 
 // Project Libraries
 #include <overboard/math/layout/box.hpp>
+#include <overboard/log/i_logger.hpp>
 
 namespace ovb::test {
 
 // Print box structure for debugging
-inline void print_box(const ovb::layout::Layout_Box& box, int indent = 0) {
+inline void print_box( const layout::Layout_Box& box,
+                       log::I_Logger&            logger,
+                       int                       indent = 0 ) {
     using ovb::layout::Box_Kind;
 
     std::string prefix(static_cast<std::size_t>(indent) * 2, ' ');
     switch (box.kind) {
         case Box_Kind::ATOM:
-            std::cout << prefix << "ATOM: \"" << box.text << "\" scale=" << box.scale
-                      << " w=" << box.size.x << " h=" << box.size.y << "\n";
+            logger.trace("{}ATOM: \"{}\" scale={} w={} h={}", prefix, box.text, box.scale, box.size.x, box.size.y);
             break;
         case Box_Kind::FRACTION:
-            std::cout << prefix << "FRACTION w=" << box.size.x << " h=" << box.size.y << "\n";
-            print_box(box.children[0], indent + 1);
-            print_box(box.children[1], indent + 1);
+            logger.trace("{}FRACTION w={} h={}", prefix, box.size.x, box.size.y);
+            print_box(box.children[0], logger, indent + 1);
+            print_box(box.children[1], logger, indent + 1);
             break;
         case Box_Kind::POWER:
-            std::cout << prefix << "POWER w=" << box.size.x << " h=" << box.size.y << "\n";
-            print_box(box.children[0], indent + 1);
-            print_box(box.children[1], indent + 1);
+            logger.trace("{}POWER w={} h={}", prefix, box.size.x, box.size.y);
+            print_box(box.children[0], logger, indent + 1);
+            print_box(box.children[1], logger, indent + 1);
             break;
         case Box_Kind::SEQUENCE:
-            std::cout << prefix << "SEQUENCE w=" << box.size.x << " h=" << box.size.y
-                      << " children=" << box.children.size() << "\n";
+            logger.trace("{}SEQUENCE w={} h={} children={}", prefix, box.size.x, box.size.y, box.children.size());
             for (const auto& child : box.children) {
-                print_box(child, indent + 1);
+                print_box(child, logger, indent + 1);
             }
             break;
         case Box_Kind::SUPERSCRIPT:
-            std::cout << prefix << "SUPERSCRIPT\n";
+            logger.trace("{}SUPERSCRIPT", prefix);
+            break;
+        case Box_Kind::SQRT:
+            logger.trace("{}SQRT w={} h={}", prefix, box.size.x, box.size.y);
+            print_box(box.children[0], logger, indent + 1);
             break;
     }
 }
@@ -63,6 +68,8 @@ inline std::string box_to_string(const ovb::layout::Layout_Box& box) {
             return "SEQUENCE{...}";
         case Box_Kind::SUPERSCRIPT:
             return "SUPERSCRIPT";
+        case Box_Kind::SQRT:
+            return "SQRT[" + box_to_string(box.children[0]) + "]";
     }
     return "UNKNOWN";
 }

@@ -21,6 +21,7 @@
 #include <overboard/math/ast/ast.hpp>
 #include <overboard/math/layout/box.hpp>
 #include <overboard/math/layout/engine.hpp>
+#include <overboard/font/font_metrics.hpp>
 #include <overboard/math/parser.hpp>
 #include <overboard/hal/font_5x7.hpp>
 
@@ -240,7 +241,7 @@ static int render_equation(const std::string& expr, const std::string& output_fi
     SDL_FillRect( surf, nullptr, SDL_MapRGB( surf->format, COLOR_BLACK, COLOR_BLACK, COLOR_BLACK ) );
 
     // Use Layout_Engine to build and position layout tree
-    layout::Layout_Engine engine(RENDER_SCALE);
+    layout::Layout_Engine engine(font::Font_Metrics::make_default(), RENDER_SCALE);
     auto root = engine.build(tree.get());
     engine.prepare(root, core::Point<int>(RENDER_WIDTH, RENDER_HEIGHT));
 

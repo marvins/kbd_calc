@@ -26,16 +26,17 @@
 #include <overboard/math/calc_engine.hpp>
 #include <overboard/math/expression.hpp>
 #include <overboard/math/layout/engine.hpp>
+#include <overboard/font/font_metrics.hpp>
 #include <overboard/math/parser.hpp>
 
 namespace ovb::hal::sdl {
 
 // Static logger instance for this module
-static ovb::log::Stdout_Logger s_logger(ovb::log::Log_Level::Debug);
+static log::Stdout_Logger s_logger(log::Log_Level::Debug);
 
 // Forward declarations for draw helpers
 static void draw_math_to_canvas( lv_obj_t* canvas, int width, int height,
-                                 ovb::layout::Layout_Engine& layout_engine,
+                                 layout::Layout_Engine& layout_engine,
                                  const std::string&          expr_str);
 
 struct SDL_LCD_Display::Impl {
@@ -52,16 +53,16 @@ struct SDL_LCD_Display::Impl {
     lv_obj_t*     preview_canvas = nullptr;  // Canvas for typeset math
 
     // References
-    const ovb::math::Calc_Engine&   engine;
-    const ovb::core::Layer_Manager& layers;
-    ovb::layout::Layout_Engine      layout_engine{2};  // Scale factor 2
+    const math::Calc_Engine&   engine;
+    const core::Layer_Manager& layers;
+    layout::Layout_Engine      layout_engine{font::Font_Metrics::make_default(), 2};  // Scale factor 2
 
     // History canvases (one per visible row, expression and result)
     std::vector<std::pair<lv_obj_t*, lv_obj_t*>> history_cells;
 
     Impl( int w, int h,
-          const ovb::math::Calc_Engine& e,
-          const ovb::core::Layer_Manager& l)
+          const math::Calc_Engine& e,
+          const core::Layer_Manager& l)
         : width(w), height(h), engine(e), layers(l) {}
 };
 
@@ -73,8 +74,8 @@ SDL_LCD_Display::SDL_LCD_Display( const std::string&              title,
                                      int                             y,
                                      int                             width,
                                      int                             height,
-                                     const ovb::math::Calc_Engine&   engine,
-                                     const ovb::core::Layer_Manager& layers )
+                                     const math::Calc_Engine&   engine,
+                                     const core::Layer_Manager& layers )
     : m_impl(std::make_unique<Impl>(width, height, engine, layers))
 {
     // Create LVGL SDL display (LVGL v9 creates its own SDL window)
@@ -209,8 +210,8 @@ void SDL_LCD_Display::draw_pixel( [[maybe_unused]] core::Point<int> pos,
 /****************************************/
 /*          Draw a rectangle            */
 /****************************************/
-void SDL_LCD_Display::draw_rect( [[maybe_unused]] ovb::core::Point<int> pos,
-                                 [[maybe_unused]] ovb::core::Point<int> size,
+void SDL_LCD_Display::draw_rect( [[maybe_unused]] core::Point<int> pos,
+                                 [[maybe_unused]] core::Point<int> size,
                                  [[maybe_unused]] Color c,
                                  [[maybe_unused]] bool filled ) {
     // LVGL handles rendering via widgets
@@ -219,7 +220,7 @@ void SDL_LCD_Display::draw_rect( [[maybe_unused]] ovb::core::Point<int> pos,
 /*****************************/
 /*          Draw Text        */
 /*****************************/
-void SDL_LCD_Display::draw_text([[maybe_unused]] ovb::core::Point<int> pos,
+void SDL_LCD_Display::draw_text([[maybe_unused]] core::Point<int> pos,
                                  [[maybe_unused]] const std::string& text,
                                  [[maybe_unused]] Color fg, [[maybe_unused]] Color bg, [[maybe_unused]] int scale) {
     // LVGL handles rendering via widgets
@@ -286,7 +287,7 @@ void SDL_LCD_Display::render() {
 /*****************************************/
 // Helper: draw typeset math to LVGL canvas using layer-based rendering (LVGL v9)
 static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
-                                 ovb::layout::Layout_Engine& layout_engine,
+                                 layout::Layout_Engine& layout_engine,
                                  const std::string&          expr_str) {
     // Set canvas buffer if not already set
     static std::vector<uint32_t> canvas_buf;
@@ -312,12 +313,12 @@ static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
         lv_canvas_init_layer(canvas, &layer);
 
         // Draw boxes recursively
-        std::function<void(const ovb::layout::Layout_Box&, int, int)> draw_box;
-        draw_box = [&](const ovb::layout::Layout_Box& b, int offset_x, int offset_y) {
+        std::function<void(const layout::Layout_Box&, int, int)> draw_box;
+        draw_box = [&](const layout::Layout_Box& b, int offset_x, int offset_y) {
             int x = b.pos.x + offset_x;
             int y = b.pos.y + offset_y;
 
-            if (b.kind == ovb::layout::Box_Kind::ATOM && !b.text.empty()) {
+            if (b.kind == layout::Box_Kind::ATOM && !b.text.empty()) {
                 // Draw text using label descriptor
                 lv_draw_label_dsc_t label_dsc;
                 lv_draw_label_dsc_init(&label_dsc);
@@ -336,7 +337,7 @@ static void draw_math_to_canvas(lv_obj_t* canvas, int width, int height,
             }
 
             // Draw fraction bar for FRACTION boxes
-            if (b.kind == ovb::layout::Box_Kind::FRACTION && b.children.size() == 2) {
+            if (b.kind == layout::Box_Kind::FRACTION && b.children.size() == 2) {
                 const auto& num = b.children[0];
                 const auto& den = b.children[1];
                 int bar_y = y + num.size.y + 2;  // Small gap

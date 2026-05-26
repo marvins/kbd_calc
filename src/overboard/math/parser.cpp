@@ -233,7 +233,8 @@ ovb::ast::Node_Ptr Parser::parse_primary() {
             return std::make_unique<ovb::ast::Number_Node>(
                 static_cast<double>(id[0] - 'A' + 10));
 
-        throw std::runtime_error("Unknown identifier: " + id);
+        // Treat unknown identifiers as variables for rendering purposes
+        return std::make_unique<ovb::ast::Variable_Node>(id);
     }
 
     return std::make_unique<ovb::ast::Number_Node>(read_number_literal());

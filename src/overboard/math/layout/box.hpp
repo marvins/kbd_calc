@@ -30,7 +30,8 @@ enum class Box_Kind {
     FRACTION,   ///< Fraction with numerator and denominator
     POWER,      ///< Base with superscript exponent
     SEQUENCE,   ///< Horizontal list of boxes
-    SUPERSCRIPT ///< Standalone superscript (for future use)
+    SUPERSCRIPT,///< Standalone superscript (for future use)
+    SQRT        ///< Square root with horizontal bar over argument
 };
 
 /**
@@ -98,6 +99,17 @@ struct Layout_Box {
      * @return Layout_Box Sequence box
      */
     static Layout_Box sequence(std::vector<Layout_Box> boxes, int scale = 2);
+
+    /**
+     * @brief Create a square root box
+     *
+     * The argument is placed under a horizontal bar with a √ symbol.
+     *
+     * @param arg Argument box
+     * @param scale Font scale (default 2)
+     * @return Layout_Box Square root box
+     */
+    static Layout_Box sqrt(Layout_Box arg, int scale = 2);
 
     /**
      * @brief Position accessor

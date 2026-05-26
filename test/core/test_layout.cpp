@@ -16,7 +16,9 @@
 #include <overboard/math/ast/ast.hpp>
 #include <overboard/math/layout/box.hpp>
 #include <overboard/math/layout/engine.hpp>
+#include <overboard/font/font_metrics.hpp>
 #include <overboard/math/parser.hpp>
+#include <overboard/log/stdout_logger.hpp>
 #include "test_utils.hpp"
 
 using namespace ovb;
@@ -27,7 +29,7 @@ using namespace ovb;
 static layout::Layout_Box parse_and_layout(const std::string& expr, int scale = 2) {
     math::Parser parser(expr);
     auto tree = parser.parse();
-    layout::Layout_Engine engine(scale);
+    layout::Layout_Engine engine(font::Font_Metrics::make_default(), scale);
     auto box = engine.build(tree.get());
     engine.measure(box);
     return box;
@@ -38,9 +40,11 @@ static layout::Layout_Box parse_and_layout(const std::string& expr, int scale = 
 /****************************/
 class LayoutTest : public ::testing::Test {
     protected:
-        void dump(const layout::Layout_Box& box) const {
+        log::Stdout_Logger logger{log::Log_Level::Trace};
+
+        void dump(const layout::Layout_Box& box) {
             std::cout << "\n";
-            test::print_box(box);
+            test::print_box(box, logger);
             std::cout << "\n";
         }
 };

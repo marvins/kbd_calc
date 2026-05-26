@@ -18,6 +18,7 @@ using Node_Ptr = std::unique_ptr<Node>;
 enum class Node_Kind {
     NUMBER,       // literal double
     CONSTANT,     // symbolic constant — pi, e
+    VARIABLE,     // variable name — x, y, n
     BINARY_OP,    // left op right
     UNARY_OP,     // op operand
     FUNCTION,     // named function, one or more args
@@ -121,6 +122,22 @@ struct Constant_Node : Node {
         }
         return "";
     }
+};
+
+struct Variable_Node : Node {
+    std::string name;
+
+    explicit Variable_Node(std::string n)
+        : Node(Node_Kind::VARIABLE), name(std::move(n)) {}
+
+    double eval() const override {
+        throw std::runtime_error("Cannot evaluate variable '" + name + "' without a value");
+    }
+
+    std::string to_latex() const override { return name; }
+    std::string to_string() const override { return name; }
+    Node_Ptr clone() const override { return std::make_unique<Variable_Node>(name); }
+    Node_Ptr simplify() const override { return clone(); }
 };
 
 struct Binary_Op_Node : Node {
