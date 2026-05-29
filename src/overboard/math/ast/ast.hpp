@@ -160,9 +160,9 @@ struct Unary_Op_Node : Node {
     Unary_Op op;
     Node_Ptr operand;
 
-    Unary_Op_Node(Unary_Op o, Node_Ptr operand)
+    Unary_Op_Node(Unary_Op o, Node_Ptr operand_)
         : Node(Node_Kind::UNARY_OP), op(o),
-          operand(std::move(operand)) {}
+          operand(std::move(operand_)) {}
 
     double eval() const override {
         double v = operand->eval();
