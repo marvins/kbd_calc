@@ -90,38 +90,38 @@
                 {
                     "row": 2,
                     "col": 3,
-                    "code": "NONE",
-                    "label": "-"
-                },
-                {
-                    "row": 2,
-                    "col": 4,
-                    "code": "NONE",
+                    "code": "ADD",
                     "label": "+"
                 },
                 {
                     "row": 2,
+                    "col": 4,
+                    "code": "SUBTRACT",
+                    "label": "-"
+                },
+                {
+                    "row": 2,
                     "col": 5,
-                    "code": "NONE",
-                    "label": "("
+                    "code": "MULTIPLY",
+                    "label": "x"
                 },
                 {
                     "row": 2,
                     "col": 6,
-                    "code": "NONE",
-                    "label": ")"
-                },
-                {
-                    "row": 2,
-                    "col": 7,
-                    "code": "NONE",
+                    "code": "DIVIDE",
                     "label": "/"
                 },
                 {
                     "row": 2,
+                    "col": 7,
+                    "code": "MODULO",
+                    "label": "%"
+                },
+                {
+                    "row": 2,
                     "col": 8,
-                    "code": "NONE",
-                    "label": "*"
+                    "code": "RECIPROCAL",
+                    "label": "1/n"
                 },
                 {
                     "row": 2,
@@ -533,38 +533,38 @@
                 {
                     "row": 2,
                     "col": 3,
-                    "code": "SUBTRACT",
-                    "label": "-"
-                },
-                {
-                    "row": 2,
-                    "col": 4,
                     "code": "ADD",
                     "label": "+"
                 },
                 {
                     "row": 2,
+                    "col": 4,
+                    "code": "SUBTRACT",
+                    "label": "-"
+                },
+                {
+                    "row": 2,
                     "col": 5,
-                    "code": "PAREN_OPEN",
-                    "label": "("
+                    "code": "MULTIPLY",
+                    "label": "x"
                 },
                 {
                     "row": 2,
                     "col": 6,
-                    "code": "PAREN_CLOSE",
-                    "label": ")"
-                },
-                {
-                    "row": 2,
-                    "col": 7,
-                    "code": "NONE",
+                    "code": "DIVIDE",
                     "label": "/"
                 },
                 {
                     "row": 2,
+                    "col": 7,
+                    "code": "MODULO",
+                    "label": "%"
+                },
+                {
+                    "row": 2,
                     "col": 8,
-                    "code": "NONE",
-                    "label": "*"
+                    "code": "RECIPROCAL",
+                    "label": "1/n"
                 },
                 {
                     "row": 2,
@@ -861,6 +861,18 @@
                     "label": "\u21e7"
                 }
             ]
+        },
+        {
+            "name": "Layer 3",
+            "keys": []
+        },
+        {
+            "name": "Layer 4",
+            "keys": []
+        },
+        {
+            "name": "Layer 5",
+            "keys": []
         }
     ]
 }

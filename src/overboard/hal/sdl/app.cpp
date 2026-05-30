@@ -23,6 +23,7 @@
 #include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/hal/sdl/keymap.hpp>
+#include <overboard/hal/sdl/input.hpp>
 #include <overboard/io/via_layout.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
@@ -77,6 +78,9 @@ std::unique_ptr<SDL_App> SDL_App::create( const core::Grid_Layout&     layout,
 /*          Initialize the SDL application          */
 /****************************************************/
 bool SDL_App::init() {
+    // Set up signal handlers early (before LVGL init) to ensure Ctrl-C works
+    setup_signal_handlers();
+
     // Initialise LVGL before SDL so the SDL driver is registered
     lv_init();
 
@@ -89,14 +93,19 @@ bool SDL_App::init() {
 
     try {
         // Create SDL window (HAL)
+        LOG_TRACE("Creating SDL display");
         m_display = std::make_unique<Display>("Calculator", DISPLAY_WIDTH, DISPLAY_HEIGHT);
+        LOG_TRACE("SDL display created successfully");
 
         // Create GUI view and attach to LVGL screen
+        LOG_DEBUG("Creating App_View");
         m_view = std::make_unique<gui::App_View>(
             m_display->screen(), m_layout, m_engine, m_layers);
+        LOG_TRACE("App_View created successfully");
 
         // Load scancode bindings from keymap JSON into the SDL keymap
         if (!m_layout_path.empty() && !m_keymap_path.empty()) {
+            LOG_TRACE("Loading scancode bindings from " + m_layout_path.string());
             try {
                 auto via_layout = io::parse_via_layout(m_layout_path);
                 io::apply_scancodes_from_json(via_layout, m_keymap_path);
@@ -104,19 +113,26 @@ bool SDL_App::init() {
                 if (!sc_map.empty()) {
                     m_sdl_keymap.load_from_map(sc_map);
                 }
+                LOG_TRACE("Scancode bindings loaded successfully");
             } catch (const std::exception& e) {
                 std::cerr << "Warning: failed to load scancodes: " << e.what() << "\n";
             }
         }
 
         // Wire LVGL button click callback (mouse clicks)
+        LOG_TRACE("Setting key callback");
         m_view->set_key_callback(on_key_clicked, this);
+        LOG_TRACE("Key callback set successfully");
 
         // Create SDL input handler for physical keyboard mapping
+        LOG_TRACE("Creating SDL input handler");
         m_input = std::make_unique<SDL_Input>();
         m_input->keymap() = m_sdl_keymap;
+        LOG_TRACE("SDL input handler created successfully");
 
+        LOG_DEBUG("Rendering initial view");
         m_view->render();
+        LOG_TRACE("Initial view rendered successfully");
 
         return true;
     } catch (const std::exception& e) {
@@ -129,30 +145,40 @@ bool SDL_App::init() {
 /*          Run the app             */
 /************************************/
 void SDL_App::run() {
-    LOG_INFO("SDL_App::run() started");
+    LOG_DEBUG("SDL_App::run() started");
     int loop_count = 0;
-    while (!m_should_quit) {
+    while (!m_should_quit && !m_input->should_quit()) {
+        LOG_TRACE("Main loop iteration " + std::to_string(loop_count));
+
         // Pump SDL events (handles keyboard and mouse hit-testing)
+        LOG_TRACE("Pumping SDL events");
         m_input->pump();
+        LOG_TRACE("SDL events pumped");
 
         // Process keyboard events from SDL_Input
+        LOG_TRACE("Processing keyboard events");
         hal::Key_Event key_event;
         while (m_input->poll(key_event)) {
+            LOG_TRACE("Processing key event, key_index=" + std::to_string(key_event.key_index));
             if (key_event.type == hal::Key_Event_Type::Press) {
                 handle_key(key_event.key_index);
             }
         }
+        LOG_TRACE("Keyboard events processed");
 
+        LOG_TRACE("Ticking LVGL");
         lv_tick_inc(16);
+        LOG_TRACE("Rendering view");
         m_view->render();
-        SDL_Delay(16);
+        LOG_TRACE("View rendered");
 
-        // Log loop progress every 60 frames (~1 second)
-        if (++loop_count % 60 == 0) {
-            LOG_TRACE("Main loop iteration " + std::to_string(loop_count));
-        }
+        LOG_TRACE("Delaying 16ms");
+        SDL_Delay(16);
+        LOG_TRACE("Delay complete");
+
+        loop_count++;
     }
-    LOG_INFO("SDL_App::run() exiting");
+    LOG_DEBUG("SDL_App::run() exiting, loop_count=" + std::to_string(loop_count));
 }
 
 /************************************/

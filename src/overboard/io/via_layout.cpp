@@ -73,17 +73,22 @@ Via_Layout parse_via_layout(const std::filesystem::path& json_path) {
             for (const auto& item : row) {
                 if (item.is_object()) {
                     // This is a positioning object (x, y, w, h)
-                    if (item.contains("x")) {
-                        cursor_x += item["x"].get<double>();
-                    }
-                    if (item.contains("y")) {
-                        cursor_y += item["y"].get<double>();
-                    }
-                    if (item.contains("w")) {
-                        pending_w = item["w"].get<double>();
-                    }
-                    if (item.contains("h")) {
-                        pending_h = item["h"].get<double>();
+                    if (item.empty()) {
+                        // Empty object acts as a 1x1 placeholder (spacer)
+                        cursor_x += 1.0;
+                    } else {
+                        if (item.contains("x")) {
+                            cursor_x += item["x"].get<double>();
+                        }
+                        if (item.contains("y")) {
+                            cursor_y += item["y"].get<double>();
+                        }
+                        if (item.contains("w")) {
+                            pending_w = item["w"].get<double>();
+                        }
+                        if (item.contains("h")) {
+                            pending_h = item["h"].get<double>();
+                        }
                     }
                 } else if (item.is_string()) {
                     // This is a key definition "row,col"

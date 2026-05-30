@@ -837,22 +837,29 @@ class KeyMapperWindow(QMainWindow):
 
 
 def main():
-    DEFAULT_LAYOUT_PATH = "data/configs/mf/MF34.json"
-    DEFAULT_KEYMAP_PATH = "data/configs/mf/MF34.keymap.json"
-    DEFAULT_LAYERS_PATH = "data/configs/mf/MF34.layers.json"
+    DEFAULT_CONFIG_PATH = "data/configs/mf/"
 
-    layout_path = DEFAULT_LAYOUT_PATH
-    keymap_path = DEFAULT_KEYMAP_PATH
-    layers_path = DEFAULT_LAYERS_PATH
+    layout_path = DEFAULT_CONFIG_PATH
+    keymap_path = None
+    layers_path = None
 
     if len(sys.argv) >= 2:
         layout_path = sys.argv[1]
-        # Auto-derive keymap and layers paths from layout path if not provided
-        layout_file = Path(layout_path)
-        if len(sys.argv) < 3:
-            keymap_path = str(layout_file.with_suffix('.keymap.json'))
-        if len(sys.argv) < 4:
-            layers_path = str(layout_file.with_suffix('.layers.json'))
+
+    # Auto-derive paths if layout_path is a directory
+    layout_path_obj = Path(layout_path)
+    if layout_path_obj.is_dir():
+        layout_path = layout_path_obj / "main.json"
+        keymap_path = layout_path_obj / "keymap.json"
+        layers_path = layout_path_obj / "layers.json"
+    else:
+        # If layout_path is a file, derive keymap and layers from its directory
+        if keymap_path is None:
+            keymap_path = layout_path_obj.parent / "keymap.json"
+        if layers_path is None:
+            layers_path = layout_path_obj.parent / "layers.json"
+
+    # Allow override via command line
     if len(sys.argv) >= 3:
         keymap_path = sys.argv[2]
     if len(sys.argv) >= 4:

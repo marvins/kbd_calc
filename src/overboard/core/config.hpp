@@ -27,14 +27,8 @@ class Config {
 
     public:
 
-        /// @brief Default layout path
-        static constexpr std::string_view DEFAULT_LAYOUT_PATH  = "data/configs/mf/MF34.json";
-
-        /// @brief Default keymap path
-        static constexpr std::string_view DEFAULT_KEYMAP_PATH  = "data/configs/mf/MF34.keymap.json";
-
-        /// @brief Default layers path
-        static constexpr std::string_view DEFAULT_LAYERS_PATH  = "data/configs/mf/MF34.layers.json";
+        /// @brief Default config folder path
+        static constexpr std::string_view DEFAULT_CONFIG_PATH  = "data/configs/mf/";
 
         /**
          * @brief Parse command-line arguments

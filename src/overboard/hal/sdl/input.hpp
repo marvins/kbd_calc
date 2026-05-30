@@ -40,4 +40,7 @@ class SDL_Input : public ovb::hal::I_Input {
         SDL_Keymap              m_keymap;
 };
 
+// Public function to set up signal handlers
+void setup_signal_handlers();
+
 } // namespace ovb::hal::sdl

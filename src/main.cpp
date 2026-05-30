@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
     const auto& config = config_opt.value();
 
     if (config.help_requested()) {
+        core::Config::print_usage(config.program_name());
         return 0;
     }
 

@@ -129,7 +129,8 @@ if(TARGET_DEVICE STREQUAL "SDL")
         src/overboard/io/via_layout.cpp
         src/overboard/log/log_level.cpp
         src/overboard/log/stdout_logger.cpp
-        src/tools/render_layout.cpp
+        src/overboard/apps/ovt_layout_util/config.cpp
+        src/overboard/apps/ovt_layout_util/main.cpp
     )
     target_include_directories(render_layout PRIVATE src)
     target_include_directories(render_layout SYSTEM PRIVATE thirdparty/json/include ${PNG_INCLUDE_DIRS})

@@ -14,6 +14,7 @@
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/gui/lvgl_theme.hpp>
+#include <overboard/log/stdout_logger.hpp>
 
 namespace ovb::gui {
 
@@ -27,6 +28,7 @@ Keyboard_View::Keyboard_View( lv_obj_t*                      parent,
                               int                           height )
     : m_layout(layout), m_layers(layers), m_width(width), m_height(height)
 {
+    LOG_TRACE("Keyboard_View: Creating root container");
     // Root container: full display, light background, no padding
     m_container = lv_obj_create(parent);
     lv_obj_set_size(m_container, width, height);
@@ -37,6 +39,7 @@ Keyboard_View::Keyboard_View( lv_obj_t*                      parent,
     lv_obj_set_style_radius(m_container, 0, LV_PART_MAIN);
     lv_obj_clear_flag(m_container, LV_OBJ_FLAG_SCROLLABLE);
 
+    LOG_TRACE("Keyboard_View: Creating header bar");
     // Header bar: layer name
     lv_obj_t* header = lv_obj_create(m_container);
     lv_obj_set_size(header, width, HEADER_H);
@@ -47,19 +50,23 @@ Keyboard_View::Keyboard_View( lv_obj_t*                      parent,
     lv_obj_set_style_radius(header, 0, LV_PART_MAIN);
     lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
 
+    LOG_TRACE("Keyboard_View: Creating header label");
     lv_obj_t* header_label = lv_label_create(header);
     const std::string layer_text = "Layer: " + std::string(m_layers.current_layer().name);
     lv_label_set_text(header_label, layer_text.c_str());
     lv_obj_set_style_text_color(header_label, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
     lv_obj_align(header_label, LV_ALIGN_LEFT_MID, MARGIN_LEFT, 0);
 
+    LOG_TRACE("Keyboard_View: Building buttons");
     build_buttons(m_container);
+    LOG_TRACE("Keyboard_View: Constructor complete");
 }
 
 /****************************/
 /*     Button Building      */
 /****************************/
 void Keyboard_View::build_buttons(lv_obj_t* parent) {
+    LOG_TRACE("build_buttons: Getting key count from layout");
     const int key_count = m_layout.key_count();
     m_buttons.assign(static_cast<std::size_t>(key_count), nullptr);
     m_labels.assign(static_cast<std::size_t>(key_count), nullptr);
@@ -72,25 +79,45 @@ void Keyboard_View::build_buttons(lv_obj_t* parent) {
     const int cell_h  = grid_h / m_layout.rows();
 
     const auto& layer = m_layers.current_layer();
+    LOG_TRACE("build_buttons: layer.keys.size=" + std::to_string(layer.keys.size()));
+
+    int buttons_created = 0;
+    int buttons_failed = 0;
 
     for (int i = 0; i < key_count; ++i) {
+        LOG_TRACE("build_buttons: Processing key " + std::to_string(i));
         auto pos_opt = m_layout.get_key_position(i);
-        if (!pos_opt) continue;
-
-        if (m_layout.get_cell_type(pos_opt->col, pos_opt->row) != ovb::core::Cell_Type::KEY_START)
+        if (!pos_opt) {
+            LOG_TRACE("build_buttons: Key " + std::to_string(i) + " has no position, skipping");
             continue;
+        }
+
+        if (m_layout.get_cell_type(pos_opt->col, pos_opt->row) != ovb::core::Cell_Type::KEY_START) {
+            LOG_TRACE("build_buttons: Key " + std::to_string(i) + " is not KEY_START, skipping");
+            continue;
+        }
 
         auto rect_opt = m_layout.get_key_rect(
             i,
             ovb::core::Point<int>{grid_x, grid_y},
             ovb::core::Point<int>{cell_w,  cell_h},
             KEY_PAD);
-        if (!rect_opt) continue;
+        if (!rect_opt) {
+            LOG_TRACE("build_buttons: Key " + std::to_string(i) + " has no rect, skipping");
+            continue;
+        }
 
         const auto& r = *rect_opt;
 
         // Button widget
         lv_obj_t* btn = lv_button_create(parent);
+        if (!btn) {
+            LOG_TRACE("build_buttons: Failed to create button for key " + std::to_string(i) + ", skipping");
+            buttons_failed++;
+            continue;
+        }
+        buttons_created++;
+
         lv_obj_set_pos(btn, r.x, r.y);
         lv_obj_set_size(btn, r.w, r.h);
         lv_obj_set_style_bg_color(btn, lvgl_color(LVGL_COLOR_KBD_BUTTON),      static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_DEFAULT));
@@ -102,17 +129,34 @@ void Keyboard_View::build_buttons(lv_obj_t* parent) {
         lv_obj_add_flag(btn, LV_OBJ_FLAG_CLICKABLE);
         lv_obj_add_event_cb(btn, button_event_cb, LV_EVENT_ALL, this);
 
+        LOG_TRACE("build_buttons: Creating label for key " + std::to_string(i));
         // Label
         lv_obj_t* lbl = lv_label_create(btn);
+        if (!lbl) {
+            LOG_TRACE("build_buttons: Failed to create label for key " + std::to_string(i) + ", skipping");
+            continue;
+        }
+
+        LOG_TRACE("build_buttons: Getting display text for key " + std::to_string(i));
         const std::string text = core::key_code_to_display(layer.keys[static_cast<std::size_t>(i)]);
-        lv_label_set_text(lbl, text.c_str());
+        LOG_TRACE("build_buttons: Display text for key " + std::to_string(i) + " is: '" + text + "' (length=" + std::to_string(text.length()) + ")");
+
+        if (!text.empty()) {
+            LOG_TRACE("build_buttons: Setting label text for key " + std::to_string(i));
+            lv_label_set_text(lbl, text.c_str());
+            LOG_TRACE("build_buttons: Label text set successfully for key " + std::to_string(i));
+        } else {
+            LOG_TRACE("build_buttons: Skipping empty label text for key " + std::to_string(i));
+        }
         lv_obj_set_style_text_color(lbl, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
         lv_obj_align(lbl, LV_ALIGN_CENTER, 0, 0);
 
         m_key_indices.push_back(i);
         m_buttons[static_cast<std::size_t>(i)] = btn;
         m_labels[static_cast<std::size_t>(i)]  = lbl;
+        LOG_TRACE("build_buttons: Key " + std::to_string(i) + " complete");
     }
+    LOG_TRACE("build_buttons: Complete - created=" + std::to_string(buttons_created) + ", failed=" + std::to_string(buttons_failed));
 }
 
 /****************************/

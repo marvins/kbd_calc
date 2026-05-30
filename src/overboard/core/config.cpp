@@ -16,9 +16,9 @@ namespace ovb::core {
 void Config::print_usage(const std::filesystem::path& program_path) {
     std::cerr << "Usage: " << program_path.filename()
               << " [--layout <path>] [--keymap <path>] [--layers <path>] [-v <level>] [--help]\n"
-              << "  --layout  Path to VIA layout JSON      (default: " << DEFAULT_LAYOUT_PATH << ")\n"
-              << "  --keymap  Path to keymap JSON          (default: " << DEFAULT_KEYMAP_PATH << ")\n"
-              << "  --layers  Path to layers JSON          (default: " << DEFAULT_LAYERS_PATH << ")\n"
+              << "  --layout  Path to VIA layout JSON or config folder (default: " << DEFAULT_CONFIG_PATH << ")\n"
+              << "  --keymap  Path to keymap JSON          (default: <config folder>/keymap.json)\n"
+              << "  --layers  Path to layers JSON          (default: <config folder>/layers.json)\n"
               << "  -v        Log severity level (trace, debug, info, warn, error, default: info)\n"
               << "  --help    Show this help message\n";
 }
@@ -38,16 +38,26 @@ log::Log_Level Config::parse_log_level(std::string_view level_str) {
 std::optional<Config> Config::parse(int argc, char* argv[]) {
     Config config;
     config.m_program_name = argv[0];
-    config.m_layout_path  = DEFAULT_LAYOUT_PATH;
-    config.m_keymap_path  = DEFAULT_KEYMAP_PATH;
-    config.m_layers_path  = DEFAULT_LAYERS_PATH;
+
+    // Set default paths from config folder
+    std::filesystem::path default_config_path = DEFAULT_CONFIG_PATH;
+    config.m_layout_path  = default_config_path / "main.json";
+    config.m_keymap_path  = default_config_path / "keymap.json";
+    config.m_layers_path  = default_config_path / "layers.json";
     config.m_log_level    = log::Log_Level::Info;
 
     for (int i = 1; i < argc; ++i) {
         std::string_view arg = argv[i];
 
         if (arg == "--layout" && i + 1 < argc) {
-            config.m_layout_path = argv[++i];
+            std::filesystem::path layout_path = argv[++i];
+            if (std::filesystem::is_directory(layout_path)) {
+                config.m_layout_path = layout_path / "main.json";
+                config.m_keymap_path = layout_path / "keymap.json";
+                config.m_layers_path = layout_path / "layers.json";
+            } else {
+                config.m_layout_path = layout_path;
+            }
         } else if (arg == "--keymap" && i + 1 < argc) {
             config.m_keymap_path = argv[++i];
         } else if (arg == "--layers" && i + 1 < argc) {

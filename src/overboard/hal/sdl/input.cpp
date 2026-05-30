@@ -10,6 +10,7 @@
 // C++ Standard Libraries
 #include <atomic>
 #include <csignal>
+#include <cstring>
 
 namespace ovb::hal::sdl {
 
@@ -20,15 +21,25 @@ static void signal_handler(int /*sig*/) {
     g_signal_quit.store(true, std::memory_order_relaxed);
 }
 
-static void setup_signal_handlers() {
+// Public function to set up signal handlers
+void setup_signal_handlers() {
     static bool initialized = false;
     if (!initialized) {
-        std::signal(SIGINT, signal_handler);
-        std::signal(SIGTERM, signal_handler);
+        struct sigaction sa;
+        std::memset(&sa, 0, sizeof(sa));
+        sa.sa_handler = signal_handler;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0; // Don't use SA_RESTART to allow interruption
+
+        sigaction(SIGINT, &sa, nullptr);
+        sigaction(SIGTERM, &sa, nullptr);
         initialized = true;
     }
 }
 
+/********************************************/
+/*          Check if We Should Quit         */
+/********************************************/
 bool SDL_Input::should_quit() const {
     // Check both SDL quit flag and signal flag
     return m_quit || g_signal_quit.load(std::memory_order_relaxed);

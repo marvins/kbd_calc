@@ -1,5 +1,5 @@
 /**
- * @file    render_layout.cpp
+ * @file    main.cpp
  * @author  Marvin Smith
  * @date    2026-05-22
  *
@@ -7,12 +7,13 @@
  */
 
 // C++ Standard Libraries
+#include <filesystem>
 #include <string>
+#include <string_view>
 
 // Project Libraries
+#include <overboard/apps/ovt_layout_util/config.hpp>
 #include <overboard/io/via_layout.hpp>
-#include <overboard/core/point.hpp>
-#include <overboard/core/keyboard_layout.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
 // Third-Party Libraries
@@ -23,25 +24,33 @@ using namespace ovb;
 /**
  * @brief Render layout to PNG
  */
-void render_to_png(const io::Via_Layout& layout, const std::string& output_path) {
+void render_to_png(const io::Via_Layout& layout, const std::string& output_path, log::I_Logger& logger) {
     constexpr int KEY_SIZE = 60;  // pixels per key unit
     constexpr int PADDING = 6;     // pixels between keys
     constexpr int MARGIN = 20;     // pixels around the layout
 
-    core::Size2d bounds = io::calculate_bounds(layout);
-
-    int img_w = static_cast<int>(bounds.x * KEY_SIZE) + MARGIN * 2;
-    int img_h = static_cast<int>(bounds.y * KEY_SIZE) + MARGIN * 2;
+    // Calculate bounds from VIA coordinates
+    auto bounds = io::calculate_bounds(layout);
+    int img_w = static_cast<int>(bounds.x) * KEY_SIZE + MARGIN * 2;
+    int img_h = static_cast<int>(bounds.y) * KEY_SIZE + MARGIN * 2;
 
     // Create image buffer (RGB)
     std::vector<uint8_t> img(static_cast<size_t>(img_w) * static_cast<size_t>(img_h) * 3, 240); // Light gray background
 
-    // Draw keys
+    // Draw keys using VIA coordinates directly
     for (const auto& key : layout.keys) {
-        int x = MARGIN + static_cast<int>(key.x * KEY_SIZE);
-        int y = MARGIN + static_cast<int>(key.y * KEY_SIZE);
-        int w = static_cast<int>(key.w * KEY_SIZE) - PADDING;
-        int h = static_cast<int>(key.h * KEY_SIZE) - PADDING;
+        int x = static_cast<int>(key.x) * KEY_SIZE + MARGIN;
+        int y = static_cast<int>(key.y) * KEY_SIZE + MARGIN;
+        int w = static_cast<int>(key.w) * KEY_SIZE - PADDING;
+        int h = static_cast<int>(key.h) * KEY_SIZE - PADDING;
+
+        // Log first few rectangles for debugging
+        static int key_count = 0;
+        if (key_count < 5) {
+            logger.info("Key rect: x=" + std::to_string(x) + ", y=" + std::to_string(y) +
+                       ", w=" + std::to_string(w) + ", h=" + std::to_string(h));
+            key_count++;
+        }
 
         // Draw key rectangle (dark gray)
         for (int py = y; py < y + h; ++py) {
@@ -118,27 +127,44 @@ void render_to_png(const io::Via_Layout& layout, const std::string& output_path)
  * @return int Exit code
  */
 int main(int argc, char* argv[]) {
-    log::Stdout_Logger logger(log::Log_Level::Info);
 
-    if (argc != 3) {
-        logger.error("Usage: " + std::string(argv[0]) + " <input.json> <output.png>");
+    // Parse the command line
+    auto config_opt = ovb::apps::lutil::Config::parse(argc, argv);
+
+    if (!config_opt) {
+        return 1;
+    }
+
+    const auto& config = *config_opt;
+
+    if (config.help_requested()) {
+        ovb::apps::lutil::Config::print_usage(argv[0]);
+        return 0;
+    }
+
+    // Configure the logger
+    log::Stdout_Logger logger(config.log_level());
+
+    if (config.config_folder().empty() || config.output_path().empty()) {
+        logger.error("Missing required arguments");
+        ovb::apps::lutil::Config::print_usage(argv[0]);
         return 1;
     }
 
     try {
-        std::string input_path = argv[1];
-        std::string output_path = argv[2];
+        // Build path to main.json
+        std::filesystem::path input_path = config.config_folder() / "main.json";
 
-        logger.info("Parsing: " + input_path);
-        io::Via_Layout layout = io::parse_via_layout(input_path);
+        logger.info("Parsing: " + input_path.string());
+        io::Via_Layout via_layout = io::parse_via_layout(input_path);
 
-        logger.info("Keyboard: " + layout.name);
-        logger.info("Matrix: " + std::to_string(layout.matrix_rows) + "x" + std::to_string(layout.matrix_cols));
-        logger.info("Keys: " + std::to_string(layout.keys.size()));
+        logger.info("Keyboard: " + via_layout.name + "\n" +
+                    "Matrix: " + std::to_string(via_layout.matrix_rows) + "x" + std::to_string(via_layout.matrix_cols) + "\n" +
+                    "Keys: " + std::to_string(via_layout.keys.size()));
 
-        render_to_png(layout, output_path);
+        render_to_png(via_layout, config.output_path().string(), logger);
 
-        logger.info("Rendered to: " + output_path);
+        logger.info("Rendered to: " + config.output_path().string());
         return 0;
     } catch (const std::exception& e) {
         logger.error(std::string("Error: ") + e.what());
