@@ -18,11 +18,9 @@
 
 // Project Libraries
 #include <overboard/hal/display_config.hpp>
-#include <overboard/hal/sdl/lvgl_theme.hpp>
+#include <overboard/gui/lvgl_theme.hpp>
 #include <overboard/log/stdout_logger.hpp>
 #include <overboard/math/parser.hpp>
-
-using namespace ovb::hal::sdl;
 
 namespace ovb::gui {
 

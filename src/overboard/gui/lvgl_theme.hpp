@@ -1,8 +1,9 @@
 /**
- * @file lvgl_theme.hpp
- * @author Marvin Smith
- * @date 2026-05-22
- * @brief LVGL theme constants and color definitions
+ * @file      lvgl_theme.hpp
+ * @author    Marvin Smith
+ * @date      2026-05-22
+ *
+ * @brief     LVGL theme constants and color definitions
  *
  * Centralized theme configuration for light mode LVGL displays.
  * Future: Load from config profile on boot.
@@ -12,7 +13,7 @@
 // Third-Party Libraries
 #include <lvgl.h>
 
-namespace ovb::hal::sdl {
+namespace ovb::gui {
 
 // Background colors
 constexpr uint32_t LVGL_COLOR_BG_SCREEN      = 0xF0F0F0;  // Main screen background
@@ -56,4 +57,4 @@ inline lv_color_t lvgl_color(uint32_t hex) {
     return lv_color_hex(hex);
 }
 
-} // namespace ovb::hal::sdl
+} // namespace ovb::gui

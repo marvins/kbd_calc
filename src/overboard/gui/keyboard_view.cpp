@@ -13,9 +13,7 @@
 // Project Libraries
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
-#include <overboard/hal/sdl/lvgl_theme.hpp>
-
-using namespace ovb::hal::sdl;
+#include <overboard/gui/lvgl_theme.hpp>
 
 namespace ovb::gui {
 

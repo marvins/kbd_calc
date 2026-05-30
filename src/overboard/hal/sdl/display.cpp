@@ -20,7 +20,7 @@
 
 // Project Libraries
 #include <overboard/hal/display_config.hpp>
-#include <overboard/hal/sdl/lvgl_theme.hpp>
+#include <overboard/gui/lvgl_theme.hpp>
 
 namespace ovb::hal::sdl {
 
