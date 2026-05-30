@@ -3,151 +3,863 @@
         {
             "name": "Basic",
             "keys": [
-                { "row": 0, "col": 0, "code": "LAYER_NEXT", "label": "F1" },
-                { "row": 0, "col": 1, "code": "LAYER_PREV", "label": "F2" },
-                { "row": 0, "col": 2, "code": "LAYER_HOME", "label": "F3" },
-                { "row": 0, "col": 3, "code": "TOGGLE_MATH_LAYOUT", "label": "F4" },
-                { "row": 0, "col": 4, "code": "NONE", "label": "F5" },
-
-                { "row": 1, "col": 0, "code": "CLEAR_ALL", "label": "AC" },
-                { "row": 1, "col": 1, "code": "NONE", "label": "Tab" },
-                { "row": 1, "col": 2, "code": "NONE", "label": "Cap" },
-                { "row": 1, "col": 3, "code": "DELETE", "label": "Del" },
-                { "row": 1, "col": 4, "code": "BACKSPACE", "label": "⌫" },
-
-                { "row": 2, "col": 0, "code": "NONE", "label": "`" },
-                { "row": 2, "col": 1, "code": "DIVIDE", "label": "/" },
-                { "row": 2, "col": 2, "code": "NONE", "label": "\\" },
-                { "row": 2, "col": 3, "code": "SUBTRACT", "label": "-" },
-                { "row": 2, "col": 4, "code": "ADD", "label": "+" },
-                { "row": 2, "col": 5, "code": "PAREN_OPEN", "label": "(" },
-                { "row": 2, "col": 6, "code": "PAREN_CLOSE", "label": ")" },
-
-                { "row": 3, "col": 0, "code": "DIGIT_1", "label": "1" },
-                { "row": 3, "col": 1, "code": "DIGIT_2", "label": "2" },
-                { "row": 3, "col": 2, "code": "DIGIT_3", "label": "3" },
-                { "row": 3, "col": 3, "code": "DIGIT_4", "label": "4" },
-                { "row": 3, "col": 4, "code": "DIGIT_5", "label": "5" },
-                { "row": 3, "col": 5, "code": "DIGIT_6", "label": "6" },
-                { "row": 3, "col": 6, "code": "DIGIT_7", "label": "7" },
-                { "row": 3, "col": 7, "code": "DIGIT_8", "label": "8" },
-                { "row": 3, "col": 8, "code": "DIGIT_9", "label": "9" },
-                { "row": 3, "col": 9, "code": "DIGIT_0", "label": "0" },
-
-                { "row": 4, "col": 0, "code": "NONE", "label": "Q" },
-                { "row": 4, "col": 1, "code": "NONE", "label": "W" },
-                { "row": 4, "col": 2, "code": "NONE", "label": "E" },
-                { "row": 4, "col": 3, "code": "NONE", "label": "R" },
-                { "row": 4, "col": 4, "code": "NONE", "label": "T" },
-                { "row": 4, "col": 5, "code": "NONE", "label": "Y" },
-                { "row": 4, "col": 6, "code": "NONE", "label": "U" },
-                { "row": 4, "col": 7, "code": "NONE", "label": "I" },
-                { "row": 4, "col": 8, "code": "NONE", "label": "O" },
-                { "row": 4, "col": 9, "code": "NONE", "label": "P" },
-
-                { "row": 5, "col": 0, "code": "NONE", "label": "A" },
-                { "row": 5, "col": 1, "code": "NONE", "label": "S" },
-                { "row": 5, "col": 2, "code": "NONE", "label": "D" },
-                { "row": 5, "col": 3, "code": "NONE", "label": "F" },
-                { "row": 5, "col": 4, "code": "NONE", "label": "G" },
-                { "row": 5, "col": 5, "code": "NONE", "label": "H" },
-                { "row": 5, "col": 6, "code": "NONE", "label": "J" },
-                { "row": 5, "col": 7, "code": "NONE", "label": "K" },
-                { "row": 5, "col": 8, "code": "NONE", "label": "L" },
-
-                { "row": 6, "col": 0, "code": "NONE", "label": "Z" },
-                { "row": 6, "col": 1, "code": "NONE", "label": "X" },
-                { "row": 6, "col": 2, "code": "NONE", "label": "C" },
-                { "row": 6, "col": 3, "code": "NONE", "label": "V" },
-                { "row": 6, "col": 4, "code": "NONE", "label": "B" },
-                { "row": 6, "col": 5, "code": "NONE", "label": "N" },
-                { "row": 6, "col": 6, "code": "NONE", "label": "M" },
-                { "row": 6, "col": 7, "code": "EQUALS", "label": "↵" },
-
-                { "row": 7, "col": 0, "code": "NONE", "label": "⇧" },
-                { "row": 7, "col": 1, "code": "NONE", "label": "Ctrl" },
-                { "row": 7, "col": 2, "code": "NONE", "label": "Alt" },
-                { "row": 7, "col": 3, "code": "NONE", "label": " " },
-                { "row": 7, "col": 4, "code": "NONE", "label": "," },
-                { "row": 7, "col": 5, "code": "DECIMAL", "label": "." },
-                { "row": 7, "col": 6, "code": "NONE", "label": ";" },
-                { "row": 7, "col": 7, "code": "NONE", "label": "'" },
-                { "row": 7, "col": 8, "code": "NONE", "label": "⇧" }
+                {
+                    "row": 0,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": "F2"
+                },
+                {
+                    "row": 0,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "F6"
+                },
+                {
+                    "row": 0,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": "F7"
+                },
+                {
+                    "row": 0,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "F8"
+                },
+                {
+                    "row": 0,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "F9"
+                },
+                {
+                    "row": 0,
+                    "col": 9,
+                    "code": "NONE",
+                    "label": "F10"
+                },
+                {
+                    "row": 1,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": "AC"
+                },
+                {
+                    "row": 1,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": "Tab"
+                },
+                {
+                    "row": 1,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": "Cap"
+                },
+                {
+                    "row": 1,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "Ins"
+                },
+                {
+                    "row": 1,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": "Home"
+                },
+                {
+                    "row": 1,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "PgUp"
+                },
+                {
+                    "row": 1,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "PgDn"
+                },
+                {
+                    "row": 1,
+                    "col": 9,
+                    "code": "NONE",
+                    "label": "End"
+                },
+                {
+                    "row": 2,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": "-"
+                },
+                {
+                    "row": 2,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": "+"
+                },
+                {
+                    "row": 2,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "("
+                },
+                {
+                    "row": 2,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ")"
+                },
+                {
+                    "row": 2,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "/"
+                },
+                {
+                    "row": 2,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "*"
+                },
+                {
+                    "row": 2,
+                    "col": 9,
+                    "code": "NONE",
+                    "label": "-"
+                },
+                {
+                    "row": 3,
+                    "col": 0,
+                    "code": "DIGIT_1",
+                    "label": "1"
+                },
+                {
+                    "row": 3,
+                    "col": 1,
+                    "code": "DIGIT_2",
+                    "label": "2"
+                },
+                {
+                    "row": 3,
+                    "col": 2,
+                    "code": "DIGIT_3",
+                    "label": "3"
+                },
+                {
+                    "row": 3,
+                    "col": 3,
+                    "code": "DIGIT_4",
+                    "label": "4"
+                },
+                {
+                    "row": 3,
+                    "col": 4,
+                    "code": "DIGIT_5",
+                    "label": "5"
+                },
+                {
+                    "row": 3,
+                    "col": 5,
+                    "code": "DIGIT_6",
+                    "label": "6"
+                },
+                {
+                    "row": 3,
+                    "col": 6,
+                    "code": "DIGIT_7",
+                    "label": "7"
+                },
+                {
+                    "row": 3,
+                    "col": 7,
+                    "code": "DIGIT_8",
+                    "label": "8"
+                },
+                {
+                    "row": 3,
+                    "col": 8,
+                    "code": "DIGIT_9",
+                    "label": "9"
+                },
+                {
+                    "row": 3,
+                    "col": 9,
+                    "code": "DIGIT_0",
+                    "label": "0"
+                },
+                {
+                    "row": 4,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": "Q"
+                },
+                {
+                    "row": 4,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": "W"
+                },
+                {
+                    "row": 4,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": "E"
+                },
+                {
+                    "row": 4,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": "R"
+                },
+                {
+                    "row": 4,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": "T"
+                },
+                {
+                    "row": 4,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "Y"
+                },
+                {
+                    "row": 4,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": "U"
+                },
+                {
+                    "row": 4,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "I"
+                },
+                {
+                    "row": 4,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "O"
+                },
+                {
+                    "row": 4,
+                    "col": 9,
+                    "code": "NONE",
+                    "label": "P"
+                },
+                {
+                    "row": 5,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": "A"
+                },
+                {
+                    "row": 5,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": "S"
+                },
+                {
+                    "row": 5,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": "D"
+                },
+                {
+                    "row": 5,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": "F"
+                },
+                {
+                    "row": 5,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": "G"
+                },
+                {
+                    "row": 5,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "H"
+                },
+                {
+                    "row": 5,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": "J"
+                },
+                {
+                    "row": 5,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "K"
+                },
+                {
+                    "row": 5,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "L"
+                },
+                {
+                    "row": 5,
+                    "col": 9,
+                    "code": "EVAL",
+                    "label": "+"
+                },
+                {
+                    "row": 6,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": "Z"
+                },
+                {
+                    "row": 6,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": "X"
+                },
+                {
+                    "row": 6,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": "C"
+                },
+                {
+                    "row": 6,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": "V"
+                },
+                {
+                    "row": 6,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": "B"
+                },
+                {
+                    "row": 6,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "N"
+                },
+                {
+                    "row": 6,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": "M"
+                },
+                {
+                    "row": 6,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "\u21b5"
+                },
+                {
+                    "row": 6,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "7"
+                },
+                {
+                    "row": 7,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": "\u21e7"
+                },
+                {
+                    "row": 7,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": "Alt"
+                },
+                {
+                    "row": 7,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": " "
+                },
+                {
+                    "row": 7,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "."
+                },
+                {
+                    "row": 7,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ";"
+                },
+                {
+                    "row": 7,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "'"
+                },
+                {
+                    "row": 7,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "\u21e7"
+                }
             ]
         },
         {
             "name": "Algebra",
             "keys": [
-                { "row": 0, "col": 0, "code": "LAYER_NEXT", "label": "F1" },
-                { "row": 0, "col": 1, "code": "LAYER_PREV", "label": "F2" },
-                { "row": 0, "col": 2, "code": "LAYER_HOME", "label": "F3" },
-                { "row": 0, "col": 3, "code": "TOGGLE_MATH_LAYOUT", "label": "F4" },
-                { "row": 0, "col": 4, "code": "NONE", "label": "F5" },
-
-                { "row": 1, "col": 0, "code": "CLEAR_ALL", "label": "AC" },
-                { "row": 1, "col": 1, "code": "NONE", "label": "Tab" },
-                { "row": 1, "col": 2, "code": "NONE", "label": "Cap" },
-                { "row": 1, "col": 3, "code": "DELETE", "label": "Del" },
-                { "row": 1, "col": 4, "code": "BACKSPACE", "label": "⌫" },
-
-                { "row": 2, "col": 0, "code": "NONE", "label": "`" },
-                { "row": 2, "col": 1, "code": "DIVIDE", "label": "/" },
-                { "row": 2, "col": 2, "code": "NONE", "label": "\\" },
-                { "row": 2, "col": 3, "code": "SUBTRACT", "label": "-" },
-                { "row": 2, "col": 4, "code": "ADD", "label": "+" },
-                { "row": 2, "col": 5, "code": "PAREN_OPEN", "label": "(" },
-                { "row": 2, "col": 6, "code": "PAREN_CLOSE", "label": ")" },
-
-                { "row": 3, "col": 0, "code": "DIGIT_1", "label": "1" },
-                { "row": 3, "col": 1, "code": "DIGIT_2", "label": "2" },
-                { "row": 3, "col": 2, "code": "DIGIT_3", "label": "3" },
-                { "row": 3, "col": 3, "code": "DIGIT_4", "label": "4" },
-                { "row": 3, "col": 4, "code": "DIGIT_5", "label": "5" },
-                { "row": 3, "col": 5, "code": "DIGIT_6", "label": "6" },
-                { "row": 3, "col": 6, "code": "DIGIT_7", "label": "7" },
-                { "row": 3, "col": 7, "code": "DIGIT_8", "label": "8" },
-                { "row": 3, "col": 8, "code": "DIGIT_9", "label": "9" },
-                { "row": 3, "col": 9, "code": "DIGIT_0", "label": "0" },
-
-                { "row": 4, "col": 0, "code": "NONE", "label": "x²" },
-                { "row": 4, "col": 1, "code": "NONE", "label": "√" },
-                { "row": 4, "col": 2, "code": "NONE", "label": "e" },
-                { "row": 4, "col": 3, "code": "NONE", "label": "π" },
-                { "row": 4, "col": 4, "code": "NONE", "label": "^" },
-                { "row": 4, "col": 5, "code": "NONE", "label": "log" },
-                { "row": 4, "col": 6, "code": "NONE", "label": "ln" },
-                { "row": 4, "col": 7, "code": "NONE", "label": "∫" },
-                { "row": 4, "col": 8, "code": "NONE", "label": "∂" },
-                { "row": 4, "col": 9, "code": "NONE", "label": "∑" },
-
-                { "row": 5, "col": 0, "code": "NONE", "label": "sin" },
-                { "row": 5, "col": 1, "code": "NONE", "label": "cos" },
-                { "row": 5, "col": 2, "code": "NONE", "label": "tan" },
-                { "row": 5, "col": 3, "code": "NONE", "label": "asin" },
-                { "row": 5, "col": 4, "code": "NONE", "label": "acos" },
-                { "row": 5, "col": 5, "code": "NONE", "label": "atan" },
-                { "row": 5, "col": 6, "code": "NONE", "label": "abs" },
-                { "row": 5, "col": 7, "code": "NONE", "label": "ceil" },
-                { "row": 5, "col": 8, "code": "NONE", "label": "flr" },
-
-                { "row": 6, "col": 0, "code": "NONE", "label": "Z" },
-                { "row": 6, "col": 1, "code": "NONE", "label": "X" },
-                { "row": 6, "col": 2, "code": "NONE", "label": "C" },
-                { "row": 6, "col": 3, "code": "NONE", "label": "V" },
-                { "row": 6, "col": 4, "code": "NONE", "label": "B" },
-                { "row": 6, "col": 5, "code": "NONE", "label": "N" },
-                { "row": 6, "col": 6, "code": "NONE", "label": "M" },
-                { "row": 6, "col": 7, "code": "EQUALS", "label": "↵" },
-
-                { "row": 7, "col": 0, "code": "NONE", "label": "⇧" },
-                { "row": 7, "col": 1, "code": "NONE", "label": "Ctrl" },
-                { "row": 7, "col": 2, "code": "NONE", "label": "Alt" },
-                { "row": 7, "col": 3, "code": "NONE", "label": " " },
-                { "row": 7, "col": 4, "code": "NONE", "label": "," },
-                { "row": 7, "col": 5, "code": "DECIMAL", "label": "." },
-                { "row": 7, "col": 6, "code": "NONE", "label": ";" },
-                { "row": 7, "col": 7, "code": "NONE", "label": "'" },
-                { "row": 7, "col": 8, "code": "NONE", "label": "⇧" }
+                {
+                    "row": 0,
+                    "col": 1,
+                    "code": "LAYER_PREV",
+                    "label": "F2"
+                },
+                {
+                    "row": 0,
+                    "col": 3,
+                    "code": "TOGGLE_MATH_LAYOUT",
+                    "label": "F4"
+                },
+                {
+                    "row": 0,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": "F5"
+                },
+                {
+                    "row": 0,
+                    "col": 5,
+                    "code": "LAYER_HOME",
+                    "label": "Home"
+                },
+                {
+                    "row": 0,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": "F7"
+                },
+                {
+                    "row": 0,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "F8"
+                },
+                {
+                    "row": 0,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "F9"
+                },
+                {
+                    "row": 0,
+                    "col": 9,
+                    "code": "NONE",
+                    "label": "F10"
+                },
+                {
+                    "row": 1,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": "Tab"
+                },
+                {
+                    "row": 1,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": "Cap"
+                },
+                {
+                    "row": 1,
+                    "col": 3,
+                    "code": "DELETE",
+                    "label": "Del"
+                },
+                {
+                    "row": 1,
+                    "col": 4,
+                    "code": "BACKSPACE",
+                    "label": "\u232b"
+                },
+                {
+                    "row": 1,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "Ins"
+                },
+                {
+                    "row": 1,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": "Home"
+                },
+                {
+                    "row": 1,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "PgUp"
+                },
+                {
+                    "row": 1,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "PgDn"
+                },
+                {
+                    "row": 1,
+                    "col": 9,
+                    "code": "NONE",
+                    "label": "End"
+                },
+                {
+                    "row": 2,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": "`"
+                },
+                {
+                    "row": 2,
+                    "col": 1,
+                    "code": "DIVIDE",
+                    "label": "/"
+                },
+                {
+                    "row": 2,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": "\\"
+                },
+                {
+                    "row": 2,
+                    "col": 3,
+                    "code": "SUBTRACT",
+                    "label": "-"
+                },
+                {
+                    "row": 2,
+                    "col": 4,
+                    "code": "ADD",
+                    "label": "+"
+                },
+                {
+                    "row": 2,
+                    "col": 5,
+                    "code": "PAREN_OPEN",
+                    "label": "("
+                },
+                {
+                    "row": 2,
+                    "col": 6,
+                    "code": "PAREN_CLOSE",
+                    "label": ")"
+                },
+                {
+                    "row": 2,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "/"
+                },
+                {
+                    "row": 2,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "*"
+                },
+                {
+                    "row": 2,
+                    "col": 9,
+                    "code": "NONE",
+                    "label": "-"
+                },
+                {
+                    "row": 3,
+                    "col": 0,
+                    "code": "DIGIT_1",
+                    "label": "1"
+                },
+                {
+                    "row": 3,
+                    "col": 1,
+                    "code": "DIGIT_2",
+                    "label": "2"
+                },
+                {
+                    "row": 3,
+                    "col": 2,
+                    "code": "DIGIT_3",
+                    "label": "3"
+                },
+                {
+                    "row": 3,
+                    "col": 3,
+                    "code": "DIGIT_4",
+                    "label": "4"
+                },
+                {
+                    "row": 3,
+                    "col": 4,
+                    "code": "DIGIT_5",
+                    "label": "5"
+                },
+                {
+                    "row": 3,
+                    "col": 5,
+                    "code": "DIGIT_6",
+                    "label": "6"
+                },
+                {
+                    "row": 3,
+                    "col": 6,
+                    "code": "DIGIT_7",
+                    "label": "7"
+                },
+                {
+                    "row": 3,
+                    "col": 7,
+                    "code": "DIGIT_8",
+                    "label": "8"
+                },
+                {
+                    "row": 3,
+                    "col": 8,
+                    "code": "DIGIT_9",
+                    "label": "9"
+                },
+                {
+                    "row": 3,
+                    "col": 9,
+                    "code": "DIGIT_0",
+                    "label": "0"
+                },
+                {
+                    "row": 4,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": "x\u00b2"
+                },
+                {
+                    "row": 4,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": "\u221a"
+                },
+                {
+                    "row": 4,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": "e"
+                },
+                {
+                    "row": 4,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": "\u03c0"
+                },
+                {
+                    "row": 4,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": "^"
+                },
+                {
+                    "row": 4,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "log"
+                },
+                {
+                    "row": 4,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": "ln"
+                },
+                {
+                    "row": 4,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "\u222b"
+                },
+                {
+                    "row": 4,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "\u2202"
+                },
+                {
+                    "row": 4,
+                    "col": 9,
+                    "code": "NONE",
+                    "label": "\u2211"
+                },
+                {
+                    "row": 5,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": "sin"
+                },
+                {
+                    "row": 5,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": "cos"
+                },
+                {
+                    "row": 5,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": "tan"
+                },
+                {
+                    "row": 5,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": "asin"
+                },
+                {
+                    "row": 5,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": "acos"
+                },
+                {
+                    "row": 5,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "atan"
+                },
+                {
+                    "row": 5,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": "abs"
+                },
+                {
+                    "row": 5,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "ceil"
+                },
+                {
+                    "row": 5,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "flr"
+                },
+                {
+                    "row": 5,
+                    "col": 9,
+                    "code": "NONE",
+                    "label": "+"
+                },
+                {
+                    "row": 6,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": "Z"
+                },
+                {
+                    "row": 6,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": "X"
+                },
+                {
+                    "row": 6,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": "C"
+                },
+                {
+                    "row": 6,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": "V"
+                },
+                {
+                    "row": 6,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": "B"
+                },
+                {
+                    "row": 6,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "N"
+                },
+                {
+                    "row": 6,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": "M"
+                },
+                {
+                    "row": 6,
+                    "col": 7,
+                    "code": "EQUALS",
+                    "label": "\u21b5"
+                },
+                {
+                    "row": 6,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "7"
+                },
+                {
+                    "row": 6,
+                    "col": 9,
+                    "code": "NONE",
+                    "label": "8"
+                },
+                {
+                    "row": 7,
+                    "col": 0,
+                    "code": "NONE",
+                    "label": "\u21e7"
+                },
+                {
+                    "row": 7,
+                    "col": 2,
+                    "code": "NONE",
+                    "label": "Alt"
+                },
+                {
+                    "row": 7,
+                    "col": 3,
+                    "code": "NONE",
+                    "label": " "
+                },
+                {
+                    "row": 7,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": ","
+                },
+                {
+                    "row": 7,
+                    "col": 5,
+                    "code": "DECIMAL",
+                    "label": "."
+                },
+                {
+                    "row": 7,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": ";"
+                },
+                {
+                    "row": 7,
+                    "col": 7,
+                    "code": "NONE",
+                    "label": "'"
+                },
+                {
+                    "row": 7,
+                    "col": 8,
+                    "code": "NONE",
+                    "label": "\u21e7"
+                }
             ]
         }
     ]

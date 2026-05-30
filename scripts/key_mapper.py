@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QLabel, QLineEdit, QFileDialog, QMessageBox, QScrollArea, QDialog, QComboBox, QTabWidget, QCompleter
 )
 from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFont, QKeyEvent
+from PyQt6.QtGui import QFont, QKeyEvent, QPainter, QPen, QColor
 
 # Mapping from Qt key codes to SDL scancode name strings
 QT_KEY_TO_SDL_SCANCODE = {
@@ -166,6 +166,59 @@ KEY_CODE_TO_LABEL = {
     "CURSOR_LEFT": "←", "CURSOR_RIGHT": "→", "CURSOR_UP": "↑", "CURSOR_DOWN": "↓",
     "PAGE_UP": "PgUp", "PAGE_DOWN": "PgDn",
 }
+
+
+class GridWidget(QWidget):
+    """A widget that draws a grid background for key positioning reference."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.KEY_SIZE = 67  # Reduced by ~10% from 75
+        self.PADDING = 6
+        self.MARGIN = 20
+        self.LABEL_MARGIN = 30  # Extra space for row/column labels
+
+    def paintEvent(self, event):
+        """Draw a grid background with row/column labels."""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Draw grid lines
+        pen = QPen(QColor(200, 200, 200))
+        pen.setWidth(1)
+        painter.setPen(pen)
+
+        # Offset for row labels on the left
+        grid_offset_x = self.MARGIN + self.LABEL_MARGIN
+        grid_offset_y = self.MARGIN + self.LABEL_MARGIN
+
+        # Draw vertical lines
+        for col in range(11):  # 0-10 for 10 columns
+            x = grid_offset_x + col * self.KEY_SIZE
+            painter.drawLine(x, grid_offset_y, x, grid_offset_y + 8 * self.KEY_SIZE)
+
+        # Draw horizontal lines
+        for row in range(9):  # 0-8 for 8 rows
+            y = grid_offset_y + row * self.KEY_SIZE
+            painter.drawLine(grid_offset_x, y, grid_offset_x + 10 * self.KEY_SIZE, y)
+
+        # Draw column labels at the top
+        painter.setPen(QPen(QColor(100, 100, 100)))
+        font = QFont()
+        font.setPointSize(10)
+        font.setBold(True)
+        painter.setFont(font)
+
+        for col in range(10):
+            x = grid_offset_x + col * self.KEY_SIZE + self.KEY_SIZE // 2 - 5
+            y = self.MARGIN + 20
+            painter.drawText(x, y, str(col))
+
+        # Draw row labels on the left
+        for row in range(8):
+            x = self.MARGIN + 5
+            y = grid_offset_y + row * self.KEY_SIZE + self.KEY_SIZE // 2 + 5
+            painter.drawText(x, y, str(row))
 
 
 class KeyButton(QPushButton):
@@ -527,15 +580,17 @@ class KeyMapperWindow(QMainWindow):
         for layer_idx, layer_data in enumerate(self.layers_data.get("layers", [])):
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
-            scroll_content = QWidget()
-            scroll_content.setMinimumSize(600, 400)
+
+            # Create grid widget as background
+            grid_widget = GridWidget()
+            grid_widget.setMinimumSize(650, 650)  # Reduced for smaller keys
 
             # Build key grid for this layer
-            key_buttons = self.build_layer_keys(scroll_content, layer_idx, layer_data)
+            key_buttons = self.build_layer_keys(grid_widget, layer_idx, layer_data)
 
-            scroll.setWidget(scroll_content)
+            scroll.setWidget(grid_widget)
             self.tab_widget.addTab(scroll, layer_data.get("name", f"Layer {layer_idx}"))
-            self.layer_widgets.append(scroll_content)
+            self.layer_widgets.append(grid_widget)
             self.key_buttons_per_layer.append(key_buttons)
 
         main_layout.addWidget(self.tab_widget)
@@ -590,6 +645,9 @@ class KeyMapperWindow(QMainWindow):
                         pending_w = item["w"]
                     if "h" in item:
                         pending_h = item["h"]
+                    # Empty dict acts as a 1x1 placeholder
+                    if not item:
+                        cursor_x += 1.0
                 elif isinstance(item, str):
                     row_col = item.split(',')
                     if len(row_col) == 2:
@@ -620,9 +678,10 @@ class KeyMapperWindow(QMainWindow):
         scancode_map = self.keymap_data.get("scancodes", {})
 
         # Constants for rendering (match C++ render_layout.cpp)
-        KEY_SIZE = 75  # Increased for taller buttons
+        KEY_SIZE = 67  # Reduced by ~10% from 75
         PADDING = 6
         MARGIN = 20
+        LABEL_MARGIN = 30  # Extra space for row/column labels
 
         # Build a lookup from (row,col) -> position data for rendering
         pos_by_rc = {(p["row"], p["col"]): p for p in self.key_positions}
@@ -643,8 +702,9 @@ class KeyMapperWindow(QMainWindow):
                 key_w = pos.get("w", 1.0)
                 key_h = pos.get("h", 1.0)
 
-                btn_x = MARGIN + int(key_x * KEY_SIZE)
-                btn_y = MARGIN + int(key_y * KEY_SIZE)
+                # Offset for row/column labels
+                btn_x = MARGIN + LABEL_MARGIN + int(key_x * KEY_SIZE)
+                btn_y = MARGIN + LABEL_MARGIN + int(key_y * KEY_SIZE)
                 btn_w = int(key_w * KEY_SIZE) - PADDING
                 btn_h = int(key_h * KEY_SIZE) - PADDING
 
@@ -706,14 +766,16 @@ class KeyMapperWindow(QMainWindow):
         for layer_idx, layer_data in enumerate(self.layers_data.get("layers", [])):
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
-            scroll_content = QWidget()
-            scroll_content.setMinimumSize(600, 400)
 
-            key_buttons = self.build_layer_keys(scroll_content, layer_idx, layer_data)
+            # Create grid widget as background
+            grid_widget = GridWidget()
+            grid_widget.setMinimumSize(650, 650)  # Reduced for smaller keys
 
-            scroll.setWidget(scroll_content)
+            key_buttons = self.build_layer_keys(grid_widget, layer_idx, layer_data)
+
+            scroll.setWidget(grid_widget)
             self.tab_widget.addTab(scroll, layer_data.get("name", f"Layer {layer_idx}"))
-            self.layer_widgets.append(scroll_content)
+            self.layer_widgets.append(grid_widget)
             self.key_buttons_per_layer.append(key_buttons)
 
         self.status_label.setText("Reloaded")
@@ -785,6 +847,12 @@ def main():
 
     if len(sys.argv) >= 2:
         layout_path = sys.argv[1]
+        # Auto-derive keymap and layers paths from layout path if not provided
+        layout_file = Path(layout_path)
+        if len(sys.argv) < 3:
+            keymap_path = str(layout_file.with_suffix('.keymap.json'))
+        if len(sys.argv) < 4:
+            layers_path = str(layout_file.with_suffix('.layers.json'))
     if len(sys.argv) >= 3:
         keymap_path = sys.argv[2]
     if len(sys.argv) >= 4:
