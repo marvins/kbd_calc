@@ -33,4 +33,5 @@ set(HARDWARE_SOURCES
     src/overboard/gui/app_view.cpp
     src/overboard/gui/keyboard_view.cpp
     src/overboard/gui/lcd_section.cpp
+    src/overboard/gui/math_canvas.cpp
 )

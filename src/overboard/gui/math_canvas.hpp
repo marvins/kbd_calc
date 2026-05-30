@@ -1,0 +1,43 @@
+/**
+ * @file    math_canvas.hpp
+ * @author  Marvin Smith
+ * @date    2026-05-29
+ *
+ * @brief   LVGL canvas renderer for typeset mathematical expressions
+ *
+ * Parses an expression string, builds a layout box hierarchy via the
+ * Layout_Engine, and renders it onto an LVGL canvas object.
+ */
+#pragma once
+
+// C++ Standard Libraries
+#include <string>
+
+// Third-Party Libraries
+#include <lvgl.h>
+
+// Project Libraries
+#include <overboard/math/layout/engine.hpp>
+
+namespace ovb::gui {
+
+/**
+ * @brief Render a typeset mathematical expression to an LVGL canvas
+ *
+ * Parses @p expr_str, builds a layout box tree, and draws it onto
+ * @p canvas. On parse failure the raw expression string is drawn as
+ * a plain-text fallback.
+ *
+ * @param canvas        Target LVGL canvas object
+ * @param width         Canvas width in pixels
+ * @param height        Canvas height in pixels
+ * @param layout_engine Layout engine for box construction and positioning
+ * @param expr_str      Mathematical expression string to render
+ */
+void draw_math_to_canvas( lv_obj_t*                canvas,
+                          int                      width,
+                          int                      height,
+                          layout::Layout_Engine&   layout_engine,
+                          const std::string&       expr_str );
+
+} // namespace ovb::gui

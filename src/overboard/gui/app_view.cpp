@@ -43,6 +43,11 @@ App_View::App_View( lv_obj_t*                       root,
                     const ovb::core::Layer_Manager& layers )
     : m_impl(std::make_unique<Impl>())
 {
+    // Apply baseline screen styling (zeroing LVGL defaults)
+    lv_obj_set_style_pad_all(root, 0, 0);
+    lv_obj_set_style_border_width(root, 0, 0);
+    lv_obj_set_style_bg_color(root, lvgl_color(LVGL_COLOR_BG_SCREEN), LV_PART_MAIN);
+
     // LCD container (top section)
     m_impl->lcd_container = lv_obj_create(root);
     lv_obj_set_size(m_impl->lcd_container, hal::LCD_WIDTH, hal::LCD_HEIGHT);

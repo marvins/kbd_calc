@@ -102,6 +102,105 @@ A custom mechanical keyboard that replaces the traditional numpad with a dedicat
 
 ---
 
+## Software Architecture
+
+The firmware is written in C++23 and targets two platforms: an **SDL desktop simulator** for development and the **RP2350 embedded target** (KN34) for production. A layered architecture keeps platform-specific code isolated from portable logic.
+
+### Layer Overview
+
+```
+┌─────────────────────────────────────────────────┐
+│                  apps/                          │  Application entry points
+├─────────────────────────────────────────────────┤
+│                  gui/                           │  LVGL widget management (platform-agnostic)
+├─────────────────────────────────────────────────┤
+│   hal/  (interfaces + platform implementations) │  Hardware abstraction
+├──────────────────┬──────────────────────────────┤
+│   hal/sdl/       │   hal/kn34/                  │  Platform-specific drivers
+├──────────────────┴──────────────────────────────┤
+│   core/ · math/ · font/ · io/ · log/            │  Portable domain logic
+└─────────────────────────────────────────────────┘
+```
+
+### Module Breakdown
+
+**`src/overboard/core/`** — portable, no platform headers allowed
+- `Keyboard_Layout` / `Grid_Layout` — key grid geometry and span definitions
+- `Keymap` — key-code to character mapping
+- `Layer_Manager` — manages active layer and layer switching
+- `Config` — runtime configuration loading
+
+**`src/overboard/math/`** — portable calculator logic
+- `Calc_Engine` — evaluates expressions, manages history and state
+- `Parser` — tokenises and parses expression strings into an AST
+- `layout/Layout_Engine` — converts AST to typeset layout boxes for rendering
+
+**`src/overboard/font/`** — font metrics for math layout sizing
+
+**`src/overboard/io/`** — VIA/JSON keymap loading utilities
+
+**`src/overboard/log/`** — lightweight logging (stdout target)
+
+**`src/overboard/hal/`** — hardware abstraction interfaces
+- `I_App` — lifecycle interface (`init`, `run`, `should_quit`, `get_display`)
+- `I_Display` — display contract (`refresh`, `update_layer`, `render`)
+- `I_Input` — input polling interface
+- `display_config.hpp` — shared dimension constants (`FULL_WIDTH/HEIGHT`, `LCD_*`, `KBD_*`)
+- `App_Factory` — constructs the correct `I_App` implementation for the active target
+
+**`src/overboard/hal/sdl/`** — SDL simulator platform
+- `Display` — owns the SDL window and LVGL display handle; exposes `screen()` for GUI attachment
+- `SDL_App` — SDL lifecycle, event loop, owns both `Display` (HAL) and `App_View` (GUI)
+- `SDL_Input` — SDL event pump → `Key_Event` queue
+- `SDL_Keymap` — maps SDL scancodes to calculator key indices
+
+**`src/overboard/hal/kn34/`** — RP2350 embedded target (stub, pending hardware bring-up)
+- `KN34_App`, `KN34_Display` — implement the HAL interfaces with TODO stubs
+
+**`src/overboard/gui/`** — LVGL widget management, platform-agnostic
+- `App_View` — root GUI object; owns `LCD_Section` + `Keyboard_View`; implements `I_Display`
+- `LCD_Section` — bezel, history table, and math preview canvas (top portion of display)
+- `Keyboard_View` — grid of LVGL buttons matching the physical key layout (bottom portion)
+- `math_canvas` — standalone utility: renders a typeset expression onto an LVGL canvas
+- `lvgl_theme.hpp` — centralised color constants and `lvgl_color()` helper
+
+### Dependency Rules
+
+| Layer | May depend on | Must NOT depend on |
+|-------|---------------|--------------------|
+| `core/`, `math/`, `font/` | each other | `hal/`, `gui/`, platform headers |
+| `hal/` interfaces | `core/` | `gui/`, platform headers |
+| `hal/sdl/`, `hal/kn34/` | `hal/` interfaces, `core/`, `gui/` | each other |
+| `gui/` | `hal/` interfaces, `core/`, `math/` | `hal/sdl/`, `hal/kn34/` |
+| `apps/` | everything | — |
+
+The key invariant: **`gui/` does not depend on any specific HAL implementation**. The SDL window driver (`hal/sdl/Display`) exposes an `lv_obj_t* screen()` that `App_View` uses to attach widgets — this is the only coupling point between HAL and GUI.
+
+### Display Architecture
+
+The physical display is treated as a single unified unit (400 × 800 px):
+
+```
+┌──────────────────────┐  ← LCD_Section (400 × 500)
+│  Bezel               │    history table + typeset math preview
+│  ┌────────────────┐  │
+│  │ History Table  │  │
+│  ├────────────────┤  │
+│  │ Math Preview   │  │
+│  └────────────────┘  │
+├──────────────────────┤  ← Keyboard_View (400 × 300)
+│  Layer header        │    LVGL button grid
+│  [  7 ][  8 ][  9 ] │
+│  [  4 ][  5 ][  6 ] │
+│  [  1 ][  2 ][  3 ] │
+│  [  0 ][ . ][ = ]  │
+└──────────────────────┘
+```
+
+The HAL creates the window and provides the LVGL root screen. `App_View` then attaches `LCD_Section` and `Keyboard_View` as LVGL child containers at fixed offsets.
+
+---
+
 ## Open Questions
 
 - [ ] Single unified PCB vs. two PCBs connected by flex/cable?

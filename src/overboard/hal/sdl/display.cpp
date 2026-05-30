@@ -18,10 +18,6 @@
 #include <lvgl.h>
 #include <lvgl/src/drivers/sdl/lv_sdl_window.h>
 
-// Project Libraries
-#include <overboard/hal/display_config.hpp>
-#include <overboard/gui/lvgl_theme.hpp>
-
 namespace ovb::hal::sdl {
 
 /**
@@ -52,12 +48,6 @@ Display::Display( const std::string& title, int width, int height )
 
     lv_sdl_mouse_create();
     lv_timer_handler();
-
-    // Clear default screen styling
-    lv_obj_t* scr = lv_screen_active();
-    lv_obj_set_style_pad_all(scr, 0, 0);
-    lv_obj_set_style_border_width(scr, 0, 0);
-    lv_obj_set_style_bg_color(scr, lvgl_color(LVGL_COLOR_BG_SCREEN), LV_PART_MAIN);
 }
 
 /******************************/
