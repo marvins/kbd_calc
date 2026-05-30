@@ -10,6 +10,9 @@
 // C++ Standard Libraries
 #include <stdexcept>
 
+// Overboard Libraries
+#include <overboard/log/stdout_logger.hpp>
+
 // Third-Party Libraries
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -37,9 +40,10 @@ struct Display::Impl {
 Display::Display( const std::string& title, int width, int height )
     : m_impl(std::make_unique<Impl>())
 {
+    LOG_DEBUG( "Display: Creating SDL window: ", width, " x ", height );
     m_impl->lv_display = lv_sdl_window_create(width, height);
     if (!m_impl->lv_display) {
-        throw std::runtime_error("Display: lv_sdl_window_create failed");
+        throw std::runtime_error( "Display: lv_sdl_window_create failed" );
     }
     lv_display_set_default(m_impl->lv_display);
 

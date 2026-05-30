@@ -16,7 +16,7 @@
 // Project Libraries
 #include <overboard/core/point.hpp>
 
-namespace ovb::layout {
+namespace ovb::math::layout {
 
 
 /**
@@ -160,4 +160,4 @@ struct Layout_Box {
     core::Point<int> br() const { return core::Point<int>(pos.x + size.x, pos.y + size.y); }
 };
 
-} // namespace ovb::layout
+} // namespace ovb::math::layout

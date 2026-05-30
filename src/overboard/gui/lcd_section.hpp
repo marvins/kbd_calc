@@ -45,7 +45,7 @@ struct LCD_Section {
 
     const math::Calc_Engine&   engine;
     const core::Layer_Manager& layers;
-    layout::Layout_Engine      layout_engine{font::Font_Metrics::make_default(), 2};
+    math::layout::Layout_Engine      layout_engine{font::Font_Metrics::make_default(), 2};
 
     /**
      * @brief Construct LCD section

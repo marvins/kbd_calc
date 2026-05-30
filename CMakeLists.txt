@@ -44,7 +44,10 @@ set(CORE_SOURCES
     src/overboard/core/layer_manager.cpp
     src/overboard/font/font_metrics.cpp
     src/overboard/io/via_layout.cpp
-    src/overboard/math/ast/ast.cpp
+    src/overboard/math/ast/binary_op_node.cpp
+    src/overboard/math/ast/function_node.cpp
+    src/overboard/math/ast/number_node.cpp
+    src/overboard/math/ast/unary_op_node.cpp
     src/overboard/math/calc_engine.cpp
     src/overboard/math/expression.cpp
     src/overboard/math/layout/engine.cpp
@@ -105,7 +108,10 @@ if(TARGET_DEVICE STREQUAL "SDL")
         src/overboard/apps/test_math_render/test_math_render.cpp
         src/overboard/apps/test_math_render/config.cpp
         src/overboard/font/font_metrics.cpp
-        src/overboard/math/ast/ast.cpp
+        src/overboard/math/ast/binary_op_node.cpp
+        src/overboard/math/ast/function_node.cpp
+        src/overboard/math/ast/number_node.cpp
+        src/overboard/math/ast/unary_op_node.cpp
         src/overboard/math/parser.cpp
         src/overboard/math/layout/engine.cpp
         src/overboard/log/stdout_logger.cpp
@@ -143,7 +149,10 @@ if( BUILD_TESTS )
         src/overboard/core/keymap.cpp
         src/overboard/core/layer_manager.cpp
         src/overboard/font/font_metrics.cpp
-        src/overboard/math/ast/ast.cpp
+        src/overboard/math/ast/binary_op_node.cpp
+        src/overboard/math/ast/function_node.cpp
+        src/overboard/math/ast/number_node.cpp
+        src/overboard/math/ast/unary_op_node.cpp
         src/overboard/math/expression.cpp
         src/overboard/math/calc_engine.cpp
         src/overboard/math/parser.cpp

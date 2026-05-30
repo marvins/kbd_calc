@@ -155,8 +155,8 @@ void Calc_Engine::evaluate() {
     try {
         std::string expr_str = m_state.expression.eval_string();
         Parser        p(expr_str);
-        ovb::ast::Node_Ptr tree      = p.parse();
-        ovb::ast::Node_Ptr result    = tree->simplify();
+        ast::Node::ptr_t tree      = p.parse();
+        ast::Node::ptr_t result    = tree->simplify();
 
         std::string result_str = result->to_string();
         m_state.display_value = result_str;

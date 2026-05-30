@@ -12,8 +12,9 @@
 
 namespace ovb::math {
 
-// ── Token factory ─────────────────────────────────────────────────────────────
-
+/********************************************/
+/*               Make Token                 */
+/********************************************/
 Token Expression::make_token(core::Key_Code code) {
     using KC = core::Key_Code;
     switch (code) {
@@ -80,8 +81,9 @@ Token Expression::make_token(core::Key_Code code) {
     }
 }
 
-// ── Internal helpers ──────────────────────────────────────────────────────────
-
+/********************************************/
+/*         Cursor Inside Number             */
+/********************************************/
 bool Expression::cursor_inside_number() const {
     if (cursor_token_ < 0 || cursor_token_ >= static_cast<int>(tokens_.size()))
         return false;
@@ -89,11 +91,16 @@ bool Expression::cursor_inside_number() const {
     return t.type == Token_Type::Number && t.char_cursor >= 0;
 }
 
+/********************************************/
+/*         Current Number Token             */
+/********************************************/
 Token& Expression::current_number_token() {
     return tokens_[static_cast<std::size_t>(cursor_token_)];
 }
 
-// Count Unicode codepoints in a UTF-8 string.
+/********************************************/
+/*            Glyph Count                   */
+/********************************************/
 int Expression::glyph_count(const std::string& s) {
     int count = 0;
     for (std::size_t i = 0; i < s.size(); ) {
@@ -107,8 +114,9 @@ int Expression::glyph_count(const std::string& s) {
     return count;
 }
 
-// ── insert ────────────────────────────────────────────────────────────────────
-
+/********************************************/
+/*               Insert                     */
+/********************************************/
 void Expression::insert(core::Key_Code code) {
     Token t = make_token(code);
 
@@ -221,8 +229,9 @@ void Expression::insert(core::Key_Code code) {
     }
 }
 
-// ── backspace ─────────────────────────────────────────────────────────────────
-
+/********************************************/
+/*               Backspace                  */
+/********************************************/
 void Expression::backspace() {
     if (cursor_inside_number()) {
         Token& num = current_number_token();
@@ -275,8 +284,9 @@ void Expression::backspace() {
     --cursor_token_;
 }
 
-// ── cursor movement ───────────────────────────────────────────────────────────
-
+/********************************************/
+/*               Cursor Left                */
+/********************************************/
 void Expression::cursor_left() {
     if (cursor_inside_number()) {
         Token& num = current_number_token();
@@ -312,6 +322,10 @@ void Expression::cursor_left() {
     }
 }
 
+
+/********************************************/
+/*               Cursor Right               */
+/********************************************/
 void Expression::cursor_right() {
     if (cursor_inside_number()) {
         Token& num = current_number_token();
@@ -342,32 +356,39 @@ void Expression::cursor_right() {
     }
 }
 
-// ── clear ─────────────────────────────────────────────────────────────────────
-
+/********************************************/
+/*               Clear                      */
+/********************************************/
 void Expression::clear() {
     tokens_.clear();
     cursor_token_ = -1;
 }
 
-// ── close_number ──────────────────────────────────────────────────────────────
-
+/********************************************/
+/*               Close Number               */
+/********************************************/
 void Expression::close_number() {
     if (cursor_inside_number())
         current_number_token().char_cursor = -1;
 }
 
-// ── placeholder helpers ───────────────────────────────────────────────────────
-
+/********************************************/
+/*        Placeholder Text For Eval         */
+/********************************************/
 std::string Expression::placeholder_text_for_eval() {
     return "0";  // Makes expression parsable: "8+0" is valid
 }
 
+/********************************************/
+/*        Placeholder Text For Render       */
+/********************************************/
 std::string Expression::placeholder_text_for_render() {
-    return "";   // Invisible in display
+    return "□";   // Unicode white square for parser recognition
 }
 
-// ── has_placeholder ────────────────────────────────────────────────────────────
-
+/********************************/
+/*        Has Placeholder       */
+/********************************/
 bool Expression::has_placeholder() const {
     for (const Token& t : tokens_) {
         if (t.type == Token_Type::Placeholder)

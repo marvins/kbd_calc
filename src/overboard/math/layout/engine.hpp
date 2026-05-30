@@ -16,11 +16,14 @@
 
 // Project Libraries
 #include <overboard/core/point.hpp>
-#include <overboard/math/ast/ast.hpp>
-#include <overboard/math/layout/box.hpp>
 #include <overboard/font/font_metrics.hpp>
+#include <overboard/math/ast/binary_op_node.hpp>
+#include <overboard/math/ast/function_node.hpp>
+#include <overboard/math/ast/node.hpp>
+#include <overboard/math/ast/unary_op_node.hpp>
+#include <overboard/math/layout/box.hpp>
 
-namespace ovb::layout {
+namespace ovb::math::layout {
 
 /**
  * @brief Converts AST to layout boxes and performs layout
@@ -40,7 +43,9 @@ namespace ovb::layout {
  * @endcode
  */
 class Layout_Engine {
+
     public:
+
         /**
          * @brief Construct with font metrics
          *
@@ -62,7 +67,7 @@ class Layout_Engine {
          * @param node AST root node
          * @return Layout_Box Root of layout tree
          */
-        Layout_Box build(const ovb::ast::Node* node);
+        Layout_Box build( const ast::Node* node );
 
         /**
          * @brief Build layout with explicit scale
@@ -123,7 +128,7 @@ class Layout_Engine {
          * @param scale Font scale
          * @return Layout_Box Layout representation
          */
-        Layout_Box build_binary_op( const ovb::ast::Binary_Op_Node* node, float scale );
+        Layout_Box build_binary_op( const ast::Binary_Op_Node* node, float scale );
 
         /**
          * @brief Build layout for unary operation node
@@ -134,7 +139,7 @@ class Layout_Engine {
          * @param scale Font scale
          * @return Layout_Box Layout representation
          */
-        Layout_Box build_unary_op( const ovb::ast::Unary_Op_Node* node, float scale );
+        Layout_Box build_unary_op( const ast::Unary_Op_Node* node, float scale );
 
         /**
          * @brief Build layout for function node
@@ -146,7 +151,7 @@ class Layout_Engine {
          * @param scale Font scale
          * @return Layout_Box Layout representation
          */
-        Layout_Box build_function( const ovb::ast::Function_Node* node, float scale );
+        Layout_Box build_function( const ast::Function_Node* node, float scale );
 };
 
-} // namespace ovb::layout
+} // namespace ovb::math::layout

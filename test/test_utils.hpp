@@ -14,11 +14,17 @@
 
 namespace ovb::test {
 
-// Print box structure for debugging
-inline void print_box( const layout::Layout_Box& box,
+/**
+ * @brief Print box structure for debugging
+ *
+ * @param box Box to print
+ * @param logger Logger to use for output
+ * @param indent Indentation level for nested boxes
+ */
+inline void print_box( const math::layout::Layout_Box& box,
                        log::I_Logger&            logger,
                        int                       indent = 0 ) {
-    using ovb::layout::Box_Kind;
+    using ovb::math::layout::Box_Kind;
 
     std::string prefix(static_cast<std::size_t>(indent) * 2, ' ');
     switch (box.kind) {
@@ -51,9 +57,14 @@ inline void print_box( const layout::Layout_Box& box,
     }
 }
 
-// Dump box tree to string for test assertions
-inline std::string box_to_string(const ovb::layout::Layout_Box& box) {
-    using ovb::layout::Box_Kind;
+/**
+ * @brief Dump box tree to string for test assertions
+ *
+ * @param box Box to convert to string
+ * @return std::string String representation of the box tree
+ */
+inline std::string box_to_string(const ovb::math::layout::Layout_Box& box) {
+    using ovb::math::layout::Box_Kind;
 
     switch (box.kind) {
         case Box_Kind::ATOM:
@@ -74,10 +85,16 @@ inline std::string box_to_string(const ovb::layout::Layout_Box& box) {
     return "UNKNOWN";
 }
 
-// Find first child of given kind (depth-first search)
-inline const ovb::layout::Layout_Box* find_first(const ovb::layout::Layout_Box& root,
-                                                ovb::layout::Box_Kind kind) {
-    using ovb::layout::Box_Kind;
+/**
+ * @brief Find first child of given kind (depth-first search)
+ *
+ * @param root Root box to search from
+ * @param kind Kind to search for
+ * @return const ovb::math::layout::Layout_Box* Pointer to first matching box, or nullptr if not found
+ */
+inline const ovb::math::layout::Layout_Box* find_first(const ovb::math::layout::Layout_Box& root,
+                                                ovb::math::layout::Box_Kind kind) {
+    using ovb::math::layout::Box_Kind;
 
     if (root.kind == kind) {
         return &root;
@@ -90,7 +107,7 @@ inline const ovb::layout::Layout_Box* find_first(const ovb::layout::Layout_Box& 
 }
 
 // Check if box tree contains a specific box kind
-inline bool contains_kind(const ovb::layout::Layout_Box& root, ovb::layout::Box_Kind kind) {
+inline bool contains_kind(const ovb::math::layout::Layout_Box& root, ovb::math::layout::Box_Kind kind) {
     return find_first(root, kind) != nullptr;
 }
 

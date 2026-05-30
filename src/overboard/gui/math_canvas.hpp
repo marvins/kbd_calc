@@ -34,10 +34,10 @@ namespace ovb::gui {
  * @param layout_engine Layout engine for box construction and positioning
  * @param expr_str      Mathematical expression string to render
  */
-void draw_math_to_canvas( lv_obj_t*                canvas,
-                          int                      width,
-                          int                      height,
-                          layout::Layout_Engine&   layout_engine,
-                          const std::string&       expr_str );
+void draw_math_to_canvas( lv_obj_t*                     canvas,
+                          int                           width,
+                          int                           height,
+                          math::layout::Layout_Engine&  layout_engine,
+                          const std::string&            expr_str );
 
 } // namespace ovb::gui

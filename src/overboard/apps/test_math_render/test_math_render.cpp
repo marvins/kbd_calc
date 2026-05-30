@@ -191,7 +191,7 @@ void render_text_5x7(const std::string& text, std::vector<uint8_t>& img, int img
 /**
  * @brief Recursively draw layout boxes to image buffer
  */
-void draw_box_recursive( const layout::Layout_Box& box,
+void draw_box_recursive( const math::layout::Layout_Box& box,
                          const font::Font_Metrics& metrics,
                          std::vector<uint8_t>& img,
                          int img_width,
@@ -208,7 +208,7 @@ void draw_box_recursive( const layout::Layout_Box& box,
     }
 
     // If this is an ATOM box with text, render the text
-    if (box.kind == layout::Box_Kind::ATOM && !box.text.empty()) {
+    if (box.kind == math::layout::Box_Kind::ATOM && !box.text.empty()) {
         if (use_5x7) {
             // 5x7 bitmap font rendering
             int char_width = 5 * static_cast<int>(box.scale);
@@ -247,7 +247,7 @@ void draw_box_recursive( const layout::Layout_Box& box,
     }
 
     // If this is a FRACTION box, draw the horizontal divider bar
-    if (box.kind == layout::Box_Kind::FRACTION && box.children.size() == 2) {
+    if (box.kind == math::layout::Box_Kind::FRACTION && box.children.size() == 2) {
         const int pad = 2;
         const auto& num = box.children[0];
         int bar_y     = box.position().y + num.size.y + pad;
@@ -269,7 +269,7 @@ void draw_box_recursive( const layout::Layout_Box& box,
     }
 
     // If this is a SQRT box, draw the √ symbol and horizontal bar
-    if (box.kind == layout::Box_Kind::SQRT) {
+    if (box.kind == math::layout::Box_Kind::SQRT) {
         int symbol_width = 2 * static_cast<int>(box.scale);  // Match layout engine reservation
         int top_pad = 2 * static_cast<int>(box.scale);      // Match layout engine top padding
 
@@ -404,7 +404,7 @@ void draw_box_recursive( const layout::Layout_Box& box,
 /**
  * @brief Render layout box to PNG
  */
-void render_box_to_png( const layout::Layout_Box& box,
+void render_box_to_png( const math::layout::Layout_Box& box,
                         const font::Font_Metrics& metrics,
                         const std::filesystem::path& output_path,
                         int width  = 60,
@@ -505,7 +505,7 @@ void render_expression( const std::string&           expr,
 
     // Parse the expression into an AST
     math::Parser parser(expr);
-    ast::Node_Ptr ast = parser.parse();
+    math::ast::Node::ptr_t ast = parser.parse();
 
     if (!ast) {
         logger.error("Failed to parse expression");
@@ -513,8 +513,8 @@ void render_expression( const std::string&           expr,
     }
 
     // Build layout from AST using real font metrics
-    layout::Layout_Engine engine(metrics, scale);
-    layout::Layout_Box box = engine.build(ast.get());
+    math::layout::Layout_Engine engine(metrics, scale);
+    math::layout::Layout_Box box = engine.build(ast.get());
     engine.prepare(box, core::Point<int>(width, height));
 
     // Render to PNG

@@ -2,9 +2,17 @@
 #include <gtest/gtest.h>
 
 // Project Libraries
-#include <overboard/math/ast/ast.hpp>
+#include <overboard/math/ast/binary_op_node.hpp>
+#include <overboard/math/ast/constant_node.hpp>
+#include <overboard/math/ast/factorial_node.hpp>
+#include <overboard/math/ast/function_node.hpp>
+#include <overboard/math/ast/node.hpp>
+#include <overboard/math/ast/number_node.hpp>
+#include <overboard/math/ast/placeholder_node.hpp>
+#include <overboard/math/ast/unary_op_node.hpp>
+#include <overboard/math/ast/variable_node.hpp>
 
-using namespace ovb::ast;
+using namespace ovb::math::ast;
 
 // ─── Number_Node ─────────────────────────────────────────────────────────────
 
@@ -191,49 +199,49 @@ TEST(Ast_Unary, Bit_Not) {
 // ─── Function_Node ───────────────────────────────────────────────────────────
 
 TEST(Ast_Function, Sin) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Number_Node>(0.0));
     EXPECT_DOUBLE_EQ(Function_Node("sin", std::move(args)).eval(), 0.0);
 }
 
 TEST(Ast_Function, Cos) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Number_Node>(0.0));
     EXPECT_DOUBLE_EQ(Function_Node("cos", std::move(args)).eval(), 1.0);
 }
 
 TEST(Ast_Function, Sqrt) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Number_Node>(9.0));
     EXPECT_DOUBLE_EQ(Function_Node("sqrt", std::move(args)).eval(), 3.0);
 }
 
 TEST(Ast_Function, Log) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Number_Node>(100.0));
     EXPECT_DOUBLE_EQ(Function_Node("log", std::move(args)).eval(), 2.0);
 }
 
 TEST(Ast_Function, Ln) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Number_Node>(1.0));
     EXPECT_DOUBLE_EQ(Function_Node("ln", std::move(args)).eval(), 0.0);
 }
 
 TEST(Ast_Function, Unknown_Throws) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Number_Node>(1.0));
     EXPECT_THROW(Function_Node("foo", std::move(args)).eval(), std::runtime_error);
 }
 
 TEST(Ast_Function, Sqrt_Latex) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Number_Node>(2.0));
     EXPECT_EQ(Function_Node("sqrt", std::move(args)).to_latex(), "\\sqrt{2}");
 }
 
 TEST(Ast_Function, Sin_Latex) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Number_Node>(0.0));
     EXPECT_EQ(Function_Node("sin", std::move(args)).to_latex(), "\\sin\\left(0\\right)");
 }
@@ -266,14 +274,14 @@ TEST(Ast_Factorial, To_String) {
 TEST(Ast_Simplify, Number_Returns_Clone) {
     Number_Node n(3.0);
     auto s = n.simplify();
-    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
     EXPECT_DOUBLE_EQ(s->eval(), 3.0);
 }
 
 TEST(Ast_Simplify, Constant_Stays_Symbolic) {
     Constant_Node c(Constant_Id::PI);
     auto s = c.simplify();
-    EXPECT_EQ(s->kind, Node_Kind::CONSTANT);
+    EXPECT_EQ(s->kind(), Node_Kind::CONSTANT);
     EXPECT_EQ(s->to_string(), "pi");
 }
 
@@ -283,7 +291,7 @@ TEST(Ast_Simplify, Binary_Constant_Folds_Two_Numbers) {
         std::make_unique<Number_Node>(3.0),
         std::make_unique<Number_Node>(4.0));
     auto s = n->simplify();
-    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
     EXPECT_DOUBLE_EQ(s->eval(), 7.0);
 }
 
@@ -293,61 +301,61 @@ TEST(Ast_Simplify, Binary_Stays_Symbolic_With_Constant) {
         std::make_unique<Number_Node>(2.0),
         std::make_unique<Constant_Node>(Constant_Id::PI));
     auto s = n->simplify();
-    EXPECT_EQ(s->kind, Node_Kind::BINARY_OP);
+    EXPECT_EQ(s->kind(), Node_Kind::BINARY_OP);
     EXPECT_EQ(s->to_string(), "(2*pi)");
 }
 
 TEST(Ast_Simplify, Function_Folds_Numeric_Sqrt) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Number_Node>(9.0));
     auto n = std::make_unique<Function_Node>("sqrt", std::move(args));
     auto s = n->simplify();
-    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
     EXPECT_DOUBLE_EQ(s->eval(), 3.0);
 }
 
 TEST(Ast_Simplify, Function_Stays_Symbolic_With_Constant_Arg) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Constant_Node>(Constant_Id::PI));
     auto n = std::make_unique<Function_Node>("sin", std::move(args));
     auto s = n->simplify();
-    EXPECT_EQ(s->kind, Node_Kind::FUNCTION);
+    EXPECT_EQ(s->kind(), Node_Kind::FUNCTION);
     EXPECT_EQ(s->to_string(), "sin(pi)");
 }
 
 // ─── approx() ────────────────────────────────────────────────────────────────
 
 TEST(Ast_Approx, Forces_Numeric_Eval_Of_Constant) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Constant_Node>(Constant_Id::PI));
     auto n = std::make_unique<Function_Node>("approx", std::move(args));
     auto s = n->simplify();
-    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
     EXPECT_NEAR(s->eval(), 3.14159265358979, 1e-10);
 }
 
 TEST(Ast_Approx, Forces_Numeric_Eval_Of_Symbolic_Expression) {
-    std::vector<Node_Ptr> inner_args;
+    std::vector<Node::ptr_t> inner_args;
     inner_args.push_back(std::make_unique<Constant_Node>(Constant_Id::PI));
     auto sin_pi = std::make_unique<Function_Node>("sin", std::move(inner_args));
 
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::move(sin_pi));
     auto n = std::make_unique<Function_Node>("approx", std::move(args));
     auto s = n->simplify();
-    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
     EXPECT_NEAR(s->eval(), 0.0, 1e-10); // sin(π) ≈ 0
 }
 
 TEST(Ast_Approx, Two_Plus_Two_Stays_Four) {
-    std::vector<Node_Ptr> args;
+    std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Binary_Op_Node>(
         Binary_Op::ADD,
         std::make_unique<Number_Node>(2.0),
         std::make_unique<Number_Node>(2.0)));
     auto n = std::make_unique<Function_Node>("approx", std::move(args));
     auto s = n->simplify();
-    EXPECT_EQ(s->kind, Node_Kind::NUMBER);
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
     EXPECT_DOUBLE_EQ(s->eval(), 4.0);
 }
 
@@ -374,5 +382,5 @@ TEST(Ast_Clone, Constant_Clone_Stays_Symbolic) {
     auto orig = std::make_unique<Constant_Node>(Constant_Id::E);
     auto copy = orig->clone();
     EXPECT_EQ(copy->to_string(), "e");
-    EXPECT_EQ(copy->kind, Node_Kind::CONSTANT);
+    EXPECT_EQ(copy->kind(), Node_Kind::CONSTANT);
 }

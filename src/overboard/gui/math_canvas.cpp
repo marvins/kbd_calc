@@ -33,7 +33,7 @@ static log::Stdout_Logger s_math_logger(log::Log_Level::Debug);
 void draw_math_to_canvas( lv_obj_t*              canvas,
                           int                    width,
                           int                    height,
-                          layout::Layout_Engine& layout_engine,
+                          math::layout::Layout_Engine& layout_engine,
                           const std::string&     expr_str )
 {
     // Set canvas buffer if not already set
@@ -60,29 +60,48 @@ void draw_math_to_canvas( lv_obj_t*              canvas,
         lv_canvas_init_layer(canvas, &layer);
 
         // Draw boxes recursively
-        std::function<void(const layout::Layout_Box&, int, int)> draw_box;
-        draw_box = [&](const layout::Layout_Box& b, int offset_x, int offset_y) {
+        std::function<void(const math::layout::Layout_Box&, int, int)> draw_box;
+        draw_box = [&](const math::layout::Layout_Box& b, int offset_x, int offset_y) {
             int x = b.pos.x + offset_x;
             int y = b.pos.y + offset_y;
 
-            if (b.kind == layout::Box_Kind::ATOM && !b.text.empty()) {
-                lv_draw_label_dsc_t label_dsc;
-                lv_draw_label_dsc_init(&label_dsc);
-                label_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
-                label_dsc.font  = LVGL_FONT_DEFAULT;
-                label_dsc.opa   = LV_OPA_COVER;
+            if (b.kind == math::layout::Box_Kind::ATOM) {
+                if (!b.text.empty()) {
+                    lv_draw_label_dsc_t label_dsc;
+                    lv_draw_label_dsc_init(&label_dsc);
+                    label_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
+                    label_dsc.font  = LVGL_FONT_DEFAULT;
+                    label_dsc.opa   = LV_OPA_COVER;
 
-                lv_area_t coords = {
-                    static_cast<int32_t>(x),
-                    static_cast<int32_t>(y),
-                    static_cast<int32_t>(x + b.size.x),
-                    static_cast<int32_t>(y + b.size.y)
-                };
-                label_dsc.text = b.text.c_str();
-                lv_draw_label(&layer, &label_dsc, &coords);
+                    lv_area_t coords = {
+                        static_cast<int32_t>(x),
+                        static_cast<int32_t>(y),
+                        static_cast<int32_t>(x + b.size.x),
+                        static_cast<int32_t>(y + b.size.y)
+                    };
+                    label_dsc.text = b.text.c_str();
+                    lv_draw_label(&layer, &label_dsc, &coords);
+                } else {
+                    // Draw placeholder outline box
+                    lv_draw_rect_dsc_t rect_dsc;
+                    lv_draw_rect_dsc_init(&rect_dsc);
+                    rect_dsc.bg_color = lvgl_color(LVGL_COLOR_BG_CANVAS);
+                    rect_dsc.bg_opa   = LV_OPA_COVER;
+                    rect_dsc.border_color = lvgl_color(LVGL_COLOR_BORDER_MEDIUM);
+                    rect_dsc.border_opa   = LV_OPA_COVER;
+                    rect_dsc.border_width = 1;
+
+                    lv_area_t coords = {
+                        static_cast<int32_t>(x),
+                        static_cast<int32_t>(y),
+                        static_cast<int32_t>(x + b.size.x),
+                        static_cast<int32_t>(y + b.size.y)
+                    };
+                    lv_draw_rect(&layer, &rect_dsc, &coords);
+                }
             }
 
-            if (b.kind == layout::Box_Kind::FRACTION && b.children.size() == 2) {
+            if (b.kind == math::layout::Box_Kind::FRACTION && b.children.size() == 2) {
                 const auto& num = b.children[0];
                 const auto& den = b.children[1];
                 int bar_y     = y + num.size.y + 2;

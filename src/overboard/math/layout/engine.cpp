@@ -13,9 +13,7 @@
 // C++ Standard Libraries
 #include <algorithm>
 
-using namespace ovb::ast;
-
-namespace ovb::layout {
+namespace ovb::math::layout {
 
 /****************************/
 /*   Layout_Box Factories   */
@@ -26,7 +24,10 @@ Layout_Box Layout_Box::atom( std::string t, float scale ) {
     return {Box_Kind::ATOM, core::Point<int>(0, 0), core::Size<int>(sw, sh), sh - 2 * static_cast<int>(scale), scale, std::move(t), {}};
 }
 
-Layout_Box Layout_Box::fraction(Layout_Box num, Layout_Box den, float scale) {
+/**************************/
+/*        Fraction        */
+/**************************/
+Layout_Box Layout_Box::fraction( Layout_Box num, Layout_Box den, float scale ) {
     return { Box_Kind::FRACTION,
              core::Point<int>(0, 0),
              core::Size<int>(0, 0),
@@ -37,7 +38,10 @@ Layout_Box Layout_Box::fraction(Layout_Box num, Layout_Box den, float scale) {
                std::move(den) } };
 }
 
-Layout_Box Layout_Box::power(Layout_Box base, Layout_Box exp, float scale) {
+/**************************/
+/*         Power          */
+/**************************/
+Layout_Box Layout_Box::power( Layout_Box base, Layout_Box exp, float scale ) {
     return { Box_Kind::POWER,
              core::Point<int>(0, 0),
              core::Size<int>(0, 0),
@@ -48,6 +52,9 @@ Layout_Box Layout_Box::power(Layout_Box base, Layout_Box exp, float scale) {
                std::move(exp) } };
 }
 
+/**************************/
+/*       Sequence         */
+/**************************/
 Layout_Box Layout_Box::sequence( std::vector<Layout_Box> boxes, float scale ) {
     return { Box_Kind::SEQUENCE,
              core::Point<int>(0, 0),
@@ -58,9 +65,9 @@ Layout_Box Layout_Box::sequence( std::vector<Layout_Box> boxes, float scale ) {
              std::move(boxes)};
 }
 
-/****************************************/
-/*          Handle Square Root          */
-/****************************************/
+/**************************/
+/*      Square Root       */
+/**************************/
 Layout_Box Layout_Box::sqrt( Layout_Box arg, float scale ) {
     return { Box_Kind::SQRT,
              core::Point<int>(0, 0),
@@ -82,7 +89,7 @@ Layout_Engine::Layout_Engine( const font::Font_Metrics& metrics,
 /****************************/
 /*         Build            */
 /****************************/
-Layout_Box Layout_Engine::build(const ovb::ast::Node* node) {
+Layout_Box Layout_Engine::build( const ast::Node* node ) {
     return build(node, m_default_scale);
 }
 
@@ -90,26 +97,30 @@ Layout_Box Layout_Engine::build(const ovb::ast::Node* node) {
 /*       Build (scale)      */
 /****************************/
 Layout_Box Layout_Engine::build( const ast::Node* node, float scale ) {
-    switch (node->kind) {
-        case Node_Kind::NUMBER:
+    switch (node->kind()) {
+        case ast::Node_Kind::NUMBER:
             return Layout_Box::atom(node->to_string(), scale);
 
-        case Node_Kind::CONSTANT:
+        case ast::Node_Kind::CONSTANT:
             return Layout_Box::atom(node->to_string(), scale);
 
-        case Node_Kind::VARIABLE:
+        case ast::Node_Kind::VARIABLE:
             return Layout_Box::atom(node->to_string(), scale);
 
-        case Node_Kind::BINARY_OP:
-            return build_binary_op(static_cast<const Binary_Op_Node*>(node), scale);
+        case ast::Node_Kind::PLACEHOLDER:
+            // Create an empty box with default size for placeholder
+            return Layout_Box::atom("", scale);
 
-        case Node_Kind::UNARY_OP:
-            return build_unary_op(static_cast<const Unary_Op_Node*>(node), scale);
+        case ast::Node_Kind::BINARY_OP:
+            return build_binary_op(static_cast<const ast::Binary_Op_Node*>(node), scale);
 
-        case Node_Kind::FUNCTION:
-            return build_function(static_cast<const Function_Node*>(node), scale);
+        case ast::Node_Kind::UNARY_OP:
+            return build_unary_op(static_cast<const ast::Unary_Op_Node*>(node), scale);
 
-        case Node_Kind::FACTORIAL:
+        case ast::Node_Kind::FUNCTION:
+            return build_function(static_cast<const ast::Function_Node*>(node), scale);
+
+        case ast::Node_Kind::FACTORIAL:
             return Layout_Box::atom(node->to_string(), scale);
     }
 
@@ -119,18 +130,18 @@ Layout_Box Layout_Engine::build( const ast::Node* node, float scale ) {
 /****************************/
 /*     Build Binary Op      */
 /****************************/
-Layout_Box Layout_Engine::build_binary_op( const ast::Binary_Op_Node* node, float scale) {
-    auto left = build(node->left.get(), scale);
-    auto right = build(node->right.get(), scale);
+Layout_Box Layout_Engine::build_binary_op( const ast::Binary_Op_Node* node, float scale ) {
+    auto left = build(node->left().get(), scale);
+    auto right = build(node->right().get(), scale);
 
-    switch (node->op) {
-        case Binary_Op::DIVIDE: {
+    switch (node->op()) {
+        case ast::Binary_Op::DIVIDE: {
             return Layout_Box::fraction(std::move(left), std::move(right), scale);
         }
-        case Binary_Op::POWER: {
+        case ast::Binary_Op::POWER: {
             return Layout_Box::power(std::move(left), std::move(right), scale);
         }
-        case Binary_Op::MULTIPLY: {
+        case ast::Binary_Op::MULTIPLY: {
             std::vector<Layout_Box> seq;
             seq.reserve(3);
             seq.push_back(std::move(left));
@@ -138,7 +149,7 @@ Layout_Box Layout_Engine::build_binary_op( const ast::Binary_Op_Node* node, floa
             seq.push_back(std::move(right));
             return Layout_Box::sequence(std::move(seq), scale);
         }
-        case Binary_Op::ADD: {
+        case ast::Binary_Op::ADD: {
             std::vector<Layout_Box> seq;
             seq.reserve(3);
             seq.push_back(std::move(left));
@@ -146,7 +157,7 @@ Layout_Box Layout_Engine::build_binary_op( const ast::Binary_Op_Node* node, floa
             seq.push_back(std::move(right));
             return Layout_Box::sequence(std::move(seq), scale);
         }
-        case Binary_Op::SUBTRACT: {
+        case ast::Binary_Op::SUBTRACT: {
             std::vector<Layout_Box> seq;
             seq.reserve(3);
             seq.push_back(std::move(left));
@@ -164,9 +175,9 @@ Layout_Box Layout_Engine::build_binary_op( const ast::Binary_Op_Node* node, floa
 /*     Build Unary Op       */
 /****************************/
 Layout_Box Layout_Engine::build_unary_op( const ast::Unary_Op_Node* node, float scale ) {
-    auto operand = build(node->operand.get(), scale);
+    auto operand = build(node->operand().get(), scale);
 
-    if (node->op == Unary_Op::NEGATE) {
+    if (node->op() == ast::Unary_Op::NEGATE) {
         std::vector<Layout_Box> seq;
         seq.reserve(2);
         seq.push_back(Layout_Box::atom("-", scale));
@@ -181,26 +192,26 @@ Layout_Box Layout_Engine::build_unary_op( const ast::Unary_Op_Node* node, float 
 /****************************/
 Layout_Box Layout_Engine::build_function( const ast::Function_Node* node, float scale ) {
     // Special case: sqrt function uses proper mathematical notation
-    if (node->name == "sqrt" && node->args.size() == 1) {
-        return Layout_Box::sqrt(build(node->args[0].get(), scale), scale);
+    if (node->name() == "sqrt" && node->args().size() == 1) {
+        return Layout_Box::sqrt(build(node->args()[0].get(), scale), scale);
     }
 
     std::vector<Layout_Box> seq;
     // Reserve: name + ( + args + commas + )
-    seq.reserve(node->args.size() * 2 + 3);
+    seq.reserve(node->args().size() * 2 + 3);
 
     // Function name
-    seq.push_back(Layout_Box::atom(node->name, scale));
+    seq.push_back(Layout_Box::atom(node->name(), scale));
 
     // Opening paren
     seq.push_back(Layout_Box::atom("(", scale));
 
     // Arguments
-    for (size_t i = 0; i < node->args.size(); ++i) {
+    for (size_t i = 0; i < node->args().size(); ++i) {
         if (i > 0) {
             seq.push_back(Layout_Box::atom(",", scale));
         }
-        seq.push_back(build(node->args[i].get(), scale));
+        seq.push_back(build(node->args()[i].get(), scale));
     }
 
     // Closing paren
@@ -217,8 +228,14 @@ void Layout_Engine::measure(Layout_Box& box) {
 
     switch (box.kind) {
         case Box_Kind::ATOM:
-            box.size.x = m_metrics.string_width(box.text) * static_cast<int>(box.scale);
-            box.size.y = m_metrics.line_height() * static_cast<int>(box.scale);
+            if (box.text.empty()) {
+                // Placeholder - give minimum size for visibility (em/2 width)
+                box.size.x = m_metrics.char_width() * static_cast<int>(box.scale);
+                box.size.y = m_metrics.line_height() * static_cast<int>(box.scale);
+            } else {
+                box.size.x = m_metrics.string_width(box.text) * static_cast<int>(box.scale);
+                box.size.y = m_metrics.line_height() * static_cast<int>(box.scale);
+            }
             box.baseline = m_metrics.ascent * static_cast<int>(box.scale);
             break;
 
@@ -380,4 +397,4 @@ void Layout_Engine::prepare(Layout_Box& box, core::Point<int> container_size) {
     layout( box, core::Point<int>( x, y ) );
 }
 
-} // namespace ovb::layout
+} // namespace ovb::math::layout

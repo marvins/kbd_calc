@@ -149,7 +149,7 @@ void SDL_App::run() {
 
         // Log loop progress every 60 frames (~1 second)
         if (++loop_count % 60 == 0) {
-            LOG_DEBUG("Main loop iteration " + std::to_string(loop_count));
+            LOG_TRACE("Main loop iteration " + std::to_string(loop_count));
         }
     }
     LOG_INFO("SDL_App::run() exiting");
