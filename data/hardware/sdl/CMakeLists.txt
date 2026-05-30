@@ -24,6 +24,25 @@ set(HARDWARE_INCLUDE_DIRS
     ${PNG_INCLUDE_DIRS}
 )
 
+# Display dimensions for the SDL simulator (400x800, keyboard 400x300)
+set(DISPLAY_FULL_WIDTH  400)
+set(DISPLAY_FULL_HEIGHT 800)
+set(DISPLAY_KBD_WIDTH   400)
+set(DISPLAY_KBD_HEIGHT  300)
+set(DISPLAY_PREVIEW_MAX_WIDTH  160)
+set(DISPLAY_PREVIEW_MAX_HEIGHT 100)
+set(DISPLAY_PREVIEW_OFFSET_Y    80)
+set(DISPLAY_KEY_PAD       2)
+set(DISPLAY_KBD_HEADER_H 20)
+set(DISPLAY_KBD_MARGIN_L  8)
+set(DISPLAY_KBD_MARGIN_T  6)
+
+configure_file(
+    ${CMAKE_SOURCE_DIR}/templates/display_config.hpp.in
+    ${CMAKE_BINARY_DIR}/src/overboard/hal/display_config.hpp
+    @ONLY
+)
+
 # SDL-specific source files
 set(HARDWARE_SOURCES
     src/overboard/hal/sdl/app.cpp

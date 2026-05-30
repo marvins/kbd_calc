@@ -24,10 +24,17 @@ namespace ovb::core {
  * Holds configuration parsed from command-line arguments.
  */
 class Config {
+
     public:
-        static constexpr std::string_view DEFAULT_LAYOUT_PATH  = "data/MF34.json";
-        static constexpr std::string_view DEFAULT_KEYMAP_PATH  = "data/MF34.keymap.json";
-        static constexpr std::string_view DEFAULT_LAYERS_PATH  = "data/MF34.layers.json";
+
+        /// @brief Default layout path
+        static constexpr std::string_view DEFAULT_LAYOUT_PATH  = "data/configs/mf/MF34.json";
+
+        /// @brief Default keymap path
+        static constexpr std::string_view DEFAULT_KEYMAP_PATH  = "data/configs/mf/MF34.keymap.json";
+
+        /// @brief Default layers path
+        static constexpr std::string_view DEFAULT_LAYERS_PATH  = "data/configs/mf/MF34.layers.json";
 
         /**
          * @brief Parse command-line arguments
@@ -50,32 +57,59 @@ class Config {
          */
         static log::Log_Level parse_log_level( std::string_view level_str);
 
-        /// @return Path to VIA layout JSON file
+        /**
+         * @return Path to VIA layout JSON file
+         */
         inline const std::filesystem::path& layout_path() const { return m_layout_path; }
 
-        /// @return Path to keymap JSON file (scancodes)
+        /**
+         * @return Path to keymap JSON file (scancodes)
+         */
         inline const std::filesystem::path& keymap_path() const { return m_keymap_path; }
 
-        /// @return Path to layers JSON file (key-code assignments per layer)
+        /**
+         * @return Path to layers JSON file (key-code assignments per layer)
+         */
         inline const std::filesystem::path& layers_path() const { return m_layers_path; }
 
-        /// @return Log severity level
+        /**
+         * @return Log severity level
+         */
         inline log::Log_Level log_level() const { return m_log_level; }
 
-        /// @return true if help was requested
+        /**
+         * @return true if help was requested
+         */
         inline bool help_requested() const { return m_help_requested; }
 
-        /// @return Program name
+        /**
+         * @return Program name
+         */
         inline const std::filesystem::path& program_name() const { return m_program_name; }
 
     private:
+
+        /**
+         * @brief Private constructor
+         */
         Config() = default;
 
+        /// @brief Program name
         std::filesystem::path m_program_name;
+
+        /// @brief Path to VIA layout JSON file
         std::filesystem::path m_layout_path;
+
+        /// @brief Path to keymap JSON file (scancodes)
         std::filesystem::path m_keymap_path;
+
+        /// @brief Path to layers JSON file (key-code assignments per layer)
         std::filesystem::path m_layers_path;
+
+        /// @brief Log severity level
         log::Log_Level m_log_level;
+
+        /// @brief Help requested flag
         bool m_help_requested = false;
 };
 

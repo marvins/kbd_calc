@@ -1,29 +1,27 @@
 /**
- * @file kn34_input.cpp
- * @brief KISNT KN34 hardware input driver implementation
+ * @file    input.cpp
+ * @author  Marvin Smith
+ * @date    2026-05-29
  *
- * Platform-specific implementation for scanning the key matrix
- * and generating key events.
+ * @brief   Raspberry Pi Pico hardware input driver implementation
  */
+#include <overboard/hal/pico/input.hpp>
 
-// Project Libraries
-#include <overboard/hal/kn34/kn34_input.hpp>
-
-// Platform-specific includes (conditional compilation)
+// Platform-specific includes
 #ifdef PICO_PLATFORM
     #include <hardware/gpio.h>
 #endif
 
-namespace ovb::hal::kn34 {
+namespace ovb::hal::pico {
 
-KN34_Input::KN34_Input(const core::Grid_Layout& layout)
+Pico_Input::Pico_Input(const core::Grid_Layout& layout)
     : m_layout(layout) {}
 
-bool KN34_Input::should_quit() const {
+bool Pico_Input::should_quit() const {
     return m_quit;
 }
 
-void KN34_Input::pump() {
+void Pico_Input::pump() {
     // Platform-specific: read key matrix, queue events
     // This is a placeholder implementation
 
@@ -36,16 +34,16 @@ void KN34_Input::pump() {
 #endif
 }
 
-bool KN34_Input::poll(Key_Event& out_event) {
+bool Pico_Input::poll(Key_Event& out_event) {
     // Placeholder: return false (no events)
     (void)out_event;
     return false;
 }
 
-int KN34_Input::scan_matrix() const {
+int Pico_Input::scan_matrix() const {
     // Platform-specific key matrix scanning
     // Returns key index or -1 if no key pressed
     return -1;
 }
 
-} // namespace ovb::hal::kn34
+} // namespace ovb::hal::pico

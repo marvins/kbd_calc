@@ -38,6 +38,23 @@ Within `private` and `protected` sections, order members as follows:
 3. **Member variables** (non-static data members)
 4. **Static member variables / `static constexpr`** (static data members)
 
+## Constant Initializers
+Prefer brace-initializer syntax for `constexpr` and `inline constexpr` constants:
+
+```cpp
+// Preferred
+inline constexpr int    FULL_WIDTH  { 400 };
+inline constexpr uint32_t I2C_SPEED { 400'000 };
+
+// Avoid
+inline constexpr int FULL_WIDTH = 400;
+```
+
+Digit separators (`'`) should be used for numeric literals ≥ 5 digits to aid readability:
+```cpp
+inline constexpr uint32_t SPI_SPEED { 25'000'000 };
+```
+
 ## General
 - Standard: **C++23**
 - Build system: **CMake 4.0+**

@@ -19,12 +19,19 @@ include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 # Initialize the Pico SDK
 pico_sdk_init()
 
-# Set up RP2350-specific compile definitions
+# Board selection: set BOARD=picocalc (default) or BOARD=pico
+# cmake .. -DTARGET_DEVICE=RP2350 -DBOARD=picocalc   → ClockworkPi PicoCalc (ILI9488 + I2C kbd)
+# cmake .. -DTARGET_DEVICE=RP2350 -DBOARD=pico        → bare RP2350 stub
+if(NOT DEFINED BOARD)
+    set(BOARD "picocalc")
+endif()
+
+# Shared RP2350 compile definitions
 set(HARDWARE_COMPILE_DEFINITIONS
     TARGET_RP2350=1
 )
 
-# RP2350-specific libraries (from Pico SDK)
+# Shared RP2350 libraries (from Pico SDK)
 set(HARDWARE_LIBRARIES
     pico_stdlib
     hardware_gpio
@@ -43,17 +50,68 @@ set(HARDWARE_LIBRARIES
     hardware_exception
 )
 
-# RP2350-specific include directories
+# Shared RP2350 include directories
 set(HARDWARE_INCLUDE_DIRS
     ${PICO_SDK_PATH}/src
     ${PICO_SDK_PATH}/src/rp2350/hardware_regs/include
     ${PICO_SDK_PATH}/src/rp2350/hardware_structs/include
 )
 
-# RP2350-specific source files (to be added as HAL is implemented)
-set(HARDWARE_SOURCES
-    # src/overboard/hal/rp2350/rp2350_app.cpp
-    # src/overboard/hal/rp2350/rp2350_input.cpp
-    # src/overboard/hal/rp2350/rp2350_display.cpp
-    # src/overboard/hal/rp2350/rp2350_keymap.cpp
+# GUI sources needed by both boards
+set(GUI_SOURCES
+    src/overboard/gui/app_view.cpp
+    src/overboard/gui/keyboard_view.cpp
+    src/overboard/gui/lcd_section.cpp
+    src/overboard/gui/math_canvas.cpp
+)
+
+if(BOARD STREQUAL "picocalc")
+    message(STATUS "Board: ClockworkPi PicoCalc (ILI9488 SPI + I2C keyboard)")
+    list(APPEND HARDWARE_COMPILE_DEFINITIONS BOARD_PICOCALC=1)
+    set(HARDWARE_SOURCES
+        src/overboard/hal/picocalc/app.cpp
+        src/overboard/hal/picocalc/display.cpp
+        src/overboard/hal/picocalc/input.cpp
+        ${GUI_SOURCES}
+    )
+    # PicoCalc: 320x320 physical display, logical split ~320x220 LCD / 320x100 kbd
+    set(DISPLAY_FULL_WIDTH  320)
+    set(DISPLAY_FULL_HEIGHT 320)
+    set(DISPLAY_KBD_WIDTH   320)
+    set(DISPLAY_KBD_HEIGHT  100)
+    set(DISPLAY_PREVIEW_MAX_WIDTH   120)
+    set(DISPLAY_PREVIEW_MAX_HEIGHT   60)
+    set(DISPLAY_PREVIEW_OFFSET_Y     40)
+    set(DISPLAY_KEY_PAD       1)
+    set(DISPLAY_KBD_HEADER_H 14)
+    set(DISPLAY_KBD_MARGIN_L  4)
+    set(DISPLAY_KBD_MARGIN_T  3)
+elseif(BOARD STREQUAL "pico")
+    message(STATUS "Board: Bare RP2350 Pico (stub HAL)")
+    set(HARDWARE_SOURCES
+        src/overboard/hal/pico/app.cpp
+        src/overboard/hal/pico/display.cpp
+        src/overboard/hal/pico/input.cpp
+        ${GUI_SOURCES}
+    )
+    # Bare Pico: placeholder dimensions, update when display is chosen
+    set(DISPLAY_FULL_WIDTH  320)
+    set(DISPLAY_FULL_HEIGHT 320)
+    set(DISPLAY_KBD_WIDTH   320)
+    set(DISPLAY_KBD_HEIGHT  100)
+    set(DISPLAY_PREVIEW_MAX_WIDTH   120)
+    set(DISPLAY_PREVIEW_MAX_HEIGHT   60)
+    set(DISPLAY_PREVIEW_OFFSET_Y     40)
+    set(DISPLAY_KEY_PAD       1)
+    set(DISPLAY_KBD_HEADER_H 14)
+    set(DISPLAY_KBD_MARGIN_L  4)
+    set(DISPLAY_KBD_MARGIN_T  3)
+else()
+    message(FATAL_ERROR "Unknown BOARD '${BOARD}'. Valid options: picocalc, pico")
+endif()
+
+configure_file(
+    ${CMAKE_SOURCE_DIR}/templates/display_config.hpp.in
+    ${CMAKE_BINARY_DIR}/src/overboard/hal/display_config.hpp
+    @ONLY
 )

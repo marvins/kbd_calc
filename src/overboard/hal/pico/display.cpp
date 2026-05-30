@@ -1,33 +1,33 @@
 /**
- * @file    kn34_display.cpp
+ * @file    display.cpp
  * @author  Marvin Smith
  * @date    2026-05-29
  *
- * @brief   KN34 hardware display implementation
+ * @brief   Raspberry Pi Pico hardware display implementation
  */
-#include <overboard/hal/kn34/kn34_display.hpp>
+#include <overboard/hal/pico/display.hpp>
 
-namespace ovb::hal::kn34 {
+namespace ovb::hal::pico {
 
 /****************************/
 /*          Refresh         */
 /****************************/
-void KN34_Display::refresh() {
+void Pico_Display::refresh() {
     // TODO: Refresh LCD section via SPI
 }
 
 /******************************/
 /*        Update Layer        */
 /******************************/
-void KN34_Display::update_layer() {
+void Pico_Display::update_layer() {
     // TODO: Re-render keyboard buttons via LVGL
 }
 
 /****************************/
 /*          Render          */
 /****************************/
-void KN34_Display::render() {
+void Pico_Display::render() {
     // TODO: Drive LVGL tick/timer handler
 }
 
-} // namespace ovb::hal::kn34
+} // namespace ovb::hal::pico

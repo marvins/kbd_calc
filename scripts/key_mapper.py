@@ -775,9 +775,9 @@ class KeyMapperWindow(QMainWindow):
 
 
 def main():
-    DEFAULT_LAYOUT_PATH = "data/MF34.json"
-    DEFAULT_KEYMAP_PATH = "data/MF34.keymap.json"
-    DEFAULT_LAYERS_PATH = "data/MF34.layers.json"
+    DEFAULT_LAYOUT_PATH = "data/configs/mf/MF34.json"
+    DEFAULT_KEYMAP_PATH = "data/configs/mf/MF34.keymap.json"
+    DEFAULT_LAYERS_PATH = "data/configs/mf/MF34.layers.json"
 
     layout_path = DEFAULT_LAYOUT_PATH
     keymap_path = DEFAULT_KEYMAP_PATH

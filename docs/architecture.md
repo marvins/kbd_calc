@@ -1,281 +1,210 @@
 # Architecture
 
-This document describes the system architecture for the kbd_calc project.
+This document describes the software architecture for the kbd_calc project.
 
-## Current Structure
+## Source Layout
 
 ```
 src/overboard/
-├── hal/                   # Hardware Abstraction Layer
-│   ├── config/            # Build configuration
-│   ├── sdl/               # SDL simulator
-│   │   ├── Input: sdl_input, sdl_keymap
-│   │   ├── Keyboard: sdl_keyboard (window, view, display)
-│   │   ├── Display: sdl_lcd_display (typeset math)
-│   │   └── Theme: lvgl_theme
-│   └── sk30/              # KISNT KN34 hardware
-├── core/                  # Core portable logic
-│   ├── Keyboard: keyboard_layout, keymap, layer_manager
-│   ├── Layout: grid_layout
-│   └── Types: point, rect
-└── math/                  # Math engine
-    ├── calc_engine        # Calculator state machine
-    ├── expression         # Expression representation
-    ├── parser             # String → AST
-    ├── ast/               # AST nodes
-    └── layout/            # Typesetting engine
+├── core/        — portable keyboard types, no platform headers
+├── math/        — portable calculator engine, no UI dependencies
+├── font/        — font metrics for math typesetting
+├── io/          — VIA/JSON keymap loading
+├── log/         — lightweight logging
+├── gui/         — LVGL widget management (platform-agnostic)
+├── hal/         — hardware abstraction interfaces + platform drivers
+│   ├── sdl/     — SDL desktop simulator
+│   ├── pico/    — RP2350 stub (minimal)
+│   └── picocalc/ — ClockworkPi PicoCalc (ILI9488 + I2C keyboard)
+└── apps/        — application entry points
 ```
 
-### HAL (Hardware Abstraction Layer)
-- **Purpose**: Abstract platform-specific hardware (SDL simulator, embedded devices)
-- **Location**: `src/overboard/hal/`
-- **Key Components**:
-  - `I_App`: Platform application interface
-  - `I_Display`: Display interface (pixel-buffer based)
-  - `I_Input`: Input interface
-  - `App_Factory`: Centralized factory — all `#ifdef` target logic lives here
-  - Target config headers (`target_sdl.hpp`, `target_kn34.hpp`)
+---
 
-#### SDL Simulator (`hal/sdl/`)
-The SDL simulator uses a **dual-LVGL-window architecture**:
+## Layer Overview
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| `SDL_Keyboard` | LVGL widgets | Virtual keyboard with button/label widgets (light theme) |
-| `SDL_LCD_Display` | LVGL widgets | Calculator LCD with typeset math, history table (light theme) |
+```mermaid
+graph TB
+    subgraph Apps
+        A[apps/]
+    end
 
-**Architecture**: Both keyboard and LCD are now LVGL-based with matching light themes:
-- `SDL_Keyboard` manages the keyboard window with `lv_button` widgets
-- `SDL_LCD_Display` manages the LCD window with `lv_table`, `lv_canvas` for math typesetting
-- `SDL_Input` handles both mouse (hit-testing) and physical keyboard events
-- `lvgl_theme.hpp` provides centralized color/font constants
+    subgraph GUI
+        B[gui/]
+    end
 
-**Classes**:
+    subgraph HAL
+        C[hal/ interfaces]
+        D[hal/sdl/]
+        E[hal/pico/]
+        F[hal/picocalc/]
+    end
+
+    subgraph Core
+        G[core/]
+        H[math/]
+        I[font/]
+        J[io/]
+        K[log/]
+    end
+
+    A --> B
+    B --> C
+    C --> D
+    C --> E
+    C --> F
+    D --> G
+    E --> G
+    F --> G
+    G --> H
+    G --> I
+    G --> J
+    G --> K
+```
+
+---
+
+## Module Descriptions
+
+### `core/` — Portable keyboard logic
+No platform headers allowed.
+
 | Class | Responsibility |
-|-------|--------------|
-| `SDL_Keyboard` | High-level keyboard manager — owns window + view |
-| `SDL_Keyboard_Display` | SDL window owner for keyboard |
-| `SDL_Keyboard_View` | Creates `lv_button`/`lv_label` grid from `Grid_Layout` |
-| `SDL_LCD_Display` | LCD window with bezel, history table, math preview canvas |
-| `SDL_Input` | Mouse hit-testing + physical keyboard mapping via `SDL_Keymap` |
-| `SDL_Keymap` | Maps SDL scancodes (arrows, qwe/asd/zxc, etc.) to key indices |
-| `lvgl_theme.hpp` | Centralized light-mode colors and font constants |
+|-------|---------------|
+| `Grid_Layout` / `Keyboard_Layout` | Key grid geometry and span definitions |
+| `Keymap` | Key-code to character/function mapping |
+| `Layer_Manager` | Active layer state and switching |
+| `Config` | Runtime configuration loading |
+| `Point`, `Rect` | Shared geometry types |
 
-### Core
-- **Purpose**: Platform-independent keyboard types and LCD coordination
-- **Location**: `src/overboard/core/`
-- **Keyboard**:
-  - `Keymap`: Key codes, labels, layer definitions
-  - `Layer_Manager`: Active layer state
-  - `Grid_Layout`: Physical keyboard grid and cell ownership
-- **LCD**:
-  - `Display_Controller`: Renders LCD via `I_Display` — math expressions, history, mode indicators
-- **Shared Types**:
-  - `point.hpp`, `rect.hpp`
+### `math/` — Portable calculator engine
+No UI or platform dependencies. Fully unit-testable in isolation.
 
-## Proposed Refactoring (Epsilon-Inspired)
+| Class | Responsibility |
+|-------|---------------|
+| `Calc_Engine` | Evaluates expressions, manages history and state |
+| `Parser` | Tokenises and parses expression strings into an AST |
+| `layout/Layout_Engine` | Converts AST to typeset layout boxes for rendering |
 
-### Epsilon Architecture Lessons
-From the NumWorks Epsilon project:
-- **ion/** = HAL (platform abstraction)
-- **kandinsky/** = Graphics library (low-level drawing)
-- **escher/** = UI framework (high-level widgets)
-- **poincare/** = Math engine (pure logic, no UI)
-- Clear layer separation with no circular dependencies
-- Math engine completely independent of UI
+### `font/` — Font metrics
+Provides character size data consumed by `layout/Layout_Engine`.
 
-### Proposed Module Structure
+### `io/` — Keymap loading
+Parses VIA-format JSON layouts and scancode mapping files.
 
-```
-src/overboard/
-├── hal/                   # Hardware Abstraction Layer (ion equivalent) — no change
-│   ├── config/
-│   ├── sdl/
-│   └── kn34/
-├── core/                  # Shared types and keyboard logic only
-│   ├── point.hpp
-│   ├── rect.hpp
-│   ├── keymap.hpp
-│   ├── layer_manager.hpp
-│   └── keyboard_layout.hpp
-├── math/                  # Math engine (poincare equivalent) — pure logic, no UI
-│   ├── calc_engine.hpp
-│   ├── expression.hpp
-│   ├── parser.hpp
-│   ├── ast/               # AST node types
-│   ├── layout/            # Math expression layout (box model)
-│   └── cas/               # Computer Algebra System (future)
-├── graphics/              # Low-level drawing primitives (kandinsky equivalent)
-│   ├── color.hpp
-│   ├── font.hpp
-│   └── drawing.hpp
-└── ui/                    # UI framework (escher equivalent)
-    ├── display_controller.hpp
-    ├── keyboard_view.hpp
-    ├── lcd_view.hpp
-    └── widgets/
-```
+### `log/` — Logging
+Lightweight `Stdout_Logger` with log-level filtering.
 
-### Module Responsibilities
+### `gui/` — LVGL widget management
+Platform-agnostic. Depends on `hal/` interfaces and `core/`/`math/` but **never** on `hal/sdl/` or `hal/kn34/`.
 
-#### `hal/` — Hardware Abstraction Layer
-- Platform-specific hardware abstraction (unchanged)
-- I_App, I_Display, I_Input interfaces
-- App_Factory: all `#ifdef` target logic lives here
-- **No dependencies on other overboard modules**
+| File | Responsibility |
+|------|---------------|
+| `App_View` | Root GUI object; owns `LCD_Section` + `Keyboard_View`; implements `I_Display` |
+| `LCD_Section` | Bezel, history table, and typeset math preview canvas (top 500 px) |
+| `Keyboard_View` | LVGL button grid matching physical key layout (bottom 300 px) |
+| `math_canvas` | Standalone utility: renders a typeset expression onto an `lv_canvas` |
+| `lvgl_theme.hpp` | Centralised color constants and `lvgl_color()` helper |
 
-#### `core/` — Shared Types & Keyboard
-- Platform-independent types: `Point`, `Rect`
-- Keyboard logic: `Keymap`, `Layer_Manager`, `Grid_Layout`
-- **No rendering, no math dependencies**
+### `hal/` — Hardware abstraction interfaces
 
-#### `math/` — Math Engine
-- `Calc_Engine`: state machine for key handling and history
-- `Expression`: string/cursor representation
-- `Parser`: recursive-descent parser (string → AST)
-- `ast/`: AST node types and evaluation
-- `layout/`: Box model engine for rendering math expressions
-- `cas/`: Computer Algebra System (symbolic math, future)
-- **No UI or graphics dependencies — can be unit-tested in isolation**
+| File | Responsibility |
+|------|---------------|
+| `I_App` | Lifecycle interface: `init`, `run`, `should_quit`, `get_display` |
+| `I_Display` | Display contract: `refresh`, `update_layer`, `render` |
+| `I_Input` | Input polling interface |
+| `display_config.hpp` | Shared dimension constants (`FULL_*`, `LCD_*`, `KBD_*`) |
+| `App_Factory` | Constructs the correct `I_App` for the active compile target |
 
-#### `graphics/` — Drawing Primitives
-- Low-level drawing: colors, fonts, shapes
-- Platform-agnostic drawing API backed by `I_Display`
-- **No UI widget logic, no math logic**
+### `hal/sdl/` — SDL desktop simulator
 
-#### `ui/` — UI Framework
-- `Display_Controller`: coordinates keyboard and LCD views
-- `Keyboard_View`: renders the keyboard layout widget
-- `LCD_View`: renders the calculator expression display
-- Depends on `graphics/` and `core/keyboard`
-- **No math logic, no HAL dependencies**
+| Class | Responsibility |
+|-------|---------------|
+| `Display` | Owns the SDL window and LVGL display handle; exposes `screen()` for GUI attachment |
+| `SDL_App` | SDL lifecycle + event loop; owns both `Display` (HAL) and `App_View` (GUI) |
+| `SDL_Input` | SDL event pump → `Key_Event` queue |
+| `SDL_Keymap` | Maps SDL scancodes to calculator key indices |
 
-### Dependency Graph
-```
-hal (no deps)
-core (no deps)
-math → core
-graphics → core
-ui → graphics, core
-main → hal, ui, math
-```
+### `hal/pico/` — RP2350 embedded target
+Stub implementations of `I_App`, `I_Display`, and `I_Input`. Pending hardware bring-up.
 
-### Migration Path
+---
 
+## Dependency Rules
 
-**Remaining**:
-1. Create `src/overboard/graphics/` — extract drawing helpers from `Display_Controller`
-2. Create `src/overboard/ui/` — move `Display_Controller` and add view widgets
-3. Slim `src/overboard/core/` to types + keyboard only (remove any remaining LCD logic)
-4. Add theme config loading — runtime theme switching from file
+| Layer | May depend on | Must NOT depend on |
+|-------|---------------|--------------------|
+| `core/`, `math/`, `font/` | each other | `hal/`, `gui/`, platform headers |
+| `hal/` interfaces | `core/` | `gui/`, platform headers |
+| `hal/sdl/`, `hal/picocalc/` | `hal/` interfaces, `core/`, `gui/` | each other |
+| `gui/` | `hal/` interfaces, `core/`, `math/` | `hal/sdl/`, `hal/picocalc/` |
+| `apps/` | everything | — |
 
-## LVGL Integration
+**Key invariant**: `gui/` has no dependency on any specific HAL implementation. The SDL window driver exposes `lv_obj_t* screen()` as the single coupling point — `App_View` uses it to attach LVGL widgets without knowing anything about SDL.
 
-### What is LVGL?
-[LVGL](https://lvgl.io) is an open-source embedded GUI library providing widgets, layouts, animations, and font rendering. It is well-suited for embedded targets with small displays.
+---
 
-### Implemented Architecture
+## Display Architecture
 
-We use LVGL **for both keyboard and LCD displays**, replacing the legacy pixel-buffer LCD. This provides:
-- Consistent light-mode theming across both displays
-- Proper math typesetting via `lv_canvas` with layer-based rendering
-- Unified widget framework for future enhancements
+The physical display is a single unified unit (400 × 800 px) driven entirely by LVGL:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         main.cpp                            │
-│                                                             │
-│  ┌─────────────────────┐    ┌──────────────────────────┐  │
-│  │   LVGL_Keyboard     │    │    LVGL_LCD_Display      │  │
-│  │   (LVGL widgets)    │    │    (LVGL widgets)        │  │
-│  │                     │    │    - lv_table (history)   │  │
-│  │  ┌───────────────┐  │    │    - lv_canvas (math)    │  │
-│  │  │ Button Grid   │  │    │    - lv_label (indicators)│ │
-│  │  └───────────────┘  │    └──────────┬───────────────┘  │
-│  └──────────┬────────────┘               │                  │
-│             │                            │                  │
-│             ▼                            ▼                  │
-│  ┌─────────────────────┐    ┌──────────────────────────┐   │
-│  │  SDL Window (Kbd)   │    │  SDL Window (LCD)      │   │
-│  │  LVGL SDL Driver    │    │  LVGL SDL Driver       │   │
-│  └─────────────────────┘    └──────────────────────────┘   │
-│                                                             │
-│  SDL_Input: Mouse hit-testing + Physical keyboard mapping   │
-│             via SDL_Keymap (arrows, qwe/asd/zxc, etc.)      │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────┐  ← LCD_Section  (400 × 500 px)
+│  Bezel               │    history table + typeset math preview
+│  ┌────────────────┐  │
+│  │ History Table  │  │    lv_table — expression/result pairs
+│  ├────────────────┤  │
+│  │ Math Preview   │  │    lv_canvas — typeset via Layout_Engine
+│  └────────────────┘  │
+├──────────────────────┤  ← Keyboard_View (400 × 300 px)
+│  Layer header        │    lv_label — current layer name
+│  [  7 ][  8 ][  9 ] │
+│  [  4 ][  5 ][  6 ] │    lv_button + lv_label per key
+│  [  1 ][  2 ][  3 ] │
+│  [  0 ][ .  ][ =  ] │
+└──────────────────────┘
 ```
 
-**Key Design Decisions**:
-1. **Dual LVGL windows** — Separate SDL windows for keyboard and LCD, both using LVGL
-2. **Centralized theme** — `lvgl_theme.hpp` provides colors/fonts for consistent styling
-3. **No forward declarations in `core/`** — Clean layer separation achieved
-4. **Math typesetting** — Canvas-based rendering via `lv_draw_label` in `draw_math_to_canvas()`
-5. **Hardware-accurate** — Real device has separate keyboard and LCD displays
+`hal/sdl/Display` creates the SDL window and LVGL display handle, then calls `lv_timer_handler()` once. `App_View` is then constructed on the returned `screen()` root, attaching the two LVGL container objects at fixed vertical offsets.
 
-### SDL Keyboard Mapping (`sdl_keymap`)
+---
+
+## SDL Keyboard Mapping
 
 Physical keyboard input is mapped to calculator keys via `SDL_Keymap`:
 
-| Physical Key | Calculator Key | Index |
-|--------------|----------------|-------|
-| ↑ ↓ ← → | Cursor keys | 24, 28, 27, 29 |
-| q w e | Top row, first 3 keys | 0, 1, 2 |
-| a s d | Second row, first 3 keys | 7, 8, 9 |
-| z x c | Third row, first 3 keys | 14, 15, 16 |
-| 0-9 | Digit keys | mapped to numpad positions |
-| Return | Equals | 23 |
-| Backspace | Backspace | 2 |
-| Escape | All Clear | 4 |
+| Physical Key | Calculator function |
+|--------------|---------------------|
+| `q` `w` `e` / `a` `s` `d` / `z` `x` `c` | Key grid rows 1–3 |
+| `0`–`9` | Digit keys |
+| `Return` | Equals |
+| `Backspace` | Backspace |
+| `Escape` | All Clear |
+| Arrow keys | Cursor / layer navigation |
 
-**Customization**: The keymap can be modified at runtime via `SDL_Input::keymap().bind()`.
+Scancode bindings are loaded at startup from VIA-format JSON via `io/via_layout`.
 
-### LVGL Keyboard Module (`hal/sdl/`)
-
-| Class | Responsibility |
-|-------|--------------|
-| `LVGL_Keyboard` | High-level manager — owns display + view, exposes control API |
-| `LVGL_Keyboard_Display` | SDL window owner — creates SDL window, LVGL display driver |
-| `LVGL_Keyboard_View` | Widget tree — creates/destroys `lv_button`/`lv_label` widgets |
-
-**API**:
-```cpp
-class LVGL_Keyboard {
-    LVGL_Keyboard(title, width, height, Grid_Layout, Layer_Manager);
-    uint32_t window_id() const;   // For SDL_Input event filtering
-    void set_pressed(int key);    // Highlight key
-    void clear_pressed();         // Clear highlight
-    void update_layer();          // Refresh labels from current layer
-    void render();                // Flush LVGL → SDL window
-};
-```
-
-
-### Future Possibilities
-- Migrate LCD to LVGL widgets (unified UI framework)
-- Keep dual-path: LVGL for embedded targets, pixel-buffer for minimal SDL sim
-- Add more LVGL features: animations, themes, touch gestures
+---
 
 ## Build System
 
-- CMake 4.0+ for build configuration
-- Build script (`scripts/build.sh`) with target selection
-- Targets:
-  - `calc_sim`: SDL simulator (default)
-  - `calc_firmware`: Embedded firmware (KN34)
+- **CMake 4.0+**, build script at `scripts/build.sh`
+- Hardware-specific source lists live under `data/hardware/<target>/CMakeLists.txt`
+
+| Target | Binary | Description |
+|--------|--------|-------------|
+| `TARGET_SDL` | `calc_sim` | SDL desktop simulator (default) |
+| `TARGET_RP2350` | `calc_firmware` | RP2350 embedded firmware (Pico) |
+
+---
 
 ## Platform Support
 
 ### SDL Simulator
-- Desktop testing and development
-- Uses SDL2 for graphics and input
-- Target: `TARGET_SDL`
+Desktop development and testing. Uses SDL2 + LVGL SDL driver. Activated with `-DTARGET=sdl`.
 
-### KISNT KN34
-- 30-key macropad hardware
-- Embedded target (future: Raspberry Pi Pico)
-- Target: `TARGET_KN34`
+### ClockworkPi PicoCalc (RP2040/RP2350)
+Self-contained calculator with ILI9488 320×320 SPI display and STM32-driven I2C keyboard. HAL implemented in `hal/picocalc/`. Activated with `-DTARGET=rp2350`.
 
-### Future: PicoCalc
-- QWERTY keyboard calculator
-- Raspberry Pi Pico-based
-- Target: `TARGET_PICO` (planned)
+### Raspberry Pi Pico (RP2350)
+Custom calculator hardware with integrated display. Embedded target. Activated with `-DTARGET=rp2350`. HAL implementation is a stub pending hardware bring-up.

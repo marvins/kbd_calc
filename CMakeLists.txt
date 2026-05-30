@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(SIMULATOR "Build simulator target (requires SDL2)" ON)
 option(BUILD_TESTS "Build unit tests" ON)
 
-# Target device selection: SDL or RP2350
-set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, RP2350)")
-set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL RP2350)
+# Target device selection: SDL, RP2350, or PICOCALC
+set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, RP2350, PICOCALC)")
+set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL RP2350 PICOCALC)
 
 # ── Strict warning flags ───────────────────────────────────────────────────────
 add_library(project_warnings INTERFACE)
@@ -35,6 +35,9 @@ target_compile_options(project_warnings INTERFACE
 if(TARGET_DEVICE STREQUAL "SDL")
     include(data/hardware/sdl/CMakeLists.txt)
 elseif(TARGET_DEVICE STREQUAL "RP2350")
+    include(data/hardware/rp2350/CMakeLists.txt)
+elseif(TARGET_DEVICE STREQUAL "PICOCALC")
+    set(BOARD "picocalc" CACHE STRING "Board selection (pico, picocalc)" FORCE)
     include(data/hardware/rp2350/CMakeLists.txt)
 else()
     message(FATAL_ERROR "Unknown TARGET_DEVICE: ${TARGET_DEVICE}")
@@ -116,10 +119,11 @@ if(TARGET_DEVICE STREQUAL "SDL")
         ${CORE_SOURCES}
     )
 
-    target_include_directories(calc_sim PRIVATE src)
-    target_include_directories(calc_sim SYSTEM PRIVATE thirdparty/lvgl)
-    target_include_directories(calc_sim SYSTEM PRIVATE thirdparty/json/include)
-    target_include_directories(calc_sim SYSTEM PRIVATE ${HARDWARE_INCLUDE_DIRS})
+    target_include_directories( calc_sim PRIVATE src )
+    target_include_directories( calc_sim PRIVATE ${CMAKE_BINARY_DIR}/src )
+    target_include_directories( calc_sim SYSTEM PRIVATE thirdparty/lvgl )
+    target_include_directories( calc_sim SYSTEM PRIVATE thirdparty/json/include )
+    target_include_directories( calc_sim SYSTEM PRIVATE ${HARDWARE_INCLUDE_DIRS} )
 
     target_link_libraries(calc_sim PRIVATE
         ${HARDWARE_LIBRARIES}
@@ -181,17 +185,18 @@ if(TARGET_DEVICE STREQUAL "RP2350")
         ${CORE_SOURCES}
     )
 
-    target_include_directories(calc_firmware PRIVATE src)
-    target_include_directories(calc_firmware SYSTEM PRIVATE ${HARDWARE_INCLUDE_DIRS})
+    target_include_directories( calc_firmware PRIVATE src )
+    target_include_directories( calc_firmware PRIVATE ${CMAKE_BINARY_DIR}/src )
+    target_include_directories( calc_firmware SYSTEM PRIVATE ${HARDWARE_INCLUDE_DIRS} )
 
-    target_link_libraries(calc_firmware PRIVATE
+    target_link_libraries( calc_firmware PRIVATE
         ${HARDWARE_LIBRARIES}
         project_warnings
         nlohmann_json
     )
 
-    target_compile_definitions(calc_firmware PRIVATE ${HARDWARE_COMPILE_DEFINITIONS})
+    target_compile_definitions( calc_firmware PRIVATE ${HARDWARE_COMPILE_DEFINITIONS} )
 
     # Enable USB booting for RP2350
-    pico_add_extra_outputs(calc_firmware)
+    pico_add_extra_outputs( calc_firmware )
 endif()
