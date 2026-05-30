@@ -1,6 +1,7 @@
-# SDL Simulator hardware configuration
-# This file contains SDL-specific build settings for the simulator target.
-# It is included by the main CMakeLists.txt when TARGET_DEVICE=SDL.
+# PicoSDL hardware configuration
+# This file contains SDL-specific build settings for the PicoCalc simulator target.
+# It is included by the main CMakeLists.txt when TARGET_DEVICE=PICOSDL.
+# Uses same config as SDL but with 320x320 screen.
 
 # SDL2 and PNG are required for the simulator
 find_package(SDL2 REQUIRED)
@@ -32,11 +33,11 @@ set(HARDWARE_INCLUDE_DIRS
     ${PNG_INCLUDE_DIRS}
 )
 
-# Display dimensions for the SDL simulator (480x800, keyboard 480x300)
-set(DISPLAY_FULL_WIDTH  480)
-set(DISPLAY_FULL_HEIGHT 800)
-set(DISPLAY_KBD_WIDTH   480)
-set(DISPLAY_KBD_HEIGHT  300)
+# Display dimensions for the PicoSDL simulator (320x320)
+set(DISPLAY_FULL_WIDTH  320)
+set(DISPLAY_FULL_HEIGHT 320)
+set(DISPLAY_KBD_WIDTH   320)
+set(DISPLAY_KBD_HEIGHT  320)
 set(DISPLAY_PREVIEW_MAX_WIDTH  160)
 set(DISPLAY_PREVIEW_MAX_HEIGHT 100)
 set(DISPLAY_PREVIEW_OFFSET_Y    80)
@@ -44,7 +45,7 @@ set(DISPLAY_KEY_PAD       2)
 set(DISPLAY_KBD_HEADER_H 20)
 set(DISPLAY_KBD_MARGIN_L  8)
 set(DISPLAY_KBD_MARGIN_T  6)
-set(DISPLAY_FONT_SIZE     10)
+set(DISPLAY_FONT_SIZE     7)
 
 configure_file(
     ${CMAKE_SOURCE_DIR}/templates/display_config.hpp.in
@@ -63,4 +64,3 @@ set(HARDWARE_SOURCES
     src/overboard/gui/lcd_section.cpp
     src/overboard/gui/math_canvas.cpp
 )
-

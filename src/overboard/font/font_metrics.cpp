@@ -56,4 +56,15 @@ Font_Metrics Font_Metrics::make_5x7() {
     return m;
 }
 
+/*****************************************************************/
+/*          Construct metrics for specific font size             */
+/*****************************************************************/
+Font_Metrics Font_Metrics::make_for_size(int font_size) {
+    // Start with 10px base metrics and scale to requested size
+    Font_Metrics m = make_default();
+    float scale_factor = static_cast<float>(font_size) / 10.0f;
+    m.scale(scale_factor);
+    return m;
+}
+
 } // namespace ovb::font

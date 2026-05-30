@@ -98,6 +98,15 @@ struct Font_Metrics {
      * displays and matches the HAL's FONT_5X7.
      */
     static Font_Metrics make_5x7();
+
+    /**
+     * @brief Construct metrics for a specific font size in pixels.
+     *
+     * Creates font metrics scaled to the requested pixel size.
+     * @param font_size Font size in pixels
+     * @return Font_Metrics scaled to the requested size
+     */
+    static Font_Metrics make_for_size(int font_size);
 };
 
 } // namespace ovb::font

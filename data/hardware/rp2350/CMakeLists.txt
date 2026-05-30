@@ -78,6 +78,7 @@ set(DISPLAY_KEY_PAD       1)
 set(DISPLAY_KBD_HEADER_H 14)
 set(DISPLAY_KBD_MARGIN_L  4)
 set(DISPLAY_KBD_MARGIN_T  3)
+set(DISPLAY_FONT_SIZE     10)
 
 configure_file(
     ${CMAKE_SOURCE_DIR}/templates/display_config.hpp.in

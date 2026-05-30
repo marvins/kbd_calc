@@ -22,6 +22,7 @@
 
 // Project Libraries
 #include <overboard/font/font_metrics.hpp>
+#include <overboard/hal/display_config.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/math/calc_engine.hpp>
 #include <overboard/math/layout/engine.hpp>
@@ -45,7 +46,7 @@ struct LCD_Section {
 
     const math::Calc_Engine&   engine;
     const core::Layer_Manager& layers;
-    math::layout::Layout_Engine      layout_engine{font::Font_Metrics::make_default(), 2};
+    math::layout::Layout_Engine      layout_engine{font::Font_Metrics::make_for_size(hal::FONT_SIZE), 2};
 
     /**
      * @brief Construct LCD section

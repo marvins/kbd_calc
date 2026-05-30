@@ -141,13 +141,17 @@ void Keyboard_View::build_buttons(lv_obj_t* parent) {
         const std::string text = core::key_code_to_display(layer.keys[static_cast<std::size_t>(i)]);
         LOG_TRACE("build_buttons: Display text for key " + std::to_string(i) + " is: '" + text + "' (length=" + std::to_string(text.length()) + ")");
 
-        if (!text.empty()) {
-            LOG_TRACE("build_buttons: Setting label text for key " + std::to_string(i));
-            lv_label_set_text(lbl, text.c_str());
-            LOG_TRACE("build_buttons: Label text set successfully for key " + std::to_string(i));
+        // Set label text - empty string for unassigned keys
+        lv_label_set_text(lbl, text.c_str());
+
+        // Hide label if no text to display
+        if (text.empty()) {
+            lv_obj_add_flag(lbl, LV_OBJ_FLAG_HIDDEN);
         } else {
-            LOG_TRACE("build_buttons: Skipping empty label text for key " + std::to_string(i));
+            lv_obj_clear_flag(lbl, LV_OBJ_FLAG_HIDDEN);
         }
+
+        LOG_TRACE("build_buttons: Label text set for key " + std::to_string(i));
         lv_obj_set_style_text_color(lbl, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
         lv_obj_align(lbl, LV_ALIGN_CENTER, 0, 0);
 

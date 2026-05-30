@@ -18,9 +18,9 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 option( SIMULATOR     "Build simulator target (requires SDL2)"  ON )
 option( BUILD_TESTS   "Build unit tests"                        ON )
 
-# Target device selection: SDL, RP2350, or PICOCALC
-set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, RP2350, PICOCALC)")
-set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL RP2350 PICOCALC)
+# Target device selection: SDL, PICOSDL, RP2350, or PICOCALC
+set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, PICOSDL, RP2350, PICOCALC)")
+set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL PICOSDL RP2350 PICOCALC)
 
 # ── Shared Dependencies ───────────────────────────────────────────────────────────
 include(cmake/dependencies.cmake)
@@ -28,6 +28,8 @@ include(cmake/dependencies.cmake)
 # ── Hardware Configuration ────────────────────────────────────────────────────────
 if(TARGET_DEVICE STREQUAL "SDL")
     include(data/hardware/sdl/CMakeLists.txt)
+elseif(TARGET_DEVICE STREQUAL "PICOSDL")
+    include(data/hardware/picosdl/CMakeLists.txt)
 elseif(TARGET_DEVICE STREQUAL "RP2350")
     include(data/hardware/rp2350/CMakeLists.txt)
 elseif(TARGET_DEVICE STREQUAL "PICOCALC")
@@ -55,7 +57,7 @@ set(CORE_SOURCES
 )
 
 # ── Build Main Application ─────────────────────────────────────────────────────────
-if(TARGET_DEVICE STREQUAL "SDL")
+if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
     set(APP_TARGET calc_sim)
     set(APP_LIBRARIES ${HARDWARE_LIBRARIES} lvgl)
 elseif(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
@@ -92,7 +94,7 @@ if(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
 endif()
 
 # ── Utility Apps (SDL-only) ─────────────────────────────────────────────────────────
-if(TARGET_DEVICE STREQUAL "SDL")
+if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
     # Keylogger utility for mapping physical keys
     add_executable(keylogger
         src/tools/keylogger.cpp

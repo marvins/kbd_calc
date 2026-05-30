@@ -35,4 +35,7 @@ inline constexpr int KBD_HEADER_H { @DISPLAY_KBD_HEADER_H@ };  ///< Keyboard hea
 inline constexpr int KBD_MARGIN_L { @DISPLAY_KBD_MARGIN_L@ };  ///< Left margin
 inline constexpr int KBD_MARGIN_T { @DISPLAY_KBD_MARGIN_T@ };  ///< Top margin (below header)
 
+/// Font size in pixels for the LCD display
+inline constexpr int FONT_SIZE { @DISPLAY_FONT_SIZE@ };
+
 } // namespace ovb::hal
