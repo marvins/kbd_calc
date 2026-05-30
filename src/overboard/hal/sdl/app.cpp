@@ -1,12 +1,11 @@
 /**
- * @file    sdl_app.cpp
+ * @file    app.cpp
  * @author  Marvin Smith
  * @date    2026-05-22
  *
  * @brief   SDL simulator application implementation
  */
-
-#include <overboard/hal/sdl/sdl_app.hpp>
+#include <overboard/hal/sdl/app.hpp>
 
 // C++ Standard Libraries
 #include <iostream>
@@ -20,19 +19,26 @@
 #include <lvgl.h>
 
 // Project Libraries
-#include <overboard/hal/lcd_config.hpp>
 #include <overboard/core/keymap.hpp>
-#include <overboard/hal/sdl/sdl_keymap.hpp>
+#include <overboard/gui/keyboard_view.hpp>
+#include <overboard/hal/display_config.hpp>
+#include <overboard/hal/sdl/keymap.hpp>
 #include <overboard/io/via_layout.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
 namespace ovb::hal::sdl {
 
+/********************************/
+/*          Constructor         */
+/********************************/
 SDL_App::SDL_App(const core::Grid_Layout& layout)
     : m_layout(layout),
       m_layers(m_keymap) {
 }
 
+/********************************/
+/*          Destructor          */
+/********************************/
 SDL_App::~SDL_App() {
     if (m_initialized) {
         SDL_Quit();
@@ -42,10 +48,10 @@ SDL_App::~SDL_App() {
 /************************************/
 /*          Create the app          */
 /************************************/
-std::unique_ptr<SDL_App> SDL_App::create(const core::Grid_Layout& layout,
-                                         const std::filesystem::path& layout_path,
-                                         const std::filesystem::path& keymap_path,
-                                         const std::filesystem::path& layers_path) {
+std::unique_ptr<SDL_App> SDL_App::create( const core::Grid_Layout&     layout,
+                                          const std::filesystem::path& layout_path,
+                                          const std::filesystem::path& keymap_path,
+                                          const std::filesystem::path& layers_path ) {
     auto app = std::unique_ptr<SDL_App>(new SDL_App(layout));
 
     // Load layer assignments from layers JSON
@@ -82,15 +88,10 @@ bool SDL_App::init() {
     m_initialized = true;
 
     try {
-        // Keyboard window — rendered via LVGL widgets
-        m_keyboard = std::make_unique<SDL_Keyboard>("Keyboard", KBD_W, KBD_H,
-                                                     m_layout, m_layers);
-
-        // LCD display — LVGL-based with typeset math rendering
-        m_lcd_display = std::make_unique<SDL_LCD_Display>("Calculator",
-                                                            KBD_W + 120, 100,
-                                                            LCD_WIDTH, LCD_HEIGHT,
-                                                            m_engine, m_layers);
+        // Create merged display — LCD at top, keyboard at bottom
+        m_display = std::make_unique<Display>( "Calculator",
+                                               DISPLAY_WIDTH, DISPLAY_HEIGHT,
+                                               m_layout, m_engine, m_layers );
 
         // Load scancode bindings from keymap JSON into the SDL keymap
         if (!m_layout_path.empty() && !m_keymap_path.empty()) {
@@ -107,14 +108,13 @@ bool SDL_App::init() {
         }
 
         // Wire LVGL button click callback (mouse clicks)
-        m_keyboard->view().set_click_callback(on_key_clicked, this);
+        m_display->keyboard_view().set_click_callback(on_key_clicked, this);
 
         // Create SDL input handler for physical keyboard mapping
         m_input = std::make_unique<SDL_Input>();
         m_input->keymap() = m_sdl_keymap;
 
-        m_keyboard->render();
-        m_lcd_display->render();
+        m_display->render();
 
         return true;
     } catch (const std::exception& e) {
@@ -142,7 +142,7 @@ void SDL_App::run() {
         }
 
         lv_tick_inc(16);
-        lv_timer_handler();
+        m_display->render();
         SDL_Delay(16);
 
         // Log loop progress every 60 frames (~1 second)
@@ -161,6 +161,9 @@ void SDL_App::on_key_clicked(int key_index, void* user_data) {
     static_cast<SDL_App*>(user_data)->handle_key(key_index);
 }
 
+/*********************************/
+/*        Handle Keypress        */
+/*********************************/
 void SDL_App::handle_key(int key_index) {
     LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index));
     const core::Key_Code code = m_layers.key_at(key_index);
@@ -168,23 +171,23 @@ void SDL_App::handle_key(int key_index) {
     switch (code) {
         case core::Key_Code::LAYER_NEXT:
             m_layers.next_layer();
-            m_keyboard->update_layer();
+            m_display->update_layer();
             break;
         case core::Key_Code::LAYER_PREV:
             m_layers.prev_layer();
-            m_keyboard->update_layer();
+            m_display->update_layer();
             break;
         case core::Key_Code::LAYER_CONST:
             m_layers.set_layer(2);
-            m_keyboard->update_layer();
+            m_display->update_layer();
             break;
         case core::Key_Code::LAYER_ALG:
             m_layers.set_layer(4);
-            m_keyboard->update_layer();
+            m_display->update_layer();
             break;
         case core::Key_Code::LAYER_HOME:
             m_layers.set_layer(0);
-            m_keyboard->update_layer();
+            m_display->update_layer();
             break;
         case core::Key_Code::TOGGLE_MATH_LAYOUT:
             m_engine.toggle_math_layout();
@@ -193,8 +196,14 @@ void SDL_App::handle_key(int key_index) {
             m_engine.handle_key(code);
             break;
     }
-    m_lcd_display->refresh();
-    m_lcd_display->render();
+    m_display->refresh();
+}
+
+/*******************************/
+/*          Get Display        */
+/*******************************/
+I_Display& SDL_App::get_display() {
+    return *m_display;
 }
 
 /****************************************/
@@ -202,20 +211,6 @@ void SDL_App::handle_key(int key_index) {
 /****************************************/
 bool SDL_App::should_quit() const {
     return m_input ? m_input->should_quit() : m_should_quit;
-}
-
-/****************************************/
-/*      Get the Keyboard Display        */
-/****************************************/
-I_Display& SDL_App::get_keyboard_display() {
-    return m_keyboard->get_display();
-}
-
-/****************************************/
-/*          Get the LCD Display         */
-/****************************************/
-I_Display& SDL_App::get_lcd_display() {
-    return *m_lcd_display;
 }
 
 } // namespace ovb::hal::sdl

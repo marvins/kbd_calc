@@ -13,10 +13,16 @@
 
 namespace ovb::hal::kn34 {
 
+/*****************************/
+/*        Constructor        */
+/*****************************/
 KN34_App::KN34_App(const core::Grid_Layout& layout) {
     (void)layout;  // Suppress unused warning for now
 }
 
+/*****************************/
+/*         Initialize        */
+/*****************************/
 bool KN34_App::init() {
     // TODO: Platform-specific initialization
     // - Initialize GPIO for key matrix
@@ -24,6 +30,9 @@ bool KN34_App::init() {
     return false;
 }
 
+/*****************************/
+/*           Run             */
+/*****************************/
 void KN34_App::run() {
     // TODO: Main event loop for embedded target
     // - Scan key matrix
@@ -31,21 +40,20 @@ void KN34_App::run() {
     // - Handle power management
 }
 
+/*****************************/
+/*      Should Quit          */
+/*****************************/
 bool KN34_App::should_quit() const {
     // Embedded targets typically don't "quit" the same way
     // This could be used for power-off or reset detection
     return false;
 }
 
-I_Display& KN34_App::get_keyboard_display() {
-    // TODO: Return platform-specific display implementation
-    // This might be a no-op for embedded targets without a keyboard display
-    throw std::runtime_error("Not implemented");
-}
-
-I_Display& KN34_App::get_lcd_display() {
-    // TODO: Return platform-specific LCD display implementation
-    throw std::runtime_error("Not implemented");
+/*******************************/
+/*         Get Display         */
+/*******************************/
+I_Display& KN34_App::get_display() {
+    return m_display;
 }
 
 /********************************/

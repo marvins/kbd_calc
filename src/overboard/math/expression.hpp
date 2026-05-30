@@ -7,11 +7,12 @@
 namespace ovb::math {
 
 enum class Token_Type : uint8_t {
-    Number,     // editable character-by-character
-    Operator,   // +  -  *  /  ^  %  &  |  <<  >>
-    Function,   // sin(  cos(  sqrt(  … — deleted atomically
-    Constant,   // pi  e  phi  tau   — deleted atomically
-    Paren,      // (  )
+    Number,      // editable character-by-character
+    Operator,    // +  -  *  /  ^  %  &  |  <<  >>
+    Function,    // sin(  cos(  sqrt(  … — deleted atomically
+    Constant,    // pi  e  phi  tau   — deleted atomically
+    Paren,       // (  )
+    Placeholder, // ▢ — inserted after operators, blocks eval until filled
 };
 
 struct Token {
@@ -61,6 +62,9 @@ class Expression {
 
         bool empty() const { return tokens_.empty(); }
 
+        // Returns true if any placeholder tokens exist (blocks evaluation).
+        bool has_placeholder() const;
+
     private:
         std::vector<Token> tokens_;
 
@@ -73,6 +77,10 @@ class Expression {
         void close_number();          // finalize an open number token
         static Token make_token( core::Key_Code code );
         static int glyph_count( const std::string& s );
+
+        // Render placeholder as "0" for eval, "" for display, or custom
+        static std::string placeholder_text_for_eval();
+        static std::string placeholder_text_for_render();
 };
 
 } // namespace ovb::math

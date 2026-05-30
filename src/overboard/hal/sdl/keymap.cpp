@@ -1,10 +1,10 @@
 /**
- * @file sdl_keymap.cpp
- * @author Marvin Smith
- * @date 2026-05-22
- * @brief SDL keyboard to calculator key mapping implementation
+ * @file     keymap.cpp
+ * @author   Marvin Smith
+ * @date     2026-05-22
+ * @brief    SDL keyboard to calculator key mapping implementation
  */
-#include <overboard/hal/sdl/sdl_keymap.hpp>
+#include <overboard/hal/sdl/keymap.hpp>
 
 namespace ovb::hal::sdl {
 

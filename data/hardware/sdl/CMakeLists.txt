@@ -26,11 +26,10 @@ set(HARDWARE_INCLUDE_DIRS
 
 # SDL-specific source files
 set(HARDWARE_SOURCES
-    src/overboard/hal/sdl/sdl_app.cpp
-    src/overboard/hal/sdl/sdl_input.cpp
-    src/overboard/hal/sdl/sdl_keyboard.cpp
-    src/overboard/hal/sdl/sdl_keyboard_display.cpp
-    src/overboard/hal/sdl/sdl_keyboard_view.cpp
-    src/overboard/hal/sdl/sdl_lcd_display.cpp
-    src/overboard/hal/sdl/sdl_keymap.cpp
+    src/overboard/hal/sdl/app.cpp
+    src/overboard/hal/sdl/display.cpp
+    src/overboard/hal/sdl/input.cpp
+    src/overboard/hal/sdl/keymap.cpp
+    src/overboard/gui/keyboard_view.cpp
+    src/overboard/gui/lcd_section.cpp
 )

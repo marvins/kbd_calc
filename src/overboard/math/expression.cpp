@@ -114,6 +114,20 @@ void Expression::insert(core::Key_Code code) {
 
     if (t.type == Token_Type::Number) {
         // ── Digit / decimal / hex character ──────────────────────────────────
+
+        // Check if cursor is at a placeholder — replace it with the number
+        int next_idx = cursor_token_ + 1;
+        if (next_idx < static_cast<int>(tokens_.size()) &&
+            tokens_[static_cast<std::size_t>(next_idx)].type == Token_Type::Placeholder) {
+            // Replace placeholder with number token
+            if (t.text == ".")
+                t.text = "0.";
+            t.char_cursor = static_cast<int>(t.text.size());
+            tokens_[static_cast<std::size_t>(next_idx)] = t;
+            cursor_token_ = next_idx;
+            return;
+        }
+
         if (cursor_inside_number()) {
             // Append character into the open number token at char_cursor.
             Token& num = current_number_token();
@@ -163,14 +177,47 @@ void Expression::insert(core::Key_Code code) {
         tokens_.insert(tokens_.begin() + insert_pos + 1, close_paren);
         cursor_token_ = insert_pos;  // Cursor is between ( and )
     } else {
-        // ── Non-number token ─────────────────────────────────────────────────
+        // ── Non-number token (Operator, Function, Constant, Paren) ─────────
         // Close any open number first (move char_cursor out).
         if (cursor_inside_number())
             close_number();
 
-        int insert_pos = cursor_token_ + 1;
-        tokens_.insert(tokens_.begin() + insert_pos, t);
-        cursor_token_ = insert_pos;
+        // Check if cursor is at a placeholder — replace it (unless this is also an operator)
+        int next_idx = cursor_token_ + 1;
+        if (t.type != Token_Type::Operator &&
+            next_idx < static_cast<int>(tokens_.size()) &&
+            tokens_[static_cast<std::size_t>(next_idx)].type == Token_Type::Placeholder) {
+            // Replace placeholder with this token
+            tokens_[static_cast<std::size_t>(next_idx)] = t;
+            cursor_token_ = next_idx;
+        } else {
+            int insert_pos = cursor_token_ + 1;
+            tokens_.insert(tokens_.begin() + insert_pos, t);
+            cursor_token_ = insert_pos;
+        }
+
+        // ── Auto-insert placeholder after binary operators that need a right-hand operand ─
+        if (t.type == Token_Type::Operator) {
+            // Check if we need a placeholder (at end, or before operator/close paren)
+            bool needs_placeholder = false;
+            int ph_idx = cursor_token_ + 1;
+            if (ph_idx >= static_cast<int>(tokens_.size())) {
+                // At end of expression
+                needs_placeholder = true;
+            } else {
+                Token& next = tokens_[static_cast<std::size_t>(ph_idx)];
+                if (next.type == Token_Type::Operator ||
+                    (next.type == Token_Type::Paren && next.text == ")") ||
+                    next.type == Token_Type::Constant) {
+                    needs_placeholder = true;
+                }
+            }
+
+            if (needs_placeholder) {
+                Token placeholder{ Token_Type::Placeholder, "", core::Key_Code::NONE, -1 };
+                tokens_.insert(tokens_.begin() + ph_idx, placeholder);
+            }
+        }
     }
 }
 
@@ -208,6 +255,22 @@ void Expression::backspace() {
         }
     }
 
+    // Check for operator followed by placeholder — delete both atomically
+    if (cursor_token_ + 1 < static_cast<int>(tokens_.size())) {
+        const Token& left = tokens_[static_cast<std::size_t>(cursor_token_)];
+        const Token& right = tokens_[static_cast<std::size_t>(cursor_token_ + 1)];
+        if ((left.type == Token_Type::Operator ||
+             left.type == Token_Type::Function ||
+             left.type == Token_Type::Constant) &&
+            right.type == Token_Type::Placeholder) {
+            // Atomic delete of operator+placeholder pair
+            tokens_.erase(tokens_.begin() + cursor_token_,
+                          tokens_.begin() + cursor_token_ + 2);
+            --cursor_token_;
+            return;
+        }
+    }
+
     tokens_.erase(tokens_.begin() + cursor_token_);
     --cursor_token_;
 }
@@ -224,6 +287,11 @@ void Expression::cursor_left() {
         // Exit the number on the left side.
         num.char_cursor = -1;
         --cursor_token_;
+        // Skip over any placeholders to the left.
+        while (cursor_token_ >= 0 &&
+               tokens_[static_cast<std::size_t>(cursor_token_)].type == Token_Type::Placeholder) {
+            --cursor_token_;
+        }
         return;
     }
 
@@ -236,6 +304,11 @@ void Expression::cursor_left() {
         left.char_cursor = static_cast<int>(left.text.size()) - 1;
     } else {
         --cursor_token_;
+        // Skip over any placeholders to the left.
+        while (cursor_token_ >= 0 &&
+               tokens_[static_cast<std::size_t>(cursor_token_)].type == Token_Type::Placeholder) {
+            --cursor_token_;
+        }
     }
 }
 
@@ -248,10 +321,15 @@ void Expression::cursor_right() {
         }
         // Exit the number on the right side.
         num.char_cursor = -1;
-        return;
+        // Fall through to move to next token (skipping placeholders)
     }
 
     int next = cursor_token_ + 1;
+    // Skip over any placeholders.
+    while (next < static_cast<int>(tokens_.size()) &&
+           tokens_[static_cast<std::size_t>(next)].type == Token_Type::Placeholder) {
+        ++next;
+    }
     if (next >= static_cast<int>(tokens_.size()))
         return;
 
@@ -278,17 +356,48 @@ void Expression::close_number() {
         current_number_token().char_cursor = -1;
 }
 
+// ── placeholder helpers ───────────────────────────────────────────────────────
+
+std::string Expression::placeholder_text_for_eval() {
+    return "0";  // Makes expression parsable: "8+0" is valid
+}
+
+std::string Expression::placeholder_text_for_render() {
+    return "";   // Invisible in display
+}
+
+// ── has_placeholder ────────────────────────────────────────────────────────────
+
+bool Expression::has_placeholder() const {
+    for (const Token& t : tokens_) {
+        if (t.type == Token_Type::Placeholder)
+            return true;
+    }
+    return false;
+}
+
 // ── render_string / eval_string ───────────────────────────────────────────────
 
 std::string Expression::eval_string() const {
     std::string out;
-    for (const Token& t : tokens_)
-        out += t.text;
+    for (const Token& t : tokens_) {
+        if (t.type == Token_Type::Placeholder)
+            out += placeholder_text_for_eval();
+        else
+            out += t.text;
+    }
     return out;
 }
 
 std::string Expression::render_string() const {
-    return eval_string();
+    std::string out;
+    for (const Token& t : tokens_) {
+        if (t.type == Token_Type::Placeholder)
+            out += placeholder_text_for_render();
+        else
+            out += t.text;
+    }
+    return out;
 }
 
 // ── cursor_glyph_pos ─────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@
 
 // Platform-specific implementations
 #ifdef TARGET_SDL
-    #include <overboard/hal/sdl/sdl_app.hpp>
+    #include <overboard/hal/sdl/app.hpp>
 #elif defined(TARGET_RP2350)
     // RP2350 HAL to be implemented
     #error "RP2350 HAL not yet implemented"

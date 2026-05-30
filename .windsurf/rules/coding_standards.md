@@ -28,6 +28,16 @@ class My_Class {
 };
 ```
 
+Within `public` sections, order members as follows:
+1. **`static constexpr` constants** (before any methods)
+2. **Methods** (constructors, then all other methods)
+
+Within `private` and `protected` sections, order members as follows:
+1. **Instance methods** (non-static member functions)
+2. **Static methods** (static member functions)
+3. **Member variables** (non-static data members)
+4. **Static member variables / `static constexpr`** (static data members)
+
 ## General
 - Standard: **C++23**
 - Build system: **CMake 4.0+**
@@ -36,6 +46,30 @@ class My_Class {
 - Core portable logic lives under `src/core/` — **no platform headers allowed here**
 - Prefer `const` references over copies for non-trivial parameters
 - All files end with a newline
+
+## .cpp File Organization
+In `.cpp` source files, add a 3-line comment block before each function implementation to aid navigation when scrolling:
+
+```cpp
+/***************************/
+/*        Window ID        */
+/***************************/
+uint32_t SDL_Display::window_id() const {
+    return m_impl->sdl_window ? SDL_GetWindowID(m_impl->sdl_window) : 0;
+}
+```
+
+Format rules — follow these exactly:
+1. **Center line**: `/*` + 8 spaces + text + 8 spaces + `*/`
+2. **Top and bottom lines**: `/*` + asterisks + `*/`, where the total character count of the top/bottom line **must equal** the total character count of the center line (count every character including `/*`, spaces, text, and `*/`)
+3. Number of asterisks = (center line length) − 4  (subtracting the 2 chars of `/*` and 2 chars of `*/`)
+```
+/***************************/
+/*        Window ID        */
+/***************************/
+```
+
+Use descriptive, concise text.
 
 ## File Header Format
 All header and source files must follow this structure:

@@ -5,16 +5,42 @@
  *
  * @brief   SDL input handler for keyboard and mouse events
  */
-#include <overboard/hal/sdl/sdl_input.hpp>
+#include <overboard/hal/sdl/input.hpp>
+
+// C++ Standard Libraries
+#include <atomic>
+#include <csignal>
 
 namespace ovb::hal::sdl {
 
-bool SDL_Input::should_quit() const { return m_quit; }
+// Static flag for signal handling (Ctrl-C / SIGINT)
+static std::atomic<bool> g_signal_quit{false};
+
+static void signal_handler(int /*sig*/) {
+    g_signal_quit.store(true, std::memory_order_relaxed);
+}
+
+static void setup_signal_handlers() {
+    static bool initialized = false;
+    if (!initialized) {
+        std::signal(SIGINT, signal_handler);
+        std::signal(SIGTERM, signal_handler);
+        initialized = true;
+    }
+}
+
+bool SDL_Input::should_quit() const {
+    // Check both SDL quit flag and signal flag
+    return m_quit || g_signal_quit.load(std::memory_order_relaxed);
+}
 
 /*****************************************/
 /*         Pump SDL Events               */
 /*****************************************/
 void SDL_Input::pump() {
+    // Set up signal handlers on first call
+    setup_signal_handlers();
+
     SDL_Event ev;
     while (SDL_PollEvent(&ev)) {
         if (ev.type == SDL_QUIT) {
@@ -27,6 +53,12 @@ void SDL_Input::pump() {
             // Handle Command-Q on macOS for quit
 #ifdef __APPLE__
             if (ev.key.keysym.sym == SDLK_q && (ev.key.keysym.mod & KMOD_GUI)) {
+                m_quit = true;
+                return;
+            }
+#else
+            // Handle Ctrl-C on Linux/Windows for quit
+            if (ev.key.keysym.sym == SDLK_c && (ev.key.keysym.mod & KMOD_CTRL)) {
                 m_quit = true;
                 return;
             }

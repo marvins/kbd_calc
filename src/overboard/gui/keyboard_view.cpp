@@ -1,11 +1,11 @@
 /**
- * @file    sdl_keyboard_view.cpp
+ * @file    keyboard_view.cpp
  * @author  Marvin Smith
  * @date    2026-05-20
  *
- * @brief   SDL widget-based keyboard view implementation
+ * @brief   LVGL widget-based keyboard view implementation
  */
-#include <overboard/hal/sdl/sdl_keyboard_view.hpp>
+#include <overboard/gui/keyboard_view.hpp>
 
 // C++ Standard Libraries
 #include <string>
@@ -15,16 +15,18 @@
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/hal/sdl/lvgl_theme.hpp>
 
-namespace ovb::hal::sdl {
+using namespace ovb::hal::sdl;
+
+namespace ovb::gui {
 
 /****************************/
 /*      Constructor         */
 /****************************/
-SDL_Keyboard_View::SDL_Keyboard_View( lv_obj_t*                       parent,
-                                         const ovb::core::Grid_Layout&  layout,
-                                         const core::Layer_Manager&     layers,
-                                         int                            width,
-                                         int                            height )
+Keyboard_View::Keyboard_View( lv_obj_t*                      parent,
+                              const ovb::core::Grid_Layout& layout,
+                              const core::Layer_Manager&    layers,
+                              int                           width,
+                              int                           height )
     : m_layout(layout), m_layers(layers), m_width(width), m_height(height)
 {
     // Root container: full display, light background, no padding
@@ -59,7 +61,7 @@ SDL_Keyboard_View::SDL_Keyboard_View( lv_obj_t*                       parent,
 /****************************/
 /*     Button Building      */
 /****************************/
-void SDL_Keyboard_View::build_buttons(lv_obj_t* parent) {
+void Keyboard_View::build_buttons(lv_obj_t* parent) {
     const int key_count = m_layout.key_count();
     m_buttons.assign(static_cast<std::size_t>(key_count), nullptr);
     m_labels.assign(static_cast<std::size_t>(key_count), nullptr);
@@ -118,7 +120,7 @@ void SDL_Keyboard_View::build_buttons(lv_obj_t* parent) {
 /****************************/
 /*     Layer Update         */
 /****************************/
-void SDL_Keyboard_View::update_layer() {
+void Keyboard_View::update_layer() {
     const auto& layer = m_layers.current_layer();
     const std::size_t key_count = m_buttons.size();
 
@@ -132,8 +134,8 @@ void SDL_Keyboard_View::update_layer() {
 /******************************/
 /*     Click Callback Setup   */
 /*****************************/
-void SDL_Keyboard_View::set_click_callback( void (*cb)(int key_index, void* user_data),
-                                             void* user_data ) {
+void Keyboard_View::set_click_callback( void (*cb)(int key_index, void* user_data),
+                                        void* user_data ) {
     m_click_cb        = cb;
     m_click_user_data = user_data;
 }
@@ -141,7 +143,7 @@ void SDL_Keyboard_View::set_click_callback( void (*cb)(int key_index, void* user
 /****************************/
 /*      LVGL Event Callback  */
 /****************************/
-void SDL_Keyboard_View::button_event_cb(lv_event_t* e) {
+void Keyboard_View::button_event_cb(lv_event_t* e) {
     const lv_event_code_t code = lv_event_get_code(e);
     if (code != LV_EVENT_PRESSED &&
         code != LV_EVENT_RELEASED &&
@@ -149,7 +151,7 @@ void SDL_Keyboard_View::button_event_cb(lv_event_t* e) {
         code != LV_EVENT_CLICKED) return;
 
     lv_obj_t* btn  = static_cast<lv_obj_t*>(lv_event_get_target(e));
-    auto*     view = static_cast<SDL_Keyboard_View*>(lv_event_get_user_data(e));
+    auto*     view = static_cast<Keyboard_View*>(lv_event_get_user_data(e));
     if (!view) return;
 
     int key_index = -1;
@@ -177,4 +179,4 @@ void SDL_Keyboard_View::button_event_cb(lv_event_t* e) {
     }
 }
 
-} // namespace ovb::hal::sdl
+} // namespace ovb::gui

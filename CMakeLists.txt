@@ -59,7 +59,6 @@ endif()
 
 set(CORE_SOURCES
     src/overboard/core/config.cpp
-    src/overboard/core/display_controller.cpp
     src/overboard/core/keymap.cpp
     src/overboard/core/keyboard_layout.cpp
     src/overboard/core/layer_manager.cpp

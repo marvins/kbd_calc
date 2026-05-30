@@ -1,5 +1,5 @@
 /**
- * @file    sdl_app.hpp
+ * @file    app.hpp
  * @author  Marvin Smith
  * @date    2026-05-22
  *
@@ -17,26 +17,34 @@
 #include <memory>
 
 // Project Libraries
-#include <overboard/hal/i_app.hpp>
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
+#include <overboard/hal/display_config.hpp>
+#include <overboard/hal/i_app.hpp>
+#include <overboard/hal/sdl/display.hpp>
+#include <overboard/hal/sdl/input.hpp>
 #include <overboard/math/calc_engine.hpp>
-#include <overboard/hal/sdl/sdl_keyboard.hpp>
-#include <overboard/hal/sdl/sdl_lcd_display.hpp>
-#include <overboard/hal/sdl/sdl_input.hpp>
 
 namespace ovb::hal::sdl {
 
 /**
  * @brief SDL simulator application implementation
  *
- * Manages the SDL lifecycle for desktop simulation. Creates keyboard
- * and LCD windows, handles the main event loop, and routes key events
- * to the calculator engine.
+ * Manages the SDL lifecycle for desktop simulation. Creates a single
+ * merged window with LCD at top and keyboard at bottom, handles the
+ * main event loop, and routes key events to the calculator engine.
  */
 class SDL_App : public I_App {
+
     public:
+
+        /// @brief Display width
+        static constexpr int DISPLAY_WIDTH = ovb::hal::FULL_WIDTH;
+
+        /// @brief Display height
+        static constexpr int DISPLAY_HEIGHT = ovb::hal::FULL_HEIGHT;
+
         /**
          * @brief Factory method to create and initialize SDL application
          * @param layout Keyboard layout for the target device
@@ -48,14 +56,33 @@ class SDL_App : public I_App {
                                                const std::filesystem::path& keymap_path,
                                                const std::filesystem::path& layers_path);
 
+        /**
+         * Destructor
+         */
         ~SDL_App() override;
 
+        /**
+         * @brief Initialize SDL application
+         * @return true if initialization succeeded, false otherwise
+         */
         bool init() override;
-        void run() override;
-        bool should_quit() const override;
-        I_Display& get_keyboard_display() override;
-        I_Display& get_lcd_display() override;
 
+        /**
+         * @brief Run the main event loop
+         */
+        void run() override;
+
+        /**
+         * @brief Check if the application should quit
+         * @return true if application should quit, false otherwise
+         */
+        bool       should_quit() const override;
+        I_Display& get_display()  override;
+
+        /**
+         * @brief Handle a key press event
+         * @param key_index Index of the pressed key
+         */
         void handle_key(int key_index);
 
     private:
@@ -66,30 +93,43 @@ class SDL_App : public I_App {
          */
         explicit SDL_App(const core::Grid_Layout& layout);
 
+        /// @brief Callback function for key clicks
+        static void on_key_clicked(int key_index, void* user_data);
+
+        /// @brief Reference to the keyboard layout
         const core::Grid_Layout&          m_layout;
+
+        /// @brief Path to the layout file
         std::filesystem::path             m_layout_path;
+
+        /// @brief Path to the keymap file
         std::filesystem::path             m_keymap_path;
+
+        /// @brief Path to the layers file
         std::filesystem::path             m_layers_path;
+
+        /// @brief Flag indicating if the application has been initialized
         bool                              m_initialized = false;
         bool                              m_should_quit = false;
 
-        // Core components
+        /// @brief Keymap for the calculator
         core::Keymap m_keymap;
+
+        /// @brief Layer manager for the calculator
         core::Layer_Manager m_layers;
+
+        /// @brief Calculator engine for mathematical operations
         math::Calc_Engine m_engine;
 
-        // SDL HAL components (created during init)
-        std::unique_ptr<SDL_Keyboard>    m_keyboard;
-        std::unique_ptr<SDL_LCD_Display> m_lcd_display;
-        std::unique_ptr<SDL_Input>       m_input;
+        /// @brief SDL display for the calculator
+        std::unique_ptr<Display> m_display;
 
+        /// @brief SDL input for the calculator
+        std::unique_ptr<SDL_Input>   m_input;
+
+        /// @brief SDL keymap for the calculator
         SDL_Keymap m_sdl_keymap;
 
-        static void on_key_clicked(int key_index, void* user_data);
-
-        // Window dimensions
-        static constexpr int KBD_W = 480;
-        static constexpr int KBD_H = 480;
 };
 
 } // namespace ovb::hal::sdl

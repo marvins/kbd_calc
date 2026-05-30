@@ -13,7 +13,7 @@
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/hal/i_input.hpp>
-#include <overboard/hal/sdl/sdl_keymap.hpp>
+#include <overboard/hal/sdl/keymap.hpp>
 
 namespace ovb::hal::sdl {
 

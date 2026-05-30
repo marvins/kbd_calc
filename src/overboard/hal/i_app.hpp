@@ -15,9 +15,9 @@
 #include <stdexcept>
 
 // Project Libraries
+#include <overboard/core/keyboard_layout.hpp>
 #include <overboard/hal/i_display.hpp>
 #include <overboard/hal/i_input.hpp>
-#include <overboard/core/keyboard_layout.hpp>
 
 namespace ovb::hal {
 
@@ -30,24 +30,40 @@ namespace ovb::hal {
  */
 class I_App {
     public:
+
+        /**
+         * @brief Virtual destructor for proper inheritance
+         */
         virtual ~I_App() = default;
 
-        /// @brief Initialize the application (create windows, setup hardware)
+        /**
+         * @brief Initialize the application (create windows, setup hardware)
+         * @return true if initialization was successful, false otherwise
+         */
         virtual bool init() = 0;
 
-        /// @brief Run the main event loop (returns when quit requested)
+        /**
+         * @brief Run the main event loop (returns when quit requested)
+         */
         virtual void run() = 0;
 
-        /// @brief Check if quit was requested
+        /**
+         * @brief Check if quit was requested
+         * @return true if quit was requested, false otherwise
+         */
         virtual bool should_quit() const = 0;
 
-        /// @brief Get the keyboard display interface
-        virtual I_Display& get_keyboard_display() = 0;
+        /**
+         * @brief Get the unified display (LCD + keyboard)
+         * @return Reference to the platform display
+         */
+        virtual I_Display& get_display() = 0;
 
-        /// @brief Get the LCD display interface
-        virtual I_Display& get_lcd_display() = 0;
-
-        /// @brief Get the input interface (only for embedded targets with physical matrix)
+        /**
+         * @brief Get the input interface (only for embedded targets with physical matrix)
+         * @return Reference to the input interface
+         * @throws std::runtime_error if the platform doesn't support input
+         */
         virtual ovb::hal::I_Input& get_input() {
             throw std::runtime_error("get_input not implemented for this platform");
         }
