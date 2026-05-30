@@ -1,6 +1,6 @@
-# RP2350 hardware configuration (bare Pico stub)
-# This file contains RP2350-specific build settings for the embedded target.
-# It is included by the main CMakeLists.txt when TARGET_DEVICE=RP2350.
+# ClockworkPi PicoCalc hardware configuration
+# This file contains PicoCalc-specific build settings for the embedded target.
+# It is included by the main CMakeLists.txt when TARGET_DEVICE=PICOCALC.
 #
 # Requires PICO_SDK_PATH environment variable to be set, pointing to the
 # Raspberry Pi Pico SDK (e.g., /Users/marvin/Desktop/Projects/pico-sdk).
@@ -19,12 +19,13 @@ include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 # Initialize the Pico SDK
 pico_sdk_init()
 
-# Bare RP2350 compile definitions
+# PicoCalc compile definitions
 set(HARDWARE_COMPILE_DEFINITIONS
     TARGET_RP2350=1
+    BOARD_PICOCALC=1
 )
 
-# RP2350 libraries (from Pico SDK)
+# PicoCalc libraries (from Pico SDK)
 set(HARDWARE_LIBRARIES
     pico_stdlib
     hardware_gpio
@@ -43,7 +44,7 @@ set(HARDWARE_LIBRARIES
     hardware_exception
 )
 
-# RP2350 include directories
+# PicoCalc include directories
 set(HARDWARE_INCLUDE_DIRS
     ${PICO_SDK_PATH}/src
     ${PICO_SDK_PATH}/src/rp2350/hardware_regs/include
@@ -58,15 +59,15 @@ set(GUI_SOURCES
     src/overboard/gui/math_canvas.cpp
 )
 
-# Bare RP2350 Pico HAL sources (stub)
+# PicoCalc HAL sources
 set(HARDWARE_SOURCES
-    src/overboard/hal/pico/app.cpp
-    src/overboard/hal/pico/display.cpp
-    src/overboard/hal/pico/input.cpp
+    src/overboard/hal/picocalc/app.cpp
+    src/overboard/hal/picocalc/display.cpp
+    src/overboard/hal/picocalc/input.cpp
     ${GUI_SOURCES}
 )
 
-# Bare Pico: placeholder dimensions, update when display is chosen
+# PicoCalc: 320x320 physical display, logical split ~320x220 LCD / 320x100 kbd
 set(DISPLAY_FULL_WIDTH  320)
 set(DISPLAY_FULL_HEIGHT 320)
 set(DISPLAY_KBD_WIDTH   320)

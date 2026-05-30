@@ -11,7 +11,7 @@
 #pragma once
 
 // C++ Standard Libraries
-#include <format>
+#include <source_location>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -27,6 +27,10 @@ namespace ovb::log {
 class I_Logger {
 
     public:
+
+        /**
+         * @brief Virtual destructor for interface
+         */
         virtual ~I_Logger() = default;
 
         /**
@@ -34,17 +38,40 @@ class I_Logger {
          * @param level Log severity level
          * @param message Message to log
          */
-        virtual void log(Log_Level level, std::string_view message) = 0;
+        virtual void log( Log_Level level, std::string_view message ) = 0;
 
         /**
-         * @brief Log a formatted message at the specified level
+         * @brief Log a message at the specified level with source location
          * @param level Log severity level
-         * @param fmt Format string
-         * @param args Format arguments
+         * @param loc Source location
+         * @param message Message to log
+         */
+        virtual void log( Log_Level            level,
+                          std::source_location loc,
+                          std::string_view     message = std::string_view() ) = 0;
+
+        /**
+         * @brief Log multiple arguments at the specified level
+         * @param level Log severity level
+         * @param args Arguments to concatenate and log
          */
         template<typename... Args>
-        void log(Log_Level level, std::string_view fmt, Args&&... args) {
-            log(level, format_impl(fmt, std::forward<Args>(args)...));
+        void log( Log_Level level,
+                  Args&&... args ) {
+            log( level, std::string_view(concatenate( args... )) );
+        }
+
+        /**
+         * @brief Log multiple arguments at the specified level with source location
+         * @param level Log severity level
+         * @param loc Source location
+         * @param args Arguments to concatenate and log
+         */
+        template<typename... Args>
+        void log( Log_Level            level,
+                  std::source_location loc,
+                  Args&&...            args ) {
+            log( level, loc, std::string_view(concatenate( args... )) );
         }
 
         /**
@@ -54,10 +81,71 @@ class I_Logger {
         void trace(std::string_view msg) { log(Log_Level::Trace, msg); }
 
         /**
+         * @brief Log a trace-level message with source location
+         * @param loc Source location
+         * @param msg Message to log
+         */
+        void trace( std::source_location loc,
+                    std::string_view     msg ) {
+            log( Log_Level::Trace, loc, msg );
+        }
+
+        /**
+         * @brief Log multiple arguments at trace level
+         * @param args Arguments to concatenate and log
+         */
+        template<typename... Args>
+        void trace(Args&&... args) {
+            log( Log_Level::Trace, args... );
+        }
+
+        /**
+         * @brief Log multiple arguments at trace level with source location
+         * @param loc Source location
+         * @param args Arguments to concatenate and log
+         */
+        template<typename... Args>
+        void trace( std::source_location loc,
+                    Args&&...            args ) {
+            log( Log_Level::Trace, loc, args... );
+        }
+
+        /**
          * @brief Log a debug-level message
          * @param msg Message to log
          */
         void debug(std::string_view msg) { log(Log_Level::Debug, msg); }
+
+        /**
+         * @brief Log a debug-level message with source location
+         * @param loc Source location
+         * @param msg Message to log
+         */
+        void debug( std::source_location loc,
+                    std::string_view     msg ) {
+            log( Log_Level::Debug, loc, msg );
+        }
+
+        /**
+         * @brief Log multiple arguments at debug level
+         * @param args Arguments to concatenate and log
+         */
+        template<typename... Args>
+        void debug( Args&&... args ) {
+            log( Log_Level::Debug,
+                 args... );
+        }
+
+        /**
+         * @brief Log multiple arguments at debug level with source location
+         * @param loc Source location
+         * @param args Arguments to concatenate and log
+         */
+        template<typename... Args>
+        void debug( std::source_location loc,
+                    Args&&...            args ) {
+            log( Log_Level::Debug, loc, args... );
+        }
 
         /**
          * @brief Log an info-level message
@@ -66,10 +154,70 @@ class I_Logger {
         void info (std::string_view msg) { log(Log_Level::Info,  msg); }
 
         /**
+         * @brief Log an info-level message with source location
+         * @param loc Source location
+         * @param msg Message to log
+         */
+        void info( std::source_location loc,
+                   std::string_view     msg ) {
+            log( Log_Level::Info, loc, msg );
+        }
+
+        /**
+         * @brief Log multiple arguments at info level
+         * @param args Arguments to concatenate and log
+         */
+        template<typename... Args>
+        void info( Args&&... args ) {
+            log( Log_Level::Info, args... );
+        }
+
+        /**
+         * @brief Log multiple arguments at info level with source location
+         * @param loc Source location
+         * @param args Arguments to concatenate and log
+         */
+        template<typename... Args>
+        void info( std::source_location loc,
+                   Args&&...            args ) {
+            log( Log_Level::Info, loc, args... );
+        }
+
+        /**
          * @brief Log a warning-level message
          * @param msg Message to log
          */
         void warn (std::string_view msg) { log(Log_Level::Warn,  msg); }
+
+        /**
+         * @brief Log a warning-level message with source location
+         * @param loc Source location
+         * @param msg Message to log
+         */
+        void warn( std::source_location loc,
+                   std::string_view     msg ) {
+            log( Log_Level::Warn, loc, msg );
+        }
+
+        /**
+         * @brief Log multiple arguments at warning level
+         * @param args Arguments to concatenate and log
+         */
+        template<typename... Args>
+        void warn( Args&&... args ) {
+            log( Log_Level::Warn, args... );
+        }
+
+        /**
+         * @brief Log multiple arguments at warning level with source location
+         * @param loc Source location
+         * @param args Arguments to concatenate and log
+         */
+        template<typename... Args>
+        void warn( std::source_location loc,
+                   Args&&...            args ) {
+            log( Log_Level::Warn, loc, args... );
+        }
 
         /**
          * @brief Log an error-level message
@@ -78,44 +226,34 @@ class I_Logger {
         void error(std::string_view msg) { log(Log_Level::Error, msg); }
 
         /**
-         * @brief Log a formatted trace-level message
-         * @param fmt Format string
-         * @param args Format arguments
+         * @brief Log an error-level message with source location
+         * @param loc Source location
+         * @param msg Message to log
          */
-        template<typename... Args>
-        void trace(std::string_view fmt, Args&&... args) { log(Log_Level::Trace, fmt, std::forward<Args>(args)...); }
+        void error( std::source_location loc,
+                    std::string_view     msg ) {
+            log( Log_Level::Error, loc, msg );
+        }
 
         /**
-         * @brief Log a formatted debug-level message
-         * @param fmt Format string
-         * @param args Format arguments
+         * @brief Log multiple arguments at error level
+         * @param args Arguments to concatenate and log
          */
         template<typename... Args>
-        void debug(std::string_view fmt, Args&&... args) { log(Log_Level::Debug, fmt, std::forward<Args>(args)...); }
+        void error( Args&&... args ) {
+            log( Log_Level::Error, args... );
+        }
 
         /**
-         * @brief Log a formatted info-level message
-         * @param fmt Format string
-         * @param args Format arguments
+         * @brief Log multiple arguments at error level with source location
+         * @param loc Source location
+         * @param args Arguments to concatenate and log
          */
         template<typename... Args>
-        void info (std::string_view fmt, Args&&... args) { log(Log_Level::Info,  fmt, std::forward<Args>(args)...); }
-
-        /**
-         * @brief Log a formatted warning-level message
-         * @param fmt Format string
-         * @param args Format arguments
-         */
-        template<typename... Args>
-        void warn (std::string_view fmt, Args&&... args) { log(Log_Level::Warn,  fmt, std::forward<Args>(args)...); }
-
-        /**
-         * @brief Log a formatted error-level message
-         * @param fmt Format string
-         * @param args Format arguments
-         */
-        template<typename... Args>
-        void error(std::string_view fmt, Args&&... args) { log(Log_Level::Error, fmt, std::forward<Args>(args)...); }
+        void error( std::source_location loc,
+                    Args&&...            args ) {
+            log( Log_Level::Error, loc, args... );
+        }
 
         /**
          * @brief Get current time in microseconds
@@ -125,37 +263,15 @@ class I_Logger {
 
     private:
         /**
-         * @brief Format implementation entry point
-         * @param fmt Format string
-         * @param args Format arguments
-         * @return Formatted string
+         * @brief Concatenate multiple arguments into a single string
+         * @param args Arguments to concatenate
+         * @return Concatenated string
          */
         template<typename... Args>
-        static std::string format_impl(std::string_view fmt, Args&&... args) {
-            return format_impl_recursive(fmt, std::forward<Args>(args)...);
-        }
-
-        /**
-         * @brief Recursive format implementation
-         * @param fmt Format string
-         * @param first First argument
-         * @param args Remaining arguments
-         * @return Formatted string
-         */
-        template<typename T, typename... Args>
-        static std::string format_impl_recursive(std::string_view fmt, T&& first, Args&&... args) {
+        static std::string concatenate( Args... args ) {
             std::ostringstream oss;
-            oss << first;
-            return oss.str() + format_impl_recursive(fmt, std::forward<Args>(args)...);
-        }
-
-        /**
-         * @brief Base case for recursive format implementation
-         * @param fmt Format string
-         * @return Format string as-is
-         */
-        static std::string format_impl_recursive(std::string_view fmt) {
-            return std::string(fmt);
+            (oss << ... << args);
+            return oss.str();
         }
 };
 

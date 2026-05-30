@@ -32,14 +32,25 @@ class Stdout_Logger : public I_Logger {
          * @brief Create logger with minimum output level
          * @param min_level Minimum level to output (Debug=verbose, Error=quiet)
          */
-        explicit Stdout_Logger(Log_Level min_level = Log_Level::Debug);
+        explicit Stdout_Logger( Log_Level min_level = Log_Level::Debug );
 
         /**
          * @brief Log a message at the specified level
          * @param level   Severity level
          * @param message Message content
          */
-        void log(Log_Level level, std::string_view message) override;
+        void log( Log_Level level,
+                  std::string_view message ) override;
+
+        /**
+         * @brief Log a message at the specified level with source location
+         * @param level   Severity level
+         * @param loc     Source location
+         * @param message Message content
+         */
+        void log( Log_Level level,
+                  std::source_location loc,
+                  std::string_view message ) override;
 
         /**
          * @brief Get current timestamp in microseconds
@@ -51,22 +62,26 @@ class Stdout_Logger : public I_Logger {
         static Stdout_Logger& instance();
 
         // Initialize with custom log level (call once from main)
-        static void initialize(Log_Level level);
+        static void initialize( Log_Level level);
 
     private:
+
+        /// @brief Minimum log level for output
         Log_Level m_min_level;
 
+        /// @brief Singleton instance
         static std::unique_ptr<Stdout_Logger> s_instance;
 
-        static const char* level_tag(Log_Level level);
+        /// @brief Get level tag for logging
+        static const char* level_tag( Log_Level level );
 };
 
 } // namespace ovb::log
 
-// Convenience macros for accessing the singleton logger
-#define LOG_TRACE(...) ovb::log::Stdout_Logger::instance().trace(__VA_ARGS__)
-#define LOG_DEBUG(...) ovb::log::Stdout_Logger::instance().debug(__VA_ARGS__)
-#define LOG_INFO(...)  ovb::log::Stdout_Logger::instance().info(__VA_ARGS__)
-#define LOG_WARN(...)  ovb::log::Stdout_Logger::instance().warn(__VA_ARGS__)
-#define LOG_ERROR(...) ovb::log::Stdout_Logger::instance().error(__VA_ARGS__)
+// Convenience macros for accessing the singleton logger with source location
+#define LOG_TRACE(...) ovb::log::Stdout_Logger::instance().trace( std::source_location::current(),  __VA_ARGS__ )
+#define LOG_DEBUG(...) ovb::log::Stdout_Logger::instance().debug( std::source_location::current(),  __VA_ARGS__ )
+#define LOG_INFO(...)  ovb::log::Stdout_Logger::instance().info( std::source_location::current(),   __VA_ARGS__ )
+#define LOG_WARN(...)  ovb::log::Stdout_Logger::instance().warn( std::source_location::current(),   __VA_ARGS__ )
+#define LOG_ERROR(...) ovb::log::Stdout_Logger::instance().error( std::source_location::current(),  __VA_ARGS__ )
 

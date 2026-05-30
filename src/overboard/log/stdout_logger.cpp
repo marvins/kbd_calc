@@ -63,4 +63,24 @@ void Stdout_Logger::log(Log_Level level, std::string_view message) {
         message.data());
 }
 
+/***************************/
+/*    Log with Location    */
+/***************************/
+void Stdout_Logger::log(Log_Level level, std::source_location loc, std::string_view message) {
+    if (level < m_min_level) return;
+
+    const uint64_t us = now_us();
+    const uint64_t secs  = us / 1'000'000;
+    const uint64_t frac  = (us % 1'000'000) / 1'000;
+
+    std::printf("[%4llu.%03llus] [%s] %s:%d: %.*s\n",
+        static_cast<unsigned long long>(secs),
+        static_cast<unsigned long long>(frac),
+        level_tag(level),
+        loc.file_name(),
+        loc.line(),
+        static_cast<int>(message.size()),
+        message.data());
+}
+
 } // namespace ovb::log

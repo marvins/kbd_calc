@@ -13,6 +13,7 @@
 #include <overboard/hal/app_factory.hpp>
 #include <overboard/hal/config/target.hpp>
 #include <overboard/log/stdout_logger.hpp>
+#include <overboard/version.hpp>
 
 using namespace ovb;
 
@@ -29,6 +30,10 @@ int main(int argc, char* argv[]) {
     }
 
     log::Stdout_Logger::initialize(config.log_level());
+
+    // Log version information
+    auto& logger = log::Stdout_Logger::instance();
+    logger.info("kbd_calc v", PROJECT_VERSION, "\n  build: ", BUILD_DATE, "\n  git: ", GIT_HASH, GIT_DIRTY ? " (dirty)" : "");
 
     try {
         core::Grid_Layout layout = hal::config::create_layout(

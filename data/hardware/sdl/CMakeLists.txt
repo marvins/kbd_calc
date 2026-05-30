@@ -6,6 +6,14 @@
 find_package(SDL2 REQUIRED)
 find_package(PNG REQUIRED)
 
+# LVGL SDL2 include fix
+if(NOT SDL2_INCLUDE_DIRS)
+    get_target_property(SDL2_INCLUDE_DIRS SDL2::SDL2 INTERFACE_INCLUDE_DIRECTORIES)
+endif()
+if(SDL2_INCLUDE_DIRS)
+    target_include_directories(lvgl SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
+endif()
+
 # Set up SDL-specific compile definitions
 set(HARDWARE_COMPILE_DEFINITIONS
     TARGET_SDL=1
@@ -54,3 +62,4 @@ set(HARDWARE_SOURCES
     src/overboard/gui/lcd_section.cpp
     src/overboard/gui/math_canvas.cpp
 )
+
