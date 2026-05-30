@@ -48,7 +48,7 @@ class App_View : public hal::I_Display {
                   const ovb::math::Calc_Engine&   engine,
                   const ovb::core::Layer_Manager& layers );
 
-        ~App_View() override = default;
+        ~App_View() override;
 
         /// @brief Refresh the LCD section from current engine state
         void refresh()      override;

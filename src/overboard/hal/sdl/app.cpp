@@ -20,7 +20,7 @@
 
 // Project Libraries
 #include <overboard/core/keymap.hpp>
-#include <overboard/gui/keyboard_view.hpp>
+#include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/hal/sdl/keymap.hpp>
 #include <overboard/io/via_layout.hpp>
@@ -88,10 +88,12 @@ bool SDL_App::init() {
     m_initialized = true;
 
     try {
-        // Create merged display — LCD at top, keyboard at bottom
-        m_display = std::make_unique<Display>( "Calculator",
-                                               DISPLAY_WIDTH, DISPLAY_HEIGHT,
-                                               m_layout, m_engine, m_layers );
+        // Create SDL window (HAL)
+        m_display = std::make_unique<Display>("Calculator", DISPLAY_WIDTH, DISPLAY_HEIGHT);
+
+        // Create GUI view and attach to LVGL screen
+        m_view = std::make_unique<gui::App_View>(
+            m_display->screen(), m_layout, m_engine, m_layers);
 
         // Load scancode bindings from keymap JSON into the SDL keymap
         if (!m_layout_path.empty() && !m_keymap_path.empty()) {
@@ -108,13 +110,13 @@ bool SDL_App::init() {
         }
 
         // Wire LVGL button click callback (mouse clicks)
-        m_display->keyboard_view().set_click_callback(on_key_clicked, this);
+        m_view->set_key_callback(on_key_clicked, this);
 
         // Create SDL input handler for physical keyboard mapping
         m_input = std::make_unique<SDL_Input>();
         m_input->keymap() = m_sdl_keymap;
 
-        m_display->render();
+        m_view->render();
 
         return true;
     } catch (const std::exception& e) {
@@ -142,7 +144,7 @@ void SDL_App::run() {
         }
 
         lv_tick_inc(16);
-        m_display->render();
+        m_view->render();
         SDL_Delay(16);
 
         // Log loop progress every 60 frames (~1 second)
@@ -171,23 +173,23 @@ void SDL_App::handle_key(int key_index) {
     switch (code) {
         case core::Key_Code::LAYER_NEXT:
             m_layers.next_layer();
-            m_display->update_layer();
+            m_view->update_layer();
             break;
         case core::Key_Code::LAYER_PREV:
             m_layers.prev_layer();
-            m_display->update_layer();
+            m_view->update_layer();
             break;
         case core::Key_Code::LAYER_CONST:
             m_layers.set_layer(2);
-            m_display->update_layer();
+            m_view->update_layer();
             break;
         case core::Key_Code::LAYER_ALG:
             m_layers.set_layer(4);
-            m_display->update_layer();
+            m_view->update_layer();
             break;
         case core::Key_Code::LAYER_HOME:
             m_layers.set_layer(0);
-            m_display->update_layer();
+            m_view->update_layer();
             break;
         case core::Key_Code::TOGGLE_MATH_LAYOUT:
             m_engine.toggle_math_layout();
@@ -196,14 +198,14 @@ void SDL_App::handle_key(int key_index) {
             m_engine.handle_key(code);
             break;
     }
-    m_display->refresh();
+    m_view->refresh();
 }
 
 /*******************************/
 /*          Get Display        */
 /*******************************/
 I_Display& SDL_App::get_display() {
-    return *m_display;
+    return *m_view;
 }
 
 /****************************************/

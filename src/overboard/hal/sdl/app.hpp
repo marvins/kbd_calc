@@ -20,6 +20,7 @@
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
+#include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/hal/i_app.hpp>
 #include <overboard/hal/sdl/display.hpp>
@@ -121,8 +122,11 @@ class SDL_App : public I_App {
         /// @brief Calculator engine for mathematical operations
         math::Calc_Engine m_engine;
 
-        /// @brief SDL display for the calculator
-        std::unique_ptr<Display> m_display;
+        /// @brief SDL window driver
+        std::unique_ptr<Display>       m_display;
+
+        /// @brief LVGL application view (LCD + keyboard widgets)
+        std::unique_ptr<gui::App_View> m_view;
 
         /// @brief SDL input for the calculator
         std::unique_ptr<SDL_Input>   m_input;

@@ -19,8 +19,8 @@
 // Forward declarations
 struct SDL_Window;
 
-// Project Libraries
-#include <overboard/hal/i_display.hpp>
+// Third-Party Libraries
+#include <lvgl.h>
 
 namespace ovb::hal::sdl {
 
@@ -34,14 +34,6 @@ class Display {
 
     public:
 
-        /**
-         * @brief Construct unified SDL display with LCD and keyboard
-         *
-         * Creates a single SDL window containing both the LCD display section
-         * (top) and keyboard section (bottom). Uses LVGL for all rendering.
-         *
-         * @param title  Window title bar text
-         * @param width  Total window width (should match LCD_WIDTH)
         /**
          * @brief Create the SDL window and initialise LVGL
          *
