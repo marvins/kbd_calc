@@ -3,3 +3,5 @@ build/
 output.png
 __pycache__
 output/
+output.log
+.obsidian

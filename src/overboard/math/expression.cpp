@@ -38,77 +38,77 @@ Expression::Expression()
 /********************************************/
 /*               Insert                     */
 /********************************************/
-void Expression::insert(core::Key_Code code) {
-    using KC = core::Key_Code;
+void Expression::insert(core::Action_Code code) {
+    using AC = core::Action_Code;
 
     // Map key codes to tree-based operations
     switch (code) {
         // Digits
-        case KC::DIGIT_0:     insert_digit(0); break;
-        case KC::DIGIT_1:     insert_digit(1); break;
-        case KC::DIGIT_2:     insert_digit(2); break;
-        case KC::DIGIT_3:     insert_digit(3); break;
-        case KC::DIGIT_4:     insert_digit(4); break;
-        case KC::DIGIT_5:     insert_digit(5); break;
-        case KC::DIGIT_6:     insert_digit(6); break;
-        case KC::DIGIT_7:     insert_digit(7); break;
-        case KC::DIGIT_8:     insert_digit(8); break;
-        case KC::DIGIT_9:     insert_digit(9); break;
-        case KC::DECIMAL:     insert_digit(-1); break;
+        case AC::DIGIT_0:     insert_digit(0); break;
+        case AC::DIGIT_1:     insert_digit(1); break;
+        case AC::DIGIT_2:     insert_digit(2); break;
+        case AC::DIGIT_3:     insert_digit(3); break;
+        case AC::DIGIT_4:     insert_digit(4); break;
+        case AC::DIGIT_5:     insert_digit(5); break;
+        case AC::DIGIT_6:     insert_digit(6); break;
+        case AC::DIGIT_7:     insert_digit(7); break;
+        case AC::DIGIT_8:     insert_digit(8); break;
+        case AC::DIGIT_9:     insert_digit(9); break;
+        case AC::DECIMAL:     insert_digit(-1); break;
 
         // Hex digits
-        case KC::HEX_A:       insert_digit(10); break;
-        case KC::HEX_B:       insert_digit(11); break;
-        case KC::HEX_C:       insert_digit(12); break;
-        case KC::HEX_D:       insert_digit(13); break;
-        case KC::HEX_E:       insert_digit(14); break;
-        case KC::HEX_F:       insert_digit(15); break;
+        case AC::HEX_A:       insert_digit(10); break;
+        case AC::HEX_B:       insert_digit(11); break;
+        case AC::HEX_C:       insert_digit(12); break;
+        case AC::HEX_D:       insert_digit(13); break;
+        case AC::HEX_E:       insert_digit(14); break;
+        case AC::HEX_F:       insert_digit(15); break;
 
         // Operators
-        case KC::ADD:         insert_operator(ast::Binary_Op::ADD); break;
-        case KC::SUBTRACT:    insert_operator(ast::Binary_Op::SUBTRACT); break;
-        case KC::MULTIPLY:    insert_operator(ast::Binary_Op::MULTIPLY); break;
-        case KC::DIVIDE:      insert_operator(ast::Binary_Op::DIVIDE); break;
-        case KC::POWER_N:     insert_operator(ast::Binary_Op::POWER); break;
-        case KC::PERCENT:     insert_operator(ast::Binary_Op::MODULO); break;
-        case KC::BIT_AND:     insert_operator(ast::Binary_Op::BIT_AND); break;
-        case KC::BIT_OR:      insert_operator(ast::Binary_Op::BIT_OR); break;
-        case KC::BIT_XOR:     insert_operator(ast::Binary_Op::BIT_XOR); break;
-        case KC::SHIFT_LEFT:  insert_operator(ast::Binary_Op::SHIFT_LEFT); break;
-        case KC::SHIFT_RIGHT: insert_operator(ast::Binary_Op::SHIFT_RIGHT); break;
+        case AC::ADD:         insert_operator(ast::Binary_Op::ADD); break;
+        case AC::SUBTRACT:    insert_operator(ast::Binary_Op::SUBTRACT); break;
+        case AC::MULTIPLY:    insert_operator(ast::Binary_Op::MULTIPLY); break;
+        case AC::DIVIDE:      insert_operator(ast::Binary_Op::DIVIDE); break;
+        case AC::POWER_N:     insert_operator(ast::Binary_Op::POWER); break;
+        case AC::PERCENT:     insert_operator(ast::Binary_Op::MODULO); break;
+        case AC::BIT_AND:     insert_operator(ast::Binary_Op::BIT_AND); break;
+        case AC::BIT_OR:      insert_operator(ast::Binary_Op::BIT_OR); break;
+        case AC::BIT_XOR:     insert_operator(ast::Binary_Op::BIT_XOR); break;
+        case AC::SHIFT_LEFT:  insert_operator(ast::Binary_Op::SHIFT_LEFT); break;
+        case AC::SHIFT_RIGHT: insert_operator(ast::Binary_Op::SHIFT_RIGHT); break;
 
         // Functions
-        case KC::SIN:         insert_function(operators::Sin()); break;
-        case KC::COS:         insert_function(operators::Cos()); break;
-        case KC::TAN:         insert_function(operators::Tan()); break;
-        case KC::ASIN:        insert_function(operators::Asin()); break;
-        case KC::ACOS:        insert_function(operators::Acos()); break;
-        case KC::ATAN:        insert_function(operators::Atan()); break;
-        case KC::LOG:         insert_function(operators::Log()); break;
-        case KC::LN:          insert_function(operators::Ln()); break;
-        case KC::EXP:         insert_function(operators::Exp()); break;
-        case KC::SQRT:        insert_function(operators::Sqrt()); break;
-        case KC::CEIL:        insert_function(operators::Ceil()); break;
-        case KC::FLOOR:       insert_function(operators::Floor()); break;
-        case KC::ABS:         insert_function(operators::Abs()); break;
+        case AC::SIN:         insert_function(operators::Sin()); break;
+        case AC::COS:         insert_function(operators::Cos()); break;
+        case AC::TAN:         insert_function(operators::Tan()); break;
+        case AC::ASIN:        insert_function(operators::Asin()); break;
+        case AC::ACOS:        insert_function(operators::Acos()); break;
+        case AC::ATAN:        insert_function(operators::Atan()); break;
+        case AC::LOG:         insert_function(operators::Log()); break;
+        case AC::LN:          insert_function(operators::Ln()); break;
+        case AC::EXP:         insert_function(operators::Exp()); break;
+        case AC::SQRT:        insert_function(operators::Sqrt()); break;
+        case AC::CEIL:        insert_function(operators::Ceil()); break;
+        case AC::FLOOR:       insert_function(operators::Floor()); break;
+        case AC::ABS:         insert_function(operators::Abs()); break;
 
         // Constants
-        case KC::PI:          insert_function(operators::Pi()); break;
-        case KC::EULER:       insert_function(operators::E()); break;
-        case KC::PHI:         insert_function(operators::Phi()); break;
-        case KC::TAU:         insert_function(operators::Tau()); break;
+        case AC::PI:          insert_function(operators::Pi()); break;
+        case AC::EULER:       insert_function(operators::E()); break;
+        case AC::PHI:         insert_function(operators::Phi()); break;
+        case AC::TAU:         insert_function(operators::Tau()); break;
 
         // Special operators using factory pattern
-        case KC::FACTORIAL:   insert_function(operators::Factorial()); break;
-        case KC::RECIPROCAL:  insert_function(operators::Reciprocal()); break;
-        case KC::POWER_2:     insert_function(operators::Power_2()); break;
+        case AC::FACTORIAL:   insert_function(operators::Factorial()); break;
+        case AC::RECIPROCAL:  insert_function(operators::Reciprocal()); break;
+        case AC::POWER_2:     insert_function(operators::Power_2()); break;
 
         // Parentheses - in AST, grouping is implicit in tree structure
-        case KC::PAREN_OPEN:  break; // No-op, tree structure represents grouping
-        case KC::PAREN_CLOSE: break; // No-op, tree structure represents grouping
+        case AC::PAREN_OPEN:  break; // No-op, tree structure represents grouping
+        case AC::PAREN_CLOSE: break; // No-op, tree structure represents grouping
 
         // Approx function
-        case KC::APPROX:      insert_function(operators::Approx()); break;
+        case AC::APPROX:      insert_function(operators::Approx()); break;
 
         default:
             // Unknown key code - throw exception for definitive feedback
@@ -308,7 +308,7 @@ std::string Expression::eval_string() const {
     }
 
     Node_Visitor_String to_eval_string;
-    to_eval_string = [&to_eval_string](const ast::Node* node) -> std::string {
+    to_eval_string = [this, &to_eval_string](const ast::Node* node) -> std::string {
         if (!node) {
             return "";
         }
@@ -318,7 +318,12 @@ std::string Expression::eval_string() const {
                 return "0";  // Makes expression parsable: "8+0" is valid
             case ast::Node_Kind::NUMBER: {
                 const auto* num = static_cast<const ast::Number_Node*>(node);
-                return num->to_string();
+                std::string str = num->to_string();
+                // If cursor is on this number and in decimal mode with no decimal digits, append decimal point
+                if (m_cursor_path.empty() && node == m_ast_root.get() && m_decimal_position > 0 && str.find('.') == std::string::npos) {
+                    str += ".";
+                }
+                return str;
             }
             case ast::Node_Kind::BINARY_OP: {
                 const auto* bin = static_cast<const ast::Binary_Op_Node*>(node);

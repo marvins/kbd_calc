@@ -44,15 +44,15 @@ Via_Layout parse_via_layout(const std::filesystem::path& json_path) {
         layout.matrix_cols = j["matrix"]["cols"].get<int>();
     }
 
-    // Parse scancode mapping (matrix position -> SDL scancode name)
-    std::map<std::pair<int,int>, std::string> scancode_map;
-    if (j.contains("scancodes")) {
-        for (auto& [key_str, val] : j["scancodes"].items()) {
+    // Parse input_key mapping (matrix position -> Input_Key name)
+    std::map<std::pair<int,int>, std::string> input_key_map;
+    if (j.contains("input_keys")) {
+        for (auto& [key_str, val] : j["input_keys"].items()) {
             size_t comma = key_str.find(',');
             if (comma != std::string::npos) {
                 int r = std::stoi(key_str.substr(0, comma));
                 int c = std::stoi(key_str.substr(comma + 1));
-                scancode_map[{r, c}] = val.get<std::string>();
+                input_key_map[{r, c}] = val.get<std::string>();
             }
         }
     }
@@ -108,10 +108,10 @@ Via_Layout parse_via_layout(const std::filesystem::path& json_path) {
                     key.h = pending_h;
                     key.label = key_str;
 
-                    // Attach scancode if present
-                    auto it = scancode_map.find({key.row, key.col});
-                    if (it != scancode_map.end()) {
-                        key.scancode = it->second;
+                    // Attach input_key if present
+                    auto it = input_key_map.find({key.row, key.col});
+                    if (it != input_key_map.end()) {
+                        key.input_key = it->second;
                     }
 
                     layout.keys.push_back(key);
@@ -264,9 +264,9 @@ core::Grid_Layout to_grid_layout(const Via_Layout& via_layout) {
 }
 
 /***********************************************/
-/*   Apply scancodes from keymap JSON file    */
+/*   Apply input_keys from keymap JSON file    */
 /***********************************************/
-void apply_scancodes_from_json(Via_Layout& layout, const std::filesystem::path& keymap_path) {
+void apply_input_keys_from_json(Via_Layout& layout, const std::filesystem::path& keymap_path) {
     std::ifstream file(keymap_path);
     if (!file.is_open()) {
         throw std::runtime_error("Failed to open keymap file: " + keymap_path.string());
@@ -275,7 +275,7 @@ void apply_scancodes_from_json(Via_Layout& layout, const std::filesystem::path& 
     nlohmann::json j;
     file >> j;
 
-    if (!j.contains("scancodes")) {
+    if (!j.contains("input_keys")) {
         return;
     }
 
@@ -285,28 +285,28 @@ void apply_scancodes_from_json(Via_Layout& layout, const std::filesystem::path& 
         key_map[{key.row, key.col}] = &key;
     }
 
-    for (auto& [key_str, val] : j["scancodes"].items()) {
+    for (auto& [key_str, val] : j["input_keys"].items()) {
         size_t comma = key_str.find(',');
         if (comma != std::string::npos) {
             int r = std::stoi(key_str.substr(0, comma));
             int c = std::stoi(key_str.substr(comma + 1));
             auto it = key_map.find({r, c});
             if (it != key_map.end()) {
-                it->second->scancode = val.get<std::string>();
+                it->second->input_key = val.get<std::string>();
             }
         }
     }
 }
 
 /***********************************************/
-/*      Build scancode name -> key index map  */
+/*      Build input_key name -> key index map  */
 /***********************************************/
-std::map<std::string, int> build_scancode_index_map(const Via_Layout& layout) {
+std::map<std::string, int> build_input_key_index_map(const Via_Layout& layout) {
     std::map<std::string, int> result;
     for (int i = 0; i < static_cast<int>(layout.keys.size()); ++i) {
         const auto& key = layout.keys[static_cast<std::size_t>(i)];
-        if (!key.scancode.empty()) {
-            result[key.scancode] = i;
+        if (!key.input_key.empty()) {
+            result[key.input_key] = i;
         }
     }
     return result;

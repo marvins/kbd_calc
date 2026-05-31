@@ -25,79 +25,105 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QFont, QKeyEvent, QPainter, QPen, QColor
 
-# Mapping from Qt key codes to SDL scancode name strings
-QT_KEY_TO_SDL_SCANCODE = {
+# Mapping from Qt key codes to hardware-agnostic Input_Key names
+QT_KEY_TO_INPUT_KEY = {
     # Function keys
-    Qt.Key.Key_F1:  "SDL_SCANCODE_F1",   Qt.Key.Key_F2:  "SDL_SCANCODE_F2",
-    Qt.Key.Key_F3:  "SDL_SCANCODE_F3",   Qt.Key.Key_F4:  "SDL_SCANCODE_F4",
-    Qt.Key.Key_F5:  "SDL_SCANCODE_F5",   Qt.Key.Key_F6:  "SDL_SCANCODE_F6",
-    Qt.Key.Key_F7:  "SDL_SCANCODE_F7",   Qt.Key.Key_F8:  "SDL_SCANCODE_F8",
-    Qt.Key.Key_F9:  "SDL_SCANCODE_F9",   Qt.Key.Key_F10: "SDL_SCANCODE_F10",
-    Qt.Key.Key_F11: "SDL_SCANCODE_F11",  Qt.Key.Key_F12: "SDL_SCANCODE_F12",
-    Qt.Key.Key_F13: "SDL_SCANCODE_F13",  Qt.Key.Key_F14: "SDL_SCANCODE_F14",
-    Qt.Key.Key_F15: "SDL_SCANCODE_F15",  Qt.Key.Key_F16: "SDL_SCANCODE_F16",
-    Qt.Key.Key_F17: "SDL_SCANCODE_F17",  Qt.Key.Key_F18: "SDL_SCANCODE_F18",
-    Qt.Key.Key_F19: "SDL_SCANCODE_F19",  Qt.Key.Key_F20: "SDL_SCANCODE_F20",
-    # Numpad digits
-    Qt.Key.Key_0: "SDL_SCANCODE_0",  Qt.Key.Key_1: "SDL_SCANCODE_1",
-    Qt.Key.Key_2: "SDL_SCANCODE_2",  Qt.Key.Key_3: "SDL_SCANCODE_3",
-    Qt.Key.Key_4: "SDL_SCANCODE_4",  Qt.Key.Key_5: "SDL_SCANCODE_5",
-    Qt.Key.Key_6: "SDL_SCANCODE_6",  Qt.Key.Key_7: "SDL_SCANCODE_7",
-    Qt.Key.Key_8: "SDL_SCANCODE_8",  Qt.Key.Key_9: "SDL_SCANCODE_9",
+    Qt.Key.Key_F1:  "F1",   Qt.Key.Key_F2:  "F2",
+    Qt.Key.Key_F3:  "F3",   Qt.Key.Key_F4:  "F4",
+    Qt.Key.Key_F5:  "F5",   Qt.Key.Key_F6:  "F6",
+    Qt.Key.Key_F7:  "F7",   Qt.Key.Key_F8:  "F8",
+    Qt.Key.Key_F9:  "F9",   Qt.Key.Key_F10: "F10",
+    Qt.Key.Key_F11: "F11",  Qt.Key.Key_F12: "F12",
+    Qt.Key.Key_F13: "F13",  Qt.Key.Key_F14: "F14",
+    Qt.Key.Key_F15: "F15",  Qt.Key.Key_F16: "F16",
+    Qt.Key.Key_F17: "F17",  Qt.Key.Key_F18: "F18",
+    Qt.Key.Key_F19: "F19",  Qt.Key.Key_F20: "F20",
+    # Main keyboard digits
+    Qt.Key.Key_0: "KEY_0",  Qt.Key.Key_1: "KEY_1",
+    Qt.Key.Key_2: "KEY_2",  Qt.Key.Key_3: "KEY_3",
+    Qt.Key.Key_4: "KEY_4",  Qt.Key.Key_5: "KEY_5",
+    Qt.Key.Key_6: "KEY_6",  Qt.Key.Key_7: "KEY_7",
+    Qt.Key.Key_8: "KEY_8",  Qt.Key.Key_9: "KEY_9",
+    # Keypad digits (NUMPAD_0 through NUMPAD_9)
+    Qt.Key.KeypadModifier | Qt.Key.Key_0: "NUMPAD_0",
+    Qt.Key.KeypadModifier | Qt.Key.Key_1: "NUMPAD_1",
+    Qt.Key.KeypadModifier | Qt.Key.Key_2: "NUMPAD_2",
+    Qt.Key.KeypadModifier | Qt.Key.Key_3: "NUMPAD_3",
+    Qt.Key.KeypadModifier | Qt.Key.Key_4: "NUMPAD_4",
+    Qt.Key.KeypadModifier | Qt.Key.Key_5: "NUMPAD_5",
+    Qt.Key.KeypadModifier | Qt.Key.Key_6: "NUMPAD_6",
+    Qt.Key.KeypadModifier | Qt.Key.Key_7: "NUMPAD_7",
+    Qt.Key.KeypadModifier | Qt.Key.Key_8: "NUMPAD_8",
+    Qt.Key.KeypadModifier | Qt.Key.Key_9: "NUMPAD_9",
     # Navigation
-    Qt.Key.Key_Left:     "SDL_SCANCODE_LEFT",
-    Qt.Key.Key_Right:    "SDL_SCANCODE_RIGHT",
-    Qt.Key.Key_Up:       "SDL_SCANCODE_UP",
-    Qt.Key.Key_Down:     "SDL_SCANCODE_DOWN",
-    Qt.Key.Key_Home:     "SDL_SCANCODE_HOME",
-    Qt.Key.Key_End:      "SDL_SCANCODE_END",
-    Qt.Key.Key_PageUp:   "SDL_SCANCODE_PAGEUP",
-    Qt.Key.Key_PageDown: "SDL_SCANCODE_PAGEDOWN",
-    Qt.Key.Key_Insert:   "SDL_SCANCODE_INSERT",
-    Qt.Key.Key_Delete:   "SDL_SCANCODE_DELETE",
+    Qt.Key.Key_Left:     "LEFT",
+    Qt.Key.Key_Right:    "RIGHT",
+    Qt.Key.Key_Up:       "UP",
+    Qt.Key.Key_Down:     "DOWN",
+    Qt.Key.Key_Home:     "HOME",
+    Qt.Key.Key_End:      "END",
+    Qt.Key.Key_PageUp:   "PAGE_UP",
+    Qt.Key.Key_PageDown: "PAGE_DOWN",
+    Qt.Key.Key_Insert:   "INSERT",
+    Qt.Key.Key_Delete:   "DELETE",
     # Editing
-    Qt.Key.Key_Return:    "SDL_SCANCODE_RETURN",
-    Qt.Key.Key_Backspace: "SDL_SCANCODE_BACKSPACE",
-    Qt.Key.Key_Tab:       "SDL_SCANCODE_TAB",
-    Qt.Key.Key_Escape:    "SDL_SCANCODE_ESCAPE",
-    Qt.Key.Key_Space:     "SDL_SCANCODE_SPACE",
+    Qt.Key.Key_Return:    "RETURN",
+    Qt.Key.Key_Enter:     "RETURN",
+    Qt.Key.Key_Backspace: "BACKSPACE",
+    Qt.Key.Key_Tab:       "TAB",
+    Qt.Key.Key_Escape:    "ESCAPE",
+    Qt.Key.Key_Space:     "SPACE",
     # Operators / punctuation
-    Qt.Key.Key_Minus:        "SDL_SCANCODE_MINUS",
-    Qt.Key.Key_Equal:        "SDL_SCANCODE_EQUALS",
-    Qt.Key.Key_Slash:        "SDL_SCANCODE_SLASH",
-    Qt.Key.Key_Backslash:    "SDL_SCANCODE_BACKSLASH",
-    Qt.Key.Key_Period:       "SDL_SCANCODE_PERIOD",
-    Qt.Key.Key_Comma:        "SDL_SCANCODE_COMMA",
-    Qt.Key.Key_Semicolon:    "SDL_SCANCODE_SEMICOLON",
-    Qt.Key.Key_Apostrophe:   "SDL_SCANCODE_APOSTROPHE",
-    Qt.Key.Key_BracketLeft:  "SDL_SCANCODE_LEFTBRACKET",
-    Qt.Key.Key_BracketRight: "SDL_SCANCODE_RIGHTBRACKET",
-    Qt.Key.Key_QuoteLeft:    "SDL_SCANCODE_GRAVE",
-    # Numpad
-    Qt.Key.Key_division:  "SDL_SCANCODE_KP_DIVIDE",
-    Qt.Key.Key_multiply:  "SDL_SCANCODE_KP_MULTIPLY",
-    Qt.Key.Key_Plus:      "SDL_SCANCODE_KP_PLUS",
-    Qt.Key.Key_NumLock:   "SDL_SCANCODE_NUMLOCKCLEAR",
+    Qt.Key.Key_Minus:        "MINUS",
+    Qt.Key.Key_Equal:        "EQUAL",
+    Qt.Key.Key_Slash:        "SLASH",
+    Qt.Key.Key_Backslash:    "BACKSLASH",
+    Qt.Key.Key_Period:       "PERIOD",
+    Qt.Key.Key_Comma:        "COMMA",
+    Qt.Key.Key_Semicolon:    "SEMICOLON",
+    Qt.Key.Key_Apostrophe:   "APOSTROPHE",
+    Qt.Key.Key_BracketLeft:  "BRACKET_LEFT",
+    Qt.Key.Key_BracketRight: "BRACKET_RIGHT",
+    Qt.Key.Key_QuoteLeft:    "GRAVE",
+    # Numpad operators
+    Qt.Key.Key_division:  "NUMPAD_DIVIDE",
+    Qt.Key.Key_multiply:  "NUMPAD_MULTIPLY",
+    Qt.Key.Key_Plus:      "NUMPAD_ADD",
+    Qt.Key.Key_Minus:     "NUMPAD_SUBTRACT",
+    Qt.Key.Key_Period:    "NUMPAD_DECIMAL",
+    Qt.Key.Key_NumLock:   "NUMLOCKCLEAR",
+    # Keypad operators (with keypad modifier)
+    Qt.Key.KeypadModifier | Qt.Key.Key_multiply: "NUMPAD_MULTIPLY",
+    Qt.Key.KeypadModifier | Qt.Key.Key_Minus:     "NUMPAD_SUBTRACT",
+    Qt.Key.KeypadModifier | Qt.Key.Key_Plus:      "NUMPAD_ADD",
+    Qt.Key.KeypadModifier | Qt.Key.Key_Period:    "NUMPAD_DECIMAL",
+    Qt.Key.KeypadModifier | Qt.Key.Key_Enter:     "NUMPAD_ENTER",
     # Modifiers (usually not useful as trigger keys, but map them anyway)
-    Qt.Key.Key_Shift:   "SDL_SCANCODE_LSHIFT",
-    Qt.Key.Key_Control: "SDL_SCANCODE_LCTRL",
-    Qt.Key.Key_Alt:     "SDL_SCANCODE_LALT",
-    Qt.Key.Key_Meta:    "SDL_SCANCODE_LGUI",
-    Qt.Key.Key_CapsLock:   "SDL_SCANCODE_CAPSLOCK",
-    Qt.Key.Key_ScrollLock: "SDL_SCANCODE_SCROLLLOCK",
-    Qt.Key.Key_Print:      "SDL_SCANCODE_PRINTSCREEN",
-    Qt.Key.Key_Pause:      "SDL_SCANCODE_PAUSE",
+    Qt.Key.Key_Shift:   "SHIFT",
+    Qt.Key.Key_Control: "CONTROL",
+    Qt.Key.Key_Alt:     "ALT",
+    Qt.Key.Key_Meta:    "META",
+    Qt.Key.Key_CapsLock:   "CAPSLOCK",
+    Qt.Key.Key_ScrollLock: "SCROLLLOCK",
+    Qt.Key.Key_Print:      "PRINTSCREEN",
+    Qt.Key.Key_Pause:      "PAUSE",
 }
 
 
-def qt_key_to_sdl_scancode(key: Qt.Key, text: str) -> str:
-    """Convert a Qt key event to an SDL_SCANCODE_* name string."""
-    # Check direct mapping first
-    if key in QT_KEY_TO_SDL_SCANCODE:
-        return QT_KEY_TO_SDL_SCANCODE[key]
+def qt_key_to_input_key(key: Qt.Key, text: str, modifiers: Qt.KeyboardModifier = Qt.KeyboardModifier.NoModifier) -> str:
+    """Convert a Qt key event to an Input_Key name string."""
+    # Check for keypad modifier
+    if modifiers & Qt.KeyboardModifier.KeypadModifier:
+        # Check keypad-specific mapping
+        keypad_key = Qt.Key.KeypadModifier | key
+        if keypad_key in QT_KEY_TO_INPUT_KEY:
+            return QT_KEY_TO_INPUT_KEY[keypad_key]
+    # Check direct mapping
+    if key in QT_KEY_TO_INPUT_KEY:
+        return QT_KEY_TO_INPUT_KEY[key]
     # Fall back to letter keys A-Z
     if text and len(text) == 1 and text.upper().isalpha():
-        return f"SDL_SCANCODE_{text.upper()}"
+        return f"KEY_{text.upper()}"
     return ""
 
 
@@ -233,7 +259,7 @@ class KeyButton(QPushButton):
         self.index = key_data.get("index", 0)
         self.label = key_data.get("label", "")
         self.code = key_data.get("code", "NONE")
-        self.scancode = key_data.get("scancode", "")
+        self.input_key = key_data.get("input_key", "")
 
         self.update_display()
         self.clicked.connect(self.on_click)
@@ -280,27 +306,27 @@ class KeyButton(QPushButton):
         # Get assigned codes from window
         assigned_codes = self.window().get_assigned_codes()
 
-        dialog = KeyEditDialog(self, self.label, self.code, self.scancode, assigned_codes)
+        dialog = KeyEditDialog(self, self.label, self.code, self.input_key, assigned_codes)
         if dialog.exec():
             old_code = self.code
             self.label = dialog.label_text
             self.code = dialog.code_text
-            self.scancode = dialog.scancode_text
+            self.input_key = dialog.input_key_text
             self.key_data["label"] = self.label
             self.key_data["code"] = self.code
-            self.key_data["scancode"] = self.scancode
+            self.key_data["input_key"] = self.input_key
             self.update_display()
             self.window().mapping_changed = True
             self.window().update_assigned_codes(old_code, self.code)
-            self.window().update_scancode( self.key_data.get("row"),
+            self.window().update_input_key( self.key_data.get("row"),
                                            self.key_data.get("col"),
-                                           self.scancode )
+                                           self.input_key )
 
 
 class KeyEditDialog(QDialog):
     """Dialog for editing key label and code."""
 
-    def __init__(self, parent, current_label: str, current_code: str, current_scancode: str, assigned_codes: set):
+    def __init__(self, parent, current_label: str, current_code: str, current_input_key: str, assigned_codes: set):
         super().__init__(parent)
         self.setWindowTitle(f"Edit Key {parent.index} (row {parent.key_data.get('row')}, col {parent.key_data.get('col')})")
         self.setFixedSize(500, 310)
@@ -344,19 +370,19 @@ class KeyEditDialog(QDialog):
         # Connect code change to update preview
         self.code_input.currentIndexChanged.connect(self.update_preview)
 
-        # Scancode field
-        layout.addWidget(QLabel("Keyboard Scancode:"))
-        scancode_row = QHBoxLayout()
-        self.scancode_input = QLineEdit(current_scancode or "")
-        self.scancode_input.setPlaceholderText("SDL_SCANCODE_...  or click Record and press a key")
+        # Input_Key field
+        layout.addWidget(QLabel("Hardware Input Key:"))
+        input_key_row = QHBoxLayout()
+        self.input_key_input = QLineEdit(current_input_key or "")
+        self.input_key_input.setPlaceholderText("KEY_1, NUMPAD_7, F1, etc. or click Record and press a key")
         self.record_btn = QPushButton("Record")
         self.record_btn.setFixedWidth(80)
         self.record_btn.setFixedHeight(30)
         self.record_btn.setCheckable(True)
         self.record_btn.clicked.connect(self.toggle_record)
-        scancode_row.addWidget(self.scancode_input)
-        scancode_row.addWidget(self.record_btn)
-        layout.addLayout(scancode_row)
+        input_key_row.addWidget(self.input_key_input)
+        input_key_row.addWidget(self.record_btn)
+        layout.addLayout(input_key_row)
 
         buttons = QHBoxLayout()
         ok_btn = QPushButton("OK")
@@ -416,20 +442,20 @@ class KeyEditDialog(QDialog):
             self.record_btn.setStyleSheet(
                 "QPushButton { background-color: #a03030; color: white; border-radius: 4px; font-weight: bold; }"
             )
-            self.scancode_input.setPlaceholderText("Press a key...")
+            self.input_key_input.setPlaceholderText("Press a key...")
             self.grabKeyboard()
         else:
             self.record_btn.setText("Record")
             self.record_btn.setStyleSheet("")
-            self.scancode_input.setPlaceholderText("SDL_SCANCODE_...  or click Record and press a key")
+            self.input_key_input.setPlaceholderText("KEY_1, NUMPAD_7, F1, etc. or click Record and press a key")
             self.releaseKeyboard()
 
     def keyPressEvent(self, event: QKeyEvent):
         """Capture a keypress when in recording mode."""
         if self._recording:
-            scancode = qt_key_to_sdl_scancode(Qt.Key(event.key()), event.text())
-            if scancode:
-                self.scancode_input.setText(scancode)
+            input_key = qt_key_to_input_key(Qt.Key(event.key()), event.text(), event.modifiers())
+            if input_key:
+                self.input_key_input.setText(input_key)
             self.record_btn.setChecked(False)
             self.toggle_record(False)
             event.accept()
@@ -458,9 +484,9 @@ class KeyEditDialog(QDialog):
         return KEY_CODE_TO_LABEL.get(code, "")
 
     @property
-    def scancode_text(self) -> str:
-        """Get the entered scancode string."""
-        return self.scancode_input.text().strip()
+    def input_key_text(self) -> str:
+        """Get the entered input_key string."""
+        return self.input_key_input.text().strip()
 
     @property
     def code_text(self) -> str:
@@ -481,7 +507,7 @@ class KeyMapperWindow(QMainWindow):
         self.current_layer_index = 0
 
         self.layout_data = self.load_layout()
-        self.keymap_data = self.load_or_create_keymap()   # scancodes only
+        self.keymap_data = self.load_or_create_keymap()   # input_keys only
         self.layers_data = self.load_or_create_layers()   # layer assignments
 
         # Initialize assigned codes from existing mapping
@@ -522,14 +548,14 @@ class KeyMapperWindow(QMainWindow):
             return json.load(f)
 
     def load_or_create_keymap(self) -> Dict:
-        """Load keymap JSON (scancodes only) or create an empty one."""
+        """Load keymap JSON (input_keys only) or create an empty one."""
         if self.keymap_path.exists():
             with open(self.keymap_path, 'r') as f:
                 data = json.load(f)
-            if "scancodes" not in data:
-                data["scancodes"] = {}
+            if "input_keys" not in data:
+                data["input_keys"] = {}
             return data
-        return {"scancodes": {}}
+        return {"input_keys": {}}
 
     def load_or_create_layers(self) -> Dict:
         """Load layers JSON or create default layers from layout."""
@@ -608,23 +634,23 @@ class KeyMapperWindow(QMainWindow):
         self.current_layer_index = index
         self.refresh_assigned_codes()
 
-    def update_scancode(self, row: Optional[int], col: Optional[int], scancode: str):
-        """Update a scancode entry in keymap_data."""
+    def update_input_key(self, row: Optional[int], col: Optional[int], input_key: str):
+        """Update an input_key entry in keymap_data."""
         if row is None or col is None:
             return
         key_str = f"{row},{col}"
-        if "scancodes" not in self.keymap_data:
-            self.keymap_data["scancodes"] = {}
-        if scancode:
-            self.keymap_data["scancodes"][key_str] = scancode
+        if "input_keys" not in self.keymap_data:
+            self.keymap_data["input_keys"] = {}
+        if input_key:
+            self.keymap_data["input_keys"][key_str] = input_key
         else:
-            self.keymap_data["scancodes"].pop(key_str, None)
+            self.keymap_data["input_keys"].pop(key_str, None)
 
     def extract_key_positions(self) -> List[Dict]:
-        """Extract key positions from layout JSON, with scancodes from keymap JSON."""
+        """Extract key positions from layout JSON, with input_keys from keymap JSON."""
         positions = []
         keymap_layout = self.layout_data.get("layouts", {}).get("keymap", [])
-        scancode_map = self.keymap_data.get("scancodes", {})
+        input_key_map = self.keymap_data.get("input_keys", {})
         index = 0
         cursor_x = 0.0
         cursor_y = 0.0
@@ -661,7 +687,7 @@ class KeyMapperWindow(QMainWindow):
                             "y": cursor_y,
                             "w": pending_w,
                             "h": pending_h,
-                            "scancode": scancode_map.get(f"{r},{c}", "")
+                            "input_key": input_key_map.get(f"{r},{c}", "")
                         })
                         index += 1
                         cursor_x += pending_w
@@ -676,7 +702,7 @@ class KeyMapperWindow(QMainWindow):
         """Build key buttons for a specific layer."""
         key_buttons = []
         layer_keys = layer_data.get("keys", [])
-        scancode_map = self.keymap_data.get("scancodes", {})
+        input_key_map = self.keymap_data.get("input_keys", {})
 
         # Constants for rendering (match C++ render_layout.cpp)
         KEY_SIZE = 67  # Reduced by ~10% from 75
@@ -692,11 +718,11 @@ class KeyMapperWindow(QMainWindow):
                 pos = pos_by_rc.get((r, c))
                 if pos is None:
                     continue
-                scancode = scancode_map.get(f"{r},{c}", "")
+                input_key = input_key_map.get(f"{r},{c}", "")
                 full_key_data = {**pos, **key_data,
                                  "layer_index": layer_idx,
                                  "position_index": pos_idx,
-                                 "scancode": scancode}
+                                 "input_key": input_key}
 
                 key_x = pos.get("x", 0.0)
                 key_y = pos.get("y", 0.0)
@@ -719,7 +745,7 @@ class KeyMapperWindow(QMainWindow):
         return key_buttons
 
     def save_keymap(self):
-        """Save scancodes to keymap file and layer assignments to layers file."""
+        """Save input_keys to keymap file and layer assignments to layers file."""
         try:
             # Update layer key data from buttons, matched by row/col
             for layer_idx, key_buttons in enumerate(self.key_buttons_per_layer):
@@ -731,7 +757,7 @@ class KeyMapperWindow(QMainWindow):
                     if entry is not None:
                         entry["code"] = btn.code
 
-            # Save scancodes (keymap file)
+            # Save input_keys (keymap file)
             with open(self.keymap_path, 'w') as f:
                 json.dump(self.keymap_data, f, indent=4)
 

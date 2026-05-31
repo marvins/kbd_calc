@@ -89,21 +89,15 @@ bool PicoCalc_App::init() {
         // Create the I2C keyboard input driver
         m_input = std::make_unique<PicoCalc_Input>(m_layout);
 
-        // Load scancode → key index bindings from VIA JSON if available
+        // Load input_key → key index bindings from VIA JSON if available
         if (!m_layout_path.empty() && !m_keymap_path.empty()) {
             try {
                 auto via_layout = io::parse_via_layout(m_layout_path);
-                io::apply_scancodes_from_json(via_layout, m_keymap_path);
-                auto sc_map = io::build_scancode_index_map(via_layout);
-                for (const auto& [scancode, key_index] : sc_map) {
-                    // Scancodes in VIA JSON are stored as uint; cast to uint8_t
-                    // for the I2C key code space (0x00–0xFF)
-                    if (scancode <= 0xFF) {
-                        m_input->bind(static_cast<uint8_t>(scancode), key_index);
-                    }
-                }
+                io::apply_input_keys_from_json(via_layout, m_keymap_path);
+                // Note: PicoCalc uses native I2C key codes, not Input_Key names
+                // TODO: Add I2C-specific mapping layer for hardware abstraction
             } catch (const std::exception& e) {
-                std::cerr << "PicoCalc_App: warning: failed to load scancodes: "
+                std::cerr << "PicoCalc_App: warning: failed to load input_keys: "
                           << e.what() << "\n";
             }
         }
@@ -152,30 +146,30 @@ void PicoCalc_App::on_key_clicked(int key_index, void* user_data) {
 /*       Handle Key         */
 /****************************/
 void PicoCalc_App::handle_key(int key_index) {
-    const core::Key_Code code = m_layers.key_at(key_index);
+    const core::Action_Code code = m_layers.action_at(key_index);
 
     switch (code) {
-        case core::Key_Code::LAYER_NEXT:
+        case core::Action_Code::NEXT_LAYER:
             m_layers.next_layer();
             m_view->update_layer();
             break;
-        case core::Key_Code::LAYER_PREV:
+        case core::Action_Code::PREV_LAYER:
             m_layers.prev_layer();
             m_view->update_layer();
             break;
-        case core::Key_Code::LAYER_CONST:
+        case core::Action_Code::GO_CONST_LAYER:
             m_layers.set_layer(2);
             m_view->update_layer();
             break;
-        case core::Key_Code::LAYER_ALG:
+        case core::Action_Code::GO_ALG_LAYER:
             m_layers.set_layer(4);
             m_view->update_layer();
             break;
-        case core::Key_Code::LAYER_HOME:
+        case core::Action_Code::GO_HOME_LAYER:
             m_layers.set_layer(0);
             m_view->update_layer();
             break;
-        case core::Key_Code::TOGGLE_MATH_LAYOUT:
+        case core::Action_Code::TOGGLE_MATH_LAYOUT:
             m_engine.toggle_math_layout();
             break;
         default:

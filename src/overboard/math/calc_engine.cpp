@@ -44,16 +44,16 @@ const Calc_State& Calc_Engine::state() const {
 /****************************/
 /*       Key Handling       */
 /****************************/
-void Calc_Engine::handle_key( core::Key_Code code ) {
+void Calc_Engine::handle_key( core::Action_Code code ) {
     m_state.error = "";
 
-    if (m_result_shown && code != core::Key_Code::EQUALS) {
+    if (m_result_shown && code != core::Action_Code::EQUALS) {
         switch (code) {
-            case core::Key_Code::ADD:
-            case core::Key_Code::SUBTRACT:
-            case core::Key_Code::MULTIPLY:
-            case core::Key_Code::DIVIDE:
-            case core::Key_Code::POWER_N:
+            case core::Action_Code::ADD:
+            case core::Action_Code::SUBTRACT:
+            case core::Action_Code::MULTIPLY:
+            case core::Action_Code::DIVIDE:
+            case core::Action_Code::POWER_N:
                 break;
             default:
                 m_state.expression.clear();
@@ -63,75 +63,75 @@ void Calc_Engine::handle_key( core::Key_Code code ) {
     }
 
     switch (code) {
-        case core::Key_Code::DIGIT_0:    case core::Key_Code::DIGIT_1:    case core::Key_Code::DIGIT_2:
-        case core::Key_Code::DIGIT_3:    case core::Key_Code::DIGIT_4:    case core::Key_Code::DIGIT_5:
-        case core::Key_Code::DIGIT_6:    case core::Key_Code::DIGIT_7:    case core::Key_Code::DIGIT_8:
-        case core::Key_Code::DIGIT_9:    case core::Key_Code::DECIMAL:
-        case core::Key_Code::HEX_A:      case core::Key_Code::HEX_B:      case core::Key_Code::HEX_C:
-        case core::Key_Code::HEX_D:      case core::Key_Code::HEX_E:      case core::Key_Code::HEX_F:
-        case core::Key_Code::ADD:        case core::Key_Code::SUBTRACT:   case core::Key_Code::MULTIPLY:
-        case core::Key_Code::DIVIDE:     case core::Key_Code::POWER_N:    case core::Key_Code::POWER_2:
-        case core::Key_Code::PERCENT:    case core::Key_Code::FACTORIAL:  case core::Key_Code::RECIPROCAL:
-        case core::Key_Code::PAREN_OPEN: case core::Key_Code::PAREN_CLOSE:
-        case core::Key_Code::SIN:        case core::Key_Code::COS:        case core::Key_Code::TAN:
-        case core::Key_Code::ASIN:       case core::Key_Code::ACOS:       case core::Key_Code::ATAN:
-        case core::Key_Code::LOG:        case core::Key_Code::LN:         case core::Key_Code::EXP:
-        case core::Key_Code::SQRT:
-        case core::Key_Code::PI:         case core::Key_Code::EULER:      case core::Key_Code::PHI: case core::Key_Code::TAU:
-        case core::Key_Code::BIT_AND:    case core::Key_Code::BIT_OR:     case core::Key_Code::BIT_XOR:
-        case core::Key_Code::SHIFT_LEFT: case core::Key_Code::SHIFT_RIGHT:
-        case core::Key_Code::APPROX:
+        case core::Action_Code::DIGIT_0:    case core::Action_Code::DIGIT_1:    case core::Action_Code::DIGIT_2:
+        case core::Action_Code::DIGIT_3:    case core::Action_Code::DIGIT_4:    case core::Action_Code::DIGIT_5:
+        case core::Action_Code::DIGIT_6:    case core::Action_Code::DIGIT_7:    case core::Action_Code::DIGIT_8:
+        case core::Action_Code::DIGIT_9:    case core::Action_Code::DECIMAL:
+        case core::Action_Code::HEX_A:      case core::Action_Code::HEX_B:      case core::Action_Code::HEX_C:
+        case core::Action_Code::HEX_D:      case core::Action_Code::HEX_E:      case core::Action_Code::HEX_F:
+        case core::Action_Code::ADD:        case core::Action_Code::SUBTRACT:   case core::Action_Code::MULTIPLY:
+        case core::Action_Code::DIVIDE:     case core::Action_Code::POWER_N:    case core::Action_Code::POWER_2:
+        case core::Action_Code::PERCENT:    case core::Action_Code::FACTORIAL:  case core::Action_Code::RECIPROCAL:
+        case core::Action_Code::PAREN_OPEN: case core::Action_Code::PAREN_CLOSE:
+        case core::Action_Code::SIN:        case core::Action_Code::COS:        case core::Action_Code::TAN:
+        case core::Action_Code::ASIN:       case core::Action_Code::ACOS:       case core::Action_Code::ATAN:
+        case core::Action_Code::LOG:        case core::Action_Code::LN:         case core::Action_Code::EXP:
+        case core::Action_Code::SQRT:
+        case core::Action_Code::PI:         case core::Action_Code::EULER:      case core::Action_Code::PHI: case core::Action_Code::TAU:
+        case core::Action_Code::BIT_AND:    case core::Action_Code::BIT_OR:     case core::Action_Code::BIT_XOR:
+        case core::Action_Code::SHIFT_LEFT: case core::Action_Code::SHIFT_RIGHT:
+        case core::Action_Code::APPROX:
             try_insert(code);
             break;
 
-        case core::Key_Code::NEGATE:
+        case core::Action_Code::NEGATE:
             if (!m_state.expression.empty()) {
-                m_state.expression.insert(core::Key_Code::SUBTRACT);
+                m_state.expression.insert(core::Action_Code::SUBTRACT);
                 m_state.display_value = m_state.expression.render_string();
             }
             break;
 
-        case core::Key_Code::CURSOR_LEFT:
+        case core::Action_Code::CURSOR_LEFT:
             m_state.expression.cursor_left();
             break;
 
-        case core::Key_Code::CURSOR_RIGHT:
+        case core::Action_Code::CURSOR_RIGHT:
             m_state.expression.cursor_right();
             break;
 
-        case core::Key_Code::BACKSPACE:
+        case core::Action_Code::BACKSPACE:
             m_state.expression.backspace();
             m_state.display_value = m_state.expression.empty() ? "0" : m_state.expression.render_string();
             break;
 
-        case core::Key_Code::CLEAR:
+        case core::Action_Code::CLEAR:
             m_state.expression.clear();
             m_state.display_value = "0";
             break;
 
-        case core::Key_Code::ALL_CLEAR:
+        case core::Action_Code::ALL_CLEAR:
             reset();
             break;
 
-        case core::Key_Code::MEM_STORE:
+        case core::Action_Code::MEM_STORE:
             try {
                 m_state.memory = Parser(m_state.expression.eval_string()).parse()->eval();
             } catch (...) {}
             break;
-        case core::Key_Code::MEM_RECALL:
-            try_insert(core::Key_Code::EULER); // placeholder — MEM_RECALL inserts numeric string
+        case core::Action_Code::MEM_RECALL:
+            try_insert(core::Action_Code::EULER); // placeholder — MEM_RECALL inserts numeric string
             break;
-        case core::Key_Code::MEM_ADD:
+        case core::Action_Code::MEM_ADD:
             try {
                 m_state.memory += Parser(m_state.expression.eval_string()).parse()->eval();
             } catch (...) {}
             break;
-        case core::Key_Code::MEM_CLEAR:
+        case core::Action_Code::MEM_CLEAR:
             m_state.memory = 0.0;
             break;
 
-        case core::Key_Code::EQUALS:
-        case core::Key_Code::EVAL:
+        case core::Action_Code::EQUALS:
+        case core::Action_Code::EVAL:
             evaluate();
             break;
 
@@ -143,8 +143,8 @@ void Calc_Engine::handle_key( core::Key_Code code ) {
 /****************************/
 /*    Expression Insert     */
 /****************************/
-void Calc_Engine::try_insert( core::Key_Code code ) {
-    s_logger.debug("try_insert: key_code=" + std::to_string(static_cast<int>(code)));
+void Calc_Engine::try_insert( core::Action_Code code ) {
+    s_logger.debug("try_insert: action_code=" + std::to_string(static_cast<int>(code)));
     m_state.expression.insert(code);
     m_state.display_value = m_state.expression.render_string();
     s_logger.debug("Expression after insert: " + m_state.display_value);

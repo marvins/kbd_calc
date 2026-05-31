@@ -58,7 +58,7 @@ class Calc_Engine {
          *
          * @param code Key code
          */
-        void handle_key( ovb::core::Key_Code code );
+        void handle_key( core::Action_Code code );
 
         /**
          * @brief Get the current calculation state
@@ -93,7 +93,7 @@ class Calc_Engine {
         bool       m_result_shown;
 
         /// @brief Try to insert a key code into the expression
-        void          try_insert( ovb::core::Key_Code code );
+        void          try_insert( core::Action_Code code );
 
         /// @brief Evaluate the current expression
         void          evaluate();

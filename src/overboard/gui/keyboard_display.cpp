@@ -134,9 +134,9 @@ void Keyboard_Display::build_keys(lv_obj_t* parent) {
         }
 
         LOG_TRACE("build_keys: Getting display text for key " + std::to_string(i));
-        auto key_code = layer.keys[static_cast<std::size_t>(i)];
-        LOG_TRACE("build_keys: Key " + std::to_string(i) + " has key_code=" + std::to_string(static_cast<int>(key_code)));
-        const std::string text = core::key_code_to_display(key_code);
+        auto action_code = layer.keys[static_cast<std::size_t>(i)];
+        LOG_TRACE("build_keys: Key " + std::to_string(i) + " has action_code=" + std::to_string(static_cast<int>(action_code)));
+        const std::string text = core::action_code_to_display(action_code);
         LOG_TRACE("build_keys: Display text for key " + std::to_string(i) + " is: '" + text + "' (length=" + std::to_string(text.length()) + ")");
 
         // Set label text - empty string for unassigned keys
@@ -153,10 +153,10 @@ void Keyboard_Display::build_keys(lv_obj_t* parent) {
         lv_obj_set_style_text_color(lbl, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
 
         // Use custom superscript font for power buttons and square root
-        if (key_code == core::Key_Code::POWER_2 ||
-            key_code == core::Key_Code::POWER_3 ||
-            key_code == core::Key_Code::POWER_N ||
-            key_code == core::Key_Code::SQRT) {
+        if (action_code == core::Action_Code::POWER_2 ||
+            action_code == core::Action_Code::POWER_3 ||
+            action_code == core::Action_Code::POWER_N ||
+            action_code == core::Action_Code::SQRT) {
             lv_obj_set_style_text_font(lbl, &lv_font_superscript, LV_PART_MAIN);
         }
 
@@ -182,14 +182,14 @@ void Keyboard_Display::update_layer() {
 
     for (std::size_t i = 0; i < key_count; ++i) {
         if (!m_key_labels[i]) continue;
-        const std::string text = core::key_code_to_display(layer.keys[i]);
+        const std::string text = core::action_code_to_display(layer.keys[i]);
         lv_label_set_text(m_key_labels[i], text.c_str());
 
         // Use custom superscript font for power buttons and square root
-        if (layer.keys[i] == core::Key_Code::POWER_2 ||
-            layer.keys[i] == core::Key_Code::POWER_3 ||
-            layer.keys[i] == core::Key_Code::POWER_N ||
-            layer.keys[i] == core::Key_Code::SQRT) {
+        if (layer.keys[i] == core::Action_Code::POWER_2 ||
+            layer.keys[i] == core::Action_Code::POWER_3 ||
+            layer.keys[i] == core::Action_Code::POWER_N ||
+            layer.keys[i] == core::Action_Code::SQRT) {
             lv_obj_set_style_text_font(m_key_labels[i], &lv_font_superscript, LV_PART_MAIN);
         } else {
             lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_DEFAULT, LV_PART_MAIN);

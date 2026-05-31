@@ -4,14 +4,11 @@
  * @date 2026-05-22
  * @brief SDL keyboard to calculator key mapping
  *
- * Maps physical SDL keyboard keys to calculator key indices.
+ * Maps Input_Key codes (hardware-agnostic) to calculator key indices.
  * This is SDL simulator-specific and separate from the RP2350 HAL.
  *
- * Default mapping:
- *   - Arrow keys: CURSOR_LEFT/RIGHT/UP/DOWN
- *   - qwe/asd/zxc: Top-left 3x3 grid of calculator keys
- *
- * Future: Load from config file for customization.
+ * The mapping is loaded from keymap.json which uses Input_Key names
+ * (e.g., "KEY_1", "NUMPAD_7", "F1") for hardware portability.
  */
 #pragma once
 
@@ -22,72 +19,62 @@
 #include <optional>
 #include <string>
 
-// Third-Party Libraries
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#include <SDL2/SDL.h>
-#pragma GCC diagnostic pop
+// Project Libraries
+#include <overboard/core/input_key.hpp>
 
 namespace ovb::hal::sdl {
 
 /**
  * @brief SDL to calculator key mapping
  *
- * Maps SDL scancodes to calculator key indices (0-29).
+ * Maps Input_Key codes to calculator key indices (0-29).
  * -1 indicates no mapping.
  */
 class SDL_Keymap {
     public:
         /// Number of mappable keys in calculator grid
-        static constexpr int KEY_COUNT = 30;
+        static constexpr int KEY_COUNT = 40;
 
         /// Default constructor sets up standard mapping
         SDL_Keymap();
 
         /**
-         * @brief Get calculator key index for SDL scancode
-         * @param scancode SDL scancode
-         * @return Key index (0-29) or std::nullopt if not mapped
+         * @brief Get calculator key index for Input_Key
+         * @param input_key Hardware-agnostic input key
+         * @return Key index (0-39) or std::nullopt if not mapped
          */
-        std::optional<int> get_key_index(SDL_Scancode scancode) const;
+        std::optional<int> get_key_index(core::Input_Key input_key) const;
 
         /**
-         * @brief Get calculator key index for SDL keycode
-         * @param keycode SDL keycode
-         * @return Key index (0-29) or std::nullopt if not mapped
+         * @brief Bind an Input_Key to a calculator key index
+         * @param input_key Hardware-agnostic input key
+         * @param key_index Calculator key index (0-39), or -1 to unbind
          */
-        std::optional<int> get_key_index_from_keycode(SDL_Keycode keycode) const;
+        void bind(core::Input_Key input_key, int key_index);
 
         /**
-         * @brief Bind a scancode to a calculator key index
-         * @param scancode SDL scancode
-         * @param key_index Calculator key index (0-29), or -1 to unbind
+         * @brief Unbind an Input_Key
+         * @param input_key Input key to unbind
          */
-        void bind(SDL_Scancode scancode, int key_index);
+        void unbind(core::Input_Key input_key);
 
         /**
-         * @brief Unbind a scancode
-         * @param scancode SDL scancode to unbind
-         */
-        void unbind(SDL_Scancode scancode);
-
-        /**
-         * @brief Clear all scancode bindings (all keys unmapped)
+         * @brief Clear all bindings (all keys unmapped)
          */
         void reset_to_defaults();
 
         /**
-         * @brief Load scancode bindings from a pre-built name->index map
-         * @param scancode_map Map of SDL scancode name strings to key indices
+         * @brief Load bindings from a pre-built name->index map
+         * @param input_key_map Map of Input_Key name strings to key indices
          *
          * Clears all existing bindings, then applies the provided map.
-         * Unrecognised scancode name strings are silently ignored.
+         * Unrecognised key name strings are silently ignored.
          */
-        void load_from_map(const std::map<std::string, int>& scancode_map);
+        void load_from_map(const std::map<std::string, int>& input_key_map);
 
     private:
-        // Map SDL scancode to calculator key index
-        std::array<int, SDL_NUM_SCANCODES> m_scancode_map;
+        // Map Input_Key to calculator key index
+        std::array<int, static_cast<size_t>(core::Input_Key::CALC_ENTER) + 1> m_input_key_map;
 };
 
 } // namespace ovb::hal::sdl

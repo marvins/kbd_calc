@@ -42,6 +42,8 @@ endif()
 set(CORE_SOURCES
     src/overboard/core/config.cpp
     src/overboard/core/keymap.cpp
+    src/overboard/core/action_code.cpp
+    src/overboard/core/input_key.cpp
     src/overboard/core/keyboard_layout.cpp
     src/overboard/core/layer_manager.cpp
     src/overboard/font/font_metrics.cpp
@@ -149,8 +151,11 @@ if( BUILD_TESTS )
         test/math/test_calc_engine.cpp
         test/math/test_expression.cpp
         test/core/test_layout.cpp
-        test/core/test_keymap.cpp
+        test/core/test_action_code.cpp
+        test/core/test_input_key.cpp
         src/overboard/core/keymap.cpp
+        src/overboard/core/action_code.cpp
+        src/overboard/core/input_key.cpp
         src/overboard/core/layer_manager.cpp
         src/overboard/font/font_metrics.cpp
         src/overboard/math/ast/binary_op_node.cpp

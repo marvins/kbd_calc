@@ -16,137 +16,19 @@
 #include <string_view>
 #include <vector>
 
+// Project Libraries
+#include <overboard/core/action_code.hpp>
+
 namespace ovb::core {
 
-/**
- * @brief Key code enumeration
- */
-enum class Key_Code : uint16_t {
-    NONE = 0,
-
-    // Digits
-    DIGIT_0,
-    DIGIT_1,
-    DIGIT_2,
-    DIGIT_3,
-    DIGIT_4,
-    DIGIT_5,
-    DIGIT_6,
-    DIGIT_7,
-    DIGIT_8,
-    DIGIT_9,
-
-    // Basic ops
-    ADD,
-    SUBTRACT,
-    MULTIPLY,
-    DIVIDE,
-    EQUALS,
-    EVAL,
-    APPROX,
-    DECIMAL,
-    CLEAR,
-    ALL_CLEAR,
-    BACKSPACE,
-
-    // Grouping / extra basic
-    PAREN_OPEN,
-    PAREN_CLOSE,
-    PERCENT,
-    NEGATE,
-
-    // Memory
-    MEM_STORE,
-    MEM_RECALL,
-    MEM_ADD,
-    MEM_CLEAR,
-
-    // Scientific
-    SIN,
-    COS,
-    TAN,
-    ASIN,
-    ACOS,
-    ATAN,
-    LOG,
-    LN,
-    EXP,
-    SQRT,
-    POWER_2,
-    POWER_3,
-    POWER_N,
-    FACTORIAL,
-    RECIPROCAL,
-    PI,
-    EULER,
-    CEIL,
-    FLOOR,
-    ABS,
-
-    // Programmer
-    BIT_AND,
-    BIT_OR,
-    BIT_XOR,
-    BIT_NOT,
-    SHIFT_LEFT,
-    SHIFT_RIGHT,
-    HEX_A,
-    HEX_B,
-    HEX_C,
-    HEX_D,
-    HEX_E,
-    HEX_F,
-
-    // Constants
-    PHI,
-    TAU,
-
-    // Meta / control
-    LAYER_NEXT,
-    LAYER_PREV,
-    LAYER_CONST,
-    LAYER_ALG,
-    LAYER_TRIG,
-    LAYER_VAR,
-    LAYER_HOME,
-
-    // Display mode
-    TOGGLE_MATH_LAYOUT,
-
-    // Navigation
-    CURSOR_LEFT,
-    CURSOR_RIGHT,
-    CURSOR_UP,
-    CURSOR_DOWN,
-    PAGE_UP,
-    PAGE_DOWN,
-};
+static constexpr int LAYER_COUNT = 5;  // Number of keyboard layers
 
 /**
- * @brief Convert string to key code
- * @param str String representation of key code
- * @return Key code value, or Key_Code::NONE if not found
- */
-Key_Code string_to_key_code(const std::string& str);
-
-/**
- * @brief Get display string for a key code
- * @param code Key code
- * @return Display string suitable for LVGL rendering
- */
-std::string key_code_to_display(Key_Code code);
-
-static constexpr int GRID_COLS = 8;
-static constexpr int GRID_ROWS = 7;
-static constexpr int DEFAULT_GRID_KEYS = 34;  // Default key count for MF34
-static constexpr int LAYER_COUNT = 5;         // Number of keyboard layers
-
-/**
- * @brief Represents a keyboard layer with its name and key mappings
+ * @brief Represents a keyboard layer with its name and action mappings
  */
 struct Layer {
-    std::string             name;
-    std::vector<Key_Code>   keys;
+    std::string              name;
+    std::vector<Action_Code> keys;
 };
 
 /**
@@ -193,13 +75,13 @@ class Keymap {
         const Layer& get_layer(std::size_t index) const;
 
         /**
-         * @brief Retrieves a key code from a specific layer.
+         * @brief Retrieves an action code from a specific layer.
          * @param layer The layer index.
          * @param key_index The key index within that layer.
-         * @return Key code for the specified key.
+         * @return Action code for the specified key.
          */
-        Key_Code get_key( std::size_t layer,
-                          std::size_t key_index ) const;
+        Action_Code get_action( std::size_t layer,
+                               std::size_t key_index ) const;
 
     private:
         std::array<Layer, LAYER_COUNT> m_layers;  ///< Layer definitions

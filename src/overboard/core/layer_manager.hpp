@@ -23,7 +23,9 @@ namespace ovb::core {
  * the active layer index.
  */
 class Layer_Manager {
+
     public:
+
         /**
          * @brief Construct layer manager with keymap
          * @param keymap Reference to keymap defining all layers
@@ -45,19 +47,26 @@ class Layer_Manager {
          */
         void           set_layer(int index);
 
-        /// @brief Get the currently active layer definition
+        /**
+         * @brief Get the currently active layer definition
+         * @return Reference to the current layer
+         */
         const Layer&   current_layer() const;
 
         /**
-         * @brief Get key code at index from current layer
+         * @brief Get action code at index from current layer
          * @param key_index Key position in the layout grid
-         * @return Key code for the specified key
+         * @return Action code for the specified key
          */
-        Key_Code key_at(int key_index) const;
+        Action_Code action_at(int key_index) const;
 
     private:
-        const Keymap& m_keymap;        ///< Reference to keymap with all layers
-        int           m_active_layer;  ///< Currently active layer index
+
+        /// @brief Reference to keymap with all layers
+        const Keymap& m_keymap;
+
+        /// @brief Currently active layer index
+        int           m_active_layer;
 };
 
 } // namespace ovb::core

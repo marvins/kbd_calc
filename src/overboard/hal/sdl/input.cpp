@@ -12,6 +12,10 @@
 #include <csignal>
 #include <cstring>
 
+// Project Libraries
+#include <overboard/hal/sdl/input_key_mapping.hpp>
+#include <overboard/log/stdout_logger.hpp>
+
 namespace ovb::hal::sdl {
 
 // Static flag for signal handling (Ctrl-C / SIGINT)
@@ -61,6 +65,9 @@ void SDL_Input::pump() {
 
         // Handle keyboard events (global - not tied to a specific window)
         if (ev.type == SDL_KEYDOWN && ev.key.repeat == 0) {
+            auto input_key = scancode_to_input_key(ev.key.keysym.scancode);
+            LOG_DEBUG("KEYDOWN: scancode=", std::to_string(ev.key.keysym.scancode),
+                      ", input_key=", input_key_to_string(input_key));
             // Handle Command-Q on macOS for quit
 #ifdef __APPLE__
             if (ev.key.keysym.sym == SDLK_q && (ev.key.keysym.mod & KMOD_GUI)) {
@@ -74,15 +81,18 @@ void SDL_Input::pump() {
                 return;
             }
 #endif
-            auto key_idx = m_keymap.get_key_index(ev.key.keysym.scancode);
+            auto key_idx = m_keymap.get_key_index(input_key);
             if (key_idx.has_value()) {
+                LOG_DEBUG("  -> Mapped to key_index=", std::to_string(key_idx.value()));
                 m_event_queue.push({key_idx.value(), Key_Event_Type::Press});
             } else {
+                LOG_DEBUG("  -> NOT MAPPED");
                 // Not a mapped key - push back to queue for LVGL to handle
                 SDL_PushEvent(&ev);
             }
         } else if (ev.type == SDL_KEYUP) {
-            auto key_idx = m_keymap.get_key_index(ev.key.keysym.scancode);
+            auto input_key = scancode_to_input_key(ev.key.keysym.scancode);
+            auto key_idx = m_keymap.get_key_index(input_key);
             if (key_idx.has_value()) {
                 m_event_queue.push({key_idx.value(), Key_Event_Type::Release});
             } else {

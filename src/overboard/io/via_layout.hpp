@@ -34,7 +34,7 @@ struct Via_Key {
     double h;        ///< Height in key units (default 1.0)
     std::string label;    ///< Display label
     std::string code;     ///< Internal key code
-    std::string scancode; ///< HAL scancode name (e.g. "SDL_SCANCODE_F13")
+    std::string input_key; ///< Hardware-agnostic input key name (e.g. "KEY_1", "NUMPAD_7")
 };
 
 /**
@@ -92,11 +92,11 @@ core::Size2d calculate_bounds(const Via_Layout& layout);
 core::Grid_Layout to_grid_layout( const Via_Layout& via_layout );
 
 /**
- * @brief Build a map from SDL scancode name -> key index
- * @param layout Parsed VIA layout (must have scancode fields populated)
- * @return Map of scancode name string -> key index
+ * @brief Build a map from Input_Key name -> key index
+ * @param layout Parsed VIA layout (must have input_key fields populated)
+ * @return Map of input_key name string -> key index
  */
-std::map<std::string, int> build_scancode_index_map( const Via_Layout& layout );
+std::map<std::string, int> build_input_key_index_map( const Via_Layout& layout );
 
 /**
  * @brief Build a map from matrix position (row, col) -> key index
@@ -106,11 +106,11 @@ std::map<std::string, int> build_scancode_index_map( const Via_Layout& layout );
 std::map<std::pair<int, int>, int> build_matrix_index_map( const Via_Layout& layout );
 
 /**
- * @brief Load scancodes from a keymap JSON file and apply to an existing layout
- * @param layout Layout to update with scancode data
- * @param keymap_path Path to the keymap JSON file (contains top-level "scancodes" object)
+ * @brief Load input_keys from a keymap JSON file and apply to an existing layout
+ * @param layout Layout to update with input_key data
+ * @param keymap_path Path to the keymap JSON file (contains top-level "input_keys" object)
  */
-void apply_scancodes_from_json( Via_Layout&                  layout,
-                                const std::filesystem::path& keymap_path );
+void apply_input_keys_from_json( Via_Layout&                  layout,
+                                 const std::filesystem::path& keymap_path );
 
 } // namespace ovb::io

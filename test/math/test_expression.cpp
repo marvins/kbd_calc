@@ -13,14 +13,14 @@
 
 using namespace ovb;
 
-using KC = core::Key_Code;
+using AC = core::Action_Code;
 
 /****************************/
 /*        Helpers           */
 /****************************/
 static void press( math::Expression& e,
-                   std::initializer_list<KC> keys ) {
-    for (KC k : keys)
+                   std::initializer_list<AC> keys ) {
+    for (AC k : keys)
         e.insert( k);
 }
 
@@ -33,7 +33,7 @@ static void press( math::Expression& e,
 /*************************************************************/
 TEST(Expression, number_digits_build_single_number) {
     math::Expression e;
-    press( e, { KC::DIGIT_1, KC::DIGIT_2, KC::DIGIT_3 });
+    press( e, { AC::DIGIT_1, AC::DIGIT_2, AC::DIGIT_3 });
     EXPECT_EQ(e.eval_string(), "123");
 }
 
@@ -42,7 +42,7 @@ TEST(Expression, number_digits_build_single_number) {
 /*************************************************************/
 TEST(Expression, number_with_decimal) {
     math::Expression e;
-    press( e, { KC::DIGIT_3, KC::DECIMAL, KC::DIGIT_1 });
+    press( e, { AC::DIGIT_3, AC::DECIMAL, AC::DIGIT_1 });
     EXPECT_EQ(e.eval_string(), "3.1");
 }
 
@@ -51,7 +51,7 @@ TEST(Expression, number_with_decimal) {
 /*************************************************************/
 TEST(Expression, number_leading_decimal_starts_number) {
     math::Expression e;
-    press( e, { KC::DECIMAL, KC::DIGIT_5 });
+    press( e, { AC::DECIMAL, AC::DIGIT_5 });
     EXPECT_EQ(e.eval_string(), "0.5");
 }
 
@@ -60,7 +60,7 @@ TEST(Expression, number_leading_decimal_starts_number) {
 /*************************************************************/
 TEST(Expression, number_two_numbers_separated_by_operator) {
     math::Expression e;
-    press( e, { KC::DIGIT_1, KC::ADD, KC::DIGIT_2 });
+    press( e, { AC::DIGIT_1, AC::ADD, AC::DIGIT_2 });
     EXPECT_EQ(e.eval_string(), "1+2");
 }
 
@@ -69,7 +69,7 @@ TEST(Expression, number_two_numbers_separated_by_operator) {
 /*************************************************************/
 TEST(Expression, number_decimal_allowed_in_second_number) {
     math::Expression e;
-    press( e, { KC::DIGIT_1, KC::ADD, KC::DIGIT_2, KC::DECIMAL, KC::DIGIT_3 });
+    press( e, { AC::DIGIT_1, AC::ADD, AC::DIGIT_2, AC::DECIMAL, AC::DIGIT_3 });
     EXPECT_EQ(e.eval_string(), "1+2.3");
 }
 
@@ -82,7 +82,7 @@ TEST(Expression, number_decimal_allowed_in_second_number) {
 /*************************************************************/
 TEST(Expression, backspace_deletes_function_atomically) {
     math::Expression e;
-    press( e, { KC::SIN });
+    press( e, { AC::SIN });
     e.backspace( );
     EXPECT_TRUE(e.empty());
     EXPECT_EQ(e.eval_string(), "");
@@ -93,7 +93,7 @@ TEST(Expression, backspace_deletes_function_atomically) {
 /*************************************************************/
 TEST(Expression, backspace_deletes_constant_atomically) {
     math::Expression e;
-    press( e, { KC::PI });
+    press( e, { AC::PI });
     e.backspace( );
     EXPECT_TRUE(e.empty());
 }
@@ -103,7 +103,7 @@ TEST(Expression, backspace_deletes_constant_atomically) {
 /*************************************************************/
 TEST(Expression, backspace_removes_single_digit_number) {
     math::Expression e;
-    press( e, { KC::DIGIT_1 });
+    press( e, { AC::DIGIT_1 });
     e.backspace( );
     EXPECT_TRUE(e.empty());
 }
@@ -117,6 +117,43 @@ TEST(Expression, backspace_does_nothing_at_start) {
     EXPECT_TRUE(e.empty());
 }
 
+/*************************************************************/
+/*   Backspace removes last digit from multi-digit number    */
+/*************************************************************/
+TEST(Expression, backspace_removes_last_digit) {
+    math::Expression e;
+    press( e, { AC::DIGIT_1, AC::DIGIT_2, AC::DIGIT_3 });
+    EXPECT_EQ(e.eval_string(), "123");
+    e.backspace( );
+    EXPECT_EQ(e.eval_string(), "12");
+}
+
+/*************************************************************/
+/*   Backspace removes operator and joins numbers              */
+/*************************************************************/
+TEST(Expression, backspace_removes_operator) {
+    math::Expression e;
+    press( e, { AC::DIGIT_1, AC::ADD, AC::DIGIT_2 });
+    EXPECT_EQ(e.eval_string(), "1+2");
+    e.backspace( );
+    // After backspace, the 2 is removed
+    EXPECT_EQ(e.eval_string(), "1");
+}
+
+/*************************************************************/
+/*   Backspace in middle of expression via cursor              */
+/*************************************************************/
+TEST(Expression, backspace_after_moving_cursor) {
+    math::Expression e;
+    press( e, { AC::DIGIT_1, AC::ADD, AC::DIGIT_2 });
+    // Move cursor left to position after "1+"
+    e.cursor_left( );
+    EXPECT_EQ(e.cursor_glyph_pos(), 2);
+    // Backspace should remove the "+" operator
+    e.backspace( );
+    EXPECT_EQ(e.eval_string(), "1");
+}
+
 /****************************/
 /*      Cursor movement     */
 /****************************/
@@ -126,7 +163,7 @@ TEST(Expression, backspace_does_nothing_at_start) {
 /*************************************************************/
 TEST(Expression, cursor_glyph_pos_at_end) {
     math::Expression e;
-    press( e, { KC::DIGIT_1, KC::DIGIT_2 });
+    press( e, { AC::DIGIT_1, AC::DIGIT_2 });
     EXPECT_EQ(e.cursor_glyph_pos(), 2);
 }
 
@@ -135,10 +172,74 @@ TEST(Expression, cursor_glyph_pos_at_end) {
 /*************************************************************/
 TEST(Expression, cursor_right_does_nothing_at_end) {
     math::Expression e;
-    press( e, { KC::DIGIT_1 });
+    press( e, { AC::DIGIT_1 });
     std::size_t pos = e.cursor_glyph_pos();
     e.cursor_right( );
     EXPECT_EQ(e.cursor_glyph_pos(), pos);
+}
+
+/*************************************************************/
+/*   Cursor left moves to previous position                  */
+/*************************************************************/
+TEST(Expression, cursor_left_moves_back) {
+    math::Expression e;
+    press( e, { AC::DIGIT_1, AC::DIGIT_2 });
+    EXPECT_EQ(e.cursor_glyph_pos(), 2);
+    e.cursor_left( );
+    EXPECT_EQ(e.cursor_glyph_pos(), 1);
+}
+
+/*************************************************************/
+/*   Cursor left at start is no-op                           */
+/*************************************************************/
+TEST(Expression, cursor_left_does_nothing_at_start) {
+    math::Expression e;
+    press( e, { AC::DIGIT_1 });
+    e.cursor_left( );
+    EXPECT_EQ(e.cursor_glyph_pos(), 0);
+    e.cursor_left( );
+    EXPECT_EQ(e.cursor_glyph_pos(), 0);
+}
+
+/*************************************************************/
+/*   Cursor navigation through operators                     */
+/*************************************************************/
+TEST(Expression, cursor_navigation_through_expression) {
+    math::Expression e;
+    press( e, { AC::DIGIT_1, AC::ADD, AC::DIGIT_2 });
+    EXPECT_EQ(e.cursor_glyph_pos(), 3);  // "1+2"
+
+    e.cursor_left( );
+    EXPECT_EQ(e.cursor_glyph_pos(), 2);
+
+    e.cursor_left( );
+    EXPECT_EQ(e.cursor_glyph_pos(), 1);
+
+    e.cursor_left( );
+    EXPECT_EQ(e.cursor_glyph_pos(), 0);
+
+    e.cursor_right( );
+    EXPECT_EQ(e.cursor_glyph_pos(), 1);
+
+    e.cursor_right( );
+    EXPECT_EQ(e.cursor_glyph_pos(), 2);
+}
+
+/*************************************************************/
+/*   Cursor navigation in function with argument             */
+/*************************************************************/
+TEST(Expression, cursor_navigation_in_function) {
+    math::Expression e;
+    press( e, { AC::SQRT, AC::DIGIT_4 });
+    // "sqrt(4)" = 7 glyphs
+    EXPECT_EQ(e.cursor_glyph_pos(), 7);
+
+    // Move cursor left through the expression
+    e.cursor_left( );
+    EXPECT_EQ(e.cursor_glyph_pos(), 6);
+
+    e.cursor_left( );
+    EXPECT_EQ(e.cursor_glyph_pos(), 5);
 }
 
 /****************************/
@@ -150,7 +251,7 @@ TEST(Expression, cursor_right_does_nothing_at_end) {
 /*************************************************************/
 TEST(Expression, render_sin_of_pi) {
     math::Expression e;
-    press( e, { KC::SIN, KC::PI });
+    press( e, { AC::SIN, AC::PI });
     EXPECT_EQ(e.eval_string(), "sin(pi)");
 }
 
@@ -159,8 +260,17 @@ TEST(Expression, render_sin_of_pi) {
 /*************************************************************/
 TEST(Expression, render_sqrt_of_number) {
     math::Expression e;
-    press( e, { KC::SQRT, KC::DIGIT_4 });
+    press( e, { AC::SQRT, AC::DIGIT_4 });
     EXPECT_EQ(e.eval_string(), "sqrt(4)");
+}
+
+/*************************************************************/
+/*   sin() renders correctly with argument                   */
+/*************************************************************/
+TEST(Expression, render_sin_of_zero) {
+    math::Expression e;
+    press( e, { AC::SIN, AC::DIGIT_0 });
+    EXPECT_EQ(e.eval_string(), "sin(0)");
 }
 
 /*************************************************************/
@@ -168,7 +278,7 @@ TEST(Expression, render_sqrt_of_number) {
 /*************************************************************/
 TEST(Expression, render_power_2) {
     math::Expression e;
-    press( e, { KC::DIGIT_3, KC::POWER_2 });
+    press( e, { AC::DIGIT_3, AC::POWER_2 });
     EXPECT_EQ(e.eval_string(), "3^2");
 }
 
@@ -181,7 +291,7 @@ TEST(Expression, render_power_2) {
 /*************************************************************/
 TEST(Expression, clear_clears_all) {
     math::Expression e;
-    press( e, { KC::DIGIT_1, KC::ADD, KC::SIN });
+    press( e, { AC::DIGIT_1, AC::ADD, AC::SIN });
     e.clear( );
     EXPECT_TRUE(e.empty());
     EXPECT_EQ(e.eval_string(), "");
@@ -205,7 +315,7 @@ TEST(Expression, empty_expression_has_placeholder) {
 /*************************************************************/
 TEST(Expression, number_expression_no_placeholder) {
     math::Expression e;
-    press( e, { KC::DIGIT_1, KC::DIGIT_2 });
+    press( e, { AC::DIGIT_1, AC::DIGIT_2 });
     EXPECT_FALSE(e.has_placeholder());
 }
 
@@ -214,7 +324,7 @@ TEST(Expression, number_expression_no_placeholder) {
 /*************************************************************/
 TEST(Expression, function_with_arg_no_placeholder) {
     math::Expression e;
-    press( e, { KC::SIN, KC::DIGIT_4 });
+    press( e, { AC::SIN, AC::DIGIT_4 });
     EXPECT_FALSE(e.has_placeholder());
 }
 
@@ -223,7 +333,7 @@ TEST(Expression, function_with_arg_no_placeholder) {
 /*************************************************************/
 TEST(Expression, function_without_arg_has_placeholder) {
     math::Expression e;
-    press( e, { KC::SIN });
+    press( e, { AC::SIN });
     EXPECT_TRUE(e.has_placeholder());
 }
 
@@ -236,7 +346,7 @@ TEST(Expression, function_without_arg_has_placeholder) {
 /*************************************************************/
 TEST(Expression, basic_addition) {
     math::Expression e;
-    press( e, { KC::DIGIT_4, KC::ADD, KC::DIGIT_3 });
+    press( e, { AC::DIGIT_4, AC::ADD, AC::DIGIT_3 });
     EXPECT_EQ(e.eval_string(), "4+3");
 }
 
@@ -245,7 +355,7 @@ TEST(Expression, basic_addition) {
 /*************************************************************/
 TEST(Expression, basic_subtraction) {
     math::Expression e;
-    press( e, { KC::DIGIT_4, KC::SUBTRACT, KC::DIGIT_3 });
+    press( e, { AC::DIGIT_4, AC::SUBTRACT, AC::DIGIT_3 });
     EXPECT_EQ(e.eval_string(), "4-3");
 }
 
@@ -254,7 +364,7 @@ TEST(Expression, basic_subtraction) {
 /*************************************************************/
 TEST(Expression, basic_multiplication) {
     math::Expression e;
-    press( e, { KC::DIGIT_4, KC::MULTIPLY, KC::DIGIT_3 });
+    press( e, { AC::DIGIT_4, AC::MULTIPLY, AC::DIGIT_3 });
     EXPECT_EQ(e.eval_string(), "4*3");
 }
 
@@ -263,7 +373,7 @@ TEST(Expression, basic_multiplication) {
 /*************************************************************/
 TEST(Expression, basic_division) {
     math::Expression e;
-    press( e, { KC::DIGIT_4, KC::DIVIDE, KC::DIGIT_3 });
+    press( e, { AC::DIGIT_4, AC::DIVIDE, AC::DIGIT_3 });
     EXPECT_EQ(e.eval_string(), "4/3");
 }
 
@@ -276,7 +386,7 @@ TEST(Expression, basic_division) {
 /*************************************************************/
 TEST(Expression, factorial_operator) {
     math::Expression e;
-    press( e, { KC::DIGIT_5, KC::FACTORIAL });
+    press( e, { AC::DIGIT_5, AC::FACTORIAL });
     EXPECT_EQ(e.eval_string(), "5!");
 }
 
@@ -285,7 +395,7 @@ TEST(Expression, factorial_operator) {
 /*************************************************************/
 TEST(Expression, reciprocal_operator) {
     math::Expression e;
-    press( e, { KC::DIGIT_2, KC::RECIPROCAL });
+    press( e, { AC::DIGIT_2, AC::RECIPROCAL });
     EXPECT_EQ(e.eval_string(), "1/2");
 }
 
@@ -298,7 +408,7 @@ TEST(Expression, reciprocal_operator) {
 /*************************************************************/
 TEST(Expression, pi_constant) {
     math::Expression e;
-    press( e, { KC::PI });
+    press( e, { AC::PI });
     EXPECT_EQ(e.eval_string(), "pi");
 }
 
@@ -311,7 +421,16 @@ TEST(Expression, pi_constant) {
 /*************************************************************/
 TEST(Expression, nested_function_with_operator) {
     math::Expression e;
-    press( e, { KC::SQRT, KC::DIGIT_4, KC::ADD, KC::DIGIT_3 });
+    press( e, { AC::SQRT, AC::DIGIT_4, AC::ADD, AC::DIGIT_3 });
     EXPECT_EQ(e.eval_string(), "sqrt(4+3)");
+}
+
+/*************************************************************/
+/*   Nested sqrt with division                             */
+/*************************************************************/
+TEST(Expression, nested_sqrt_with_division) {
+    math::Expression e;
+    press( e, { AC::SQRT, AC::DIGIT_4, AC::DIVIDE, AC::DIGIT_3 });
+    EXPECT_EQ(e.eval_string(), "sqrt(4/3)");
 }
 

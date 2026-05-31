@@ -106,19 +106,19 @@ bool SDL_App::init() {
             m_display->screen(), m_layout, m_engine, m_layers);
         LOG_TRACE("App_View created successfully");
 
-        // Load scancode bindings from keymap JSON into the SDL keymap
+        // Load input_key bindings from keymap JSON into the SDL keymap
         if (!m_layout_path.empty() && !m_keymap_path.empty()) {
-            LOG_TRACE("Loading scancode bindings from " + m_layout_path.string());
+            LOG_TRACE("Loading input_key bindings from " + m_layout_path.string());
             try {
                 auto via_layout = io::parse_via_layout(m_layout_path);
-                io::apply_scancodes_from_json(via_layout, m_keymap_path);
-                auto sc_map = io::build_scancode_index_map(via_layout);
-                if (!sc_map.empty()) {
-                    m_sdl_keymap.load_from_map(sc_map);
+                io::apply_input_keys_from_json(via_layout, m_keymap_path);
+                auto key_map = io::build_input_key_index_map(via_layout);
+                if (!key_map.empty()) {
+                    m_sdl_keymap.load_from_map(key_map);
                 }
-                LOG_TRACE("Scancode bindings loaded successfully");
+                LOG_TRACE("Input key bindings loaded successfully");
             } catch (const std::exception& e) {
-                std::cerr << "Warning: failed to load scancodes: " << e.what() << "\n";
+                std::cerr << "Warning: failed to load input_keys: " << e.what() << "\n";
             }
         }
 
@@ -180,31 +180,32 @@ void SDL_App::on_key_clicked(int key_index, void* user_data) {
 /*        Handle Keypress        */
 /*********************************/
 void SDL_App::handle_key(int key_index) {
-    const core::Key_Code code = m_layers.key_at(key_index);
-    LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + ", key_code=" + std::to_string(static_cast<int>(code)) + " (" + core::key_code_to_display(code) + ")");
+
+    const core::Action_Code code = m_layers.action_at(key_index);
+    LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + ", action_code=" + std::to_string(static_cast<int>(code)) + " (" + core::action_code_to_display(code) + ")");
 
     switch (code) {
-        case core::Key_Code::LAYER_NEXT:
+        case core::Action_Code::NEXT_LAYER:
             m_layers.next_layer();
             m_view->update_layer();
             break;
-        case core::Key_Code::LAYER_PREV:
+        case core::Action_Code::PREV_LAYER:
             m_layers.prev_layer();
             m_view->update_layer();
             break;
-        case core::Key_Code::LAYER_CONST:
+        case core::Action_Code::GO_CONST_LAYER:
             m_layers.set_layer(2);
             m_view->update_layer();
             break;
-        case core::Key_Code::LAYER_ALG:
+        case core::Action_Code::GO_ALG_LAYER:
             m_layers.set_layer(4);
             m_view->update_layer();
             break;
-        case core::Key_Code::LAYER_HOME:
+        case core::Action_Code::GO_HOME_LAYER:
             m_layers.set_layer(0);
             m_view->update_layer();
             break;
-        case core::Key_Code::TOGGLE_MATH_LAYOUT:
+        case core::Action_Code::TOGGLE_MATH_LAYOUT:
             m_engine.toggle_math_layout();
             break;
         default:
