@@ -68,6 +68,13 @@ class Calc_Engine {
         const Calc_State& state() const;
 
         /**
+         * @brief Check if a result is currently displayed
+         *
+         * @return true if result is shown, false if expression is being edited
+         */
+        bool result_shown() const;
+
+        /**
          * @brief Reset the calculator state
          */
         void reset();

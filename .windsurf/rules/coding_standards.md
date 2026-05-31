@@ -64,6 +64,21 @@ inline constexpr uint32_t SPI_SPEED { 25'000'000 };
 - Prefer `const` references over copies for non-trivial parameters
 - All files end with a newline
 
+## Unused Parameters
+Use `[[maybe_unused]]` attribute instead of `(void)variable;` to suppress unused parameter warnings:
+
+```cpp
+// Preferred
+void my_function([[maybe_unused]] int param) {
+    // param intentionally unused
+}
+
+// Avoid
+void my_function(int param) {
+    (void)param;
+}
+```
+
 ## .cpp File Organization
 In `.cpp` source files, add a 3-line comment block before each function implementation to aid navigation when scrolling:
 

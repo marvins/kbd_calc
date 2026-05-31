@@ -30,34 +30,31 @@ static log::Stdout_Logger s_math_logger(log::Log_Level::Debug);
 /************************************/
 /*       Draw Math To Canvas        */
 /************************************/
-void draw_math_to_canvas( lv_obj_t*              canvas,
-                          int                    width,
-                          int                    height,
-                          math::layout::Layout_Engine& layout_engine,
-                          const std::string&     expr_str )
+void draw_math_to_canvas( lv_obj_t*                     canvas,
+                          int                           width,
+                          int                           height,
+                          math::layout::Layout_Engine&  layout_engine,
+                          const math::ast::Node::ptr_t& ast,
+                          const std::string&            result_str )
 {
-    // Set canvas buffer if not already set
-    static std::vector<uint32_t> canvas_buf;
-    if (canvas_buf.size() != static_cast<size_t>(width * height)) {
-        canvas_buf.resize(static_cast<size_t>(width * height));
-        lv_canvas_set_buffer(canvas, canvas_buf.data(), width, height, LV_COLOR_FORMAT_ARGB8888);
-    }
-
     // Clear canvas to light background
     lv_canvas_fill_bg(canvas, lvgl_color(LVGL_COLOR_BG_CANVAS), LV_OPA_COVER);
 
-    if (expr_str.empty()) return;
+    if (!ast) return;
 
-    // Parse and layout the expression
+    // Create draw layer for canvas
+    lv_layer_t layer;
+    lv_canvas_init_layer(canvas, &layer);
+
+    // Build layout from AST (upper left)
     try {
-        math::Parser parser(expr_str);
-        auto ast = parser.parse();
+        s_math_logger.debug("Rendering AST");
         auto box = layout_engine.build(ast.get());
-        layout_engine.prepare(box, {width, height});
-
-        // Create draw layer for canvas
-        lv_layer_t layer;
-        lv_canvas_init_layer(canvas, &layer);
+        // Use full canvas size for layout
+        s_math_logger.debug("Layout size: " + std::to_string(width) + "x" + std::to_string(height));
+        // Measure and position at upper left (0,0) instead of centering
+        layout_engine.measure(box);
+        layout_engine.layout(box, {0, 0});
 
         // Draw boxes recursively
         std::function<void(const math::layout::Layout_Box&, int, int)> draw_box;
@@ -127,32 +124,32 @@ void draw_math_to_canvas( lv_obj_t*              canvas,
         };
 
         draw_box(box, 0, 0);
-        lv_canvas_finish_layer(canvas, &layer);
 
     } catch (const std::exception& e) {
-        s_math_logger.error("Math render error: " + std::string(e.what()) +
-                            " | Expression: " + expr_str);
-
-        lv_layer_t layer;
-        lv_canvas_init_layer(canvas, &layer);
-
-        lv_draw_label_dsc_t label_dsc;
-        lv_draw_label_dsc_init(&label_dsc);
-        label_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
-        label_dsc.font  = LVGL_FONT_DEFAULT;
-        label_dsc.opa   = LV_OPA_COVER;
-
-        lv_area_t coords = {
-            10,
-            static_cast<int32_t>(height / 2 - 10),
-            static_cast<int32_t>(width - 10),
-            static_cast<int32_t>(height / 2 + 20)
-        };
-        label_dsc.text = expr_str.c_str();
-        lv_draw_label(&layer, &label_dsc, &coords);
-
-        lv_canvas_finish_layer(canvas, &layer);
+        s_math_logger.error("Math render error: " + std::string(e.what()));
     }
+
+    // Draw result in lower right if present
+    if (!result_str.empty()) {
+        lv_draw_label_dsc_t result_dsc;
+        lv_draw_label_dsc_init(&result_dsc);
+        result_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
+        result_dsc.font  = LVGL_FONT_DEFAULT;
+        result_dsc.opa   = LV_OPA_COVER;
+
+        // Result in lower right
+        lv_area_t result_coords = {
+            static_cast<int32_t>(width / 2),   // Start at 50% width
+            static_cast<int32_t>(height / 2),  // Start at 50% height
+            static_cast<int32_t>(width - 10),
+            static_cast<int32_t>(height - 10)
+        };
+        result_dsc.text = result_str.c_str();
+        lv_draw_label(&layer, &result_dsc, &result_coords);
+    }
+
+    lv_canvas_finish_layer(canvas, &layer);
+    s_math_logger.debug("Canvas render complete");
 }
 
 } // namespace ovb::gui

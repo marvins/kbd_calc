@@ -8,245 +8,111 @@
 #include <overboard/math/expression.hpp>
 
 // C++ Standard Libraries
+#include <cmath>
+#include <functional>
 #include <stdexcept>
+
+// Project Libraries
+#include <overboard/log/stdout_logger.hpp>
+#include <overboard/math/parser.hpp>
+#include <overboard/math/ast/number_node.hpp>
+#include <overboard/math/ast/binary_op_node.hpp>
+#include <overboard/math/ast/function_node.hpp>
+#include <overboard/math/operators/function_operators.hpp>
+#include <overboard/math/operators/unary_operators.hpp>
 
 namespace ovb::math {
 
-/********************************************/
-/*               Make Token                 */
-/********************************************/
-Token Expression::make_token(core::Key_Code code) {
-    using KC = core::Key_Code;
-    switch (code) {
-        // Operators
-        case KC::ADD:         return { Token_Type::Operator, "+",     code };
-        case KC::SUBTRACT:    return { Token_Type::Operator, "-",     code };
-        case KC::MULTIPLY:    return { Token_Type::Operator, "*",     code };
-        case KC::DIVIDE:      return { Token_Type::Operator, "/",     code };
-        case KC::POWER_N:     return { Token_Type::Operator, "^",     code };
-        case KC::PERCENT:     return { Token_Type::Function, "mod(",  code };
-        case KC::BIT_AND:     return { Token_Type::Operator, "&",     code };
-        case KC::BIT_OR:      return { Token_Type::Operator, "|",     code };
-        case KC::BIT_XOR:     return { Token_Type::Operator, "^",     code };
-        case KC::SHIFT_LEFT:  return { Token_Type::Operator, "<<",    code };
-        case KC::SHIFT_RIGHT: return { Token_Type::Operator, ">>",    code };
-
-        // Parens
-        case KC::PAREN_OPEN:  return { Token_Type::Paren,    "(",     code };
-        case KC::PAREN_CLOSE: return { Token_Type::Paren,    ")",     code };
-
-        // Functions (include opening paren — deleted atomically as one token)
-        case KC::SIN:         return { Token_Type::Function, "sin(",  code };
-        case KC::COS:         return { Token_Type::Function, "cos(",  code };
-        case KC::TAN:         return { Token_Type::Function, "tan(",  code };
-        case KC::ASIN:        return { Token_Type::Function, "asin(", code };
-        case KC::ACOS:        return { Token_Type::Function, "acos(", code };
-        case KC::ATAN:        return { Token_Type::Function, "atan(", code };
-        case KC::LOG:         return { Token_Type::Function, "log(",  code };
-        case KC::LN:          return { Token_Type::Function, "ln(",   code };
-        case KC::EXP:         return { Token_Type::Function, "exp(",  code };
-        case KC::SQRT:        return { Token_Type::Function, "sqrt(", code };
-        case KC::POWER_2:     return { Token_Type::Function, "^2",    code };
-        case KC::FACTORIAL:   return { Token_Type::Operator, "!",     code };
-        case KC::RECIPROCAL:  return { Token_Type::Function, "1/",      code };
-        case KC::APPROX:      return { Token_Type::Function, "approx(", code };
-
-        // Constants
-        case KC::PI:          return { Token_Type::Constant, "pi",    code };
-        case KC::EULER:       return { Token_Type::Constant, "e",     code };
-        case KC::PHI:         return { Token_Type::Constant, "phi",   code };
-        case KC::TAU:         return { Token_Type::Constant, "tau",   code };
-
-        // Digits / decimal — caller handles these as Number tokens
-        case KC::DIGIT_0:     return { Token_Type::Number,   "0",     code };
-        case KC::DIGIT_1:     return { Token_Type::Number,   "1",     code };
-        case KC::DIGIT_2:     return { Token_Type::Number,   "2",     code };
-        case KC::DIGIT_3:     return { Token_Type::Number,   "3",     code };
-        case KC::DIGIT_4:     return { Token_Type::Number,   "4",     code };
-        case KC::DIGIT_5:     return { Token_Type::Number,   "5",     code };
-        case KC::DIGIT_6:     return { Token_Type::Number,   "6",     code };
-        case KC::DIGIT_7:     return { Token_Type::Number,   "7",     code };
-        case KC::DIGIT_8:     return { Token_Type::Number,   "8",     code };
-        case KC::DIGIT_9:     return { Token_Type::Number,   "9",     code };
-        case KC::DECIMAL:     return { Token_Type::Number,   ".",     code };
-        case KC::HEX_A:       return { Token_Type::Number,   "A",     code };
-        case KC::HEX_B:       return { Token_Type::Number,   "B",     code };
-        case KC::HEX_C:       return { Token_Type::Number,   "C",     code };
-        case KC::HEX_D:       return { Token_Type::Number,   "D",     code };
-        case KC::HEX_E:       return { Token_Type::Number,   "E",     code };
-        case KC::HEX_F:       return { Token_Type::Number,   "F",     code };
-
-        default:
-            throw std::invalid_argument("Expression::make_token: non-insertable key");
-    }
-}
+// Static logger for this module
+static ovb::log::Stdout_Logger s_logger(ovb::log::Log_Level::Debug);
 
 /********************************************/
-/*         Cursor Inside Number             */
+/*              Constructor                 */
 /********************************************/
-bool Expression::cursor_inside_number() const {
-    if (cursor_token_ < 0 || cursor_token_ >= static_cast<int>(tokens_.size()))
-        return false;
-    const Token& t = tokens_[static_cast<std::size_t>(cursor_token_)];
-    return t.type == Token_Type::Number && t.char_cursor >= 0;
-}
-
-/********************************************/
-/*         Current Number Token             */
-/********************************************/
-Token& Expression::current_number_token() {
-    return tokens_[static_cast<std::size_t>(cursor_token_)];
-}
-
-/********************************************/
-/*            Glyph Count                   */
-/********************************************/
-int Expression::glyph_count(const std::string& s) {
-    int count = 0;
-    for (std::size_t i = 0; i < s.size(); ) {
-        uint8_t b = static_cast<uint8_t>(s[i]);
-        if      (b < 0x80)           i += 1;
-        else if ((b & 0xE0) == 0xC0) i += 2;
-        else if ((b & 0xF0) == 0xE0) i += 3;
-        else                         i += 4;
-        ++count;
-    }
-    return count;
+Expression::Expression()
+    : m_ast_root(std::make_unique<ast::Placeholder_Node>())
+    , m_cursor_path() {
+    // Empty expression initialized with placeholder for cursor position
 }
 
 /********************************************/
 /*               Insert                     */
 /********************************************/
 void Expression::insert(core::Key_Code code) {
-    Token t = make_token(code);
+    using KC = core::Key_Code;
 
-    if (t.type == Token_Type::Number) {
-        // ── Digit / decimal / hex character ──────────────────────────────────
+    // Map key codes to tree-based operations
+    switch (code) {
+        // Digits
+        case KC::DIGIT_0:     insert_digit(0); break;
+        case KC::DIGIT_1:     insert_digit(1); break;
+        case KC::DIGIT_2:     insert_digit(2); break;
+        case KC::DIGIT_3:     insert_digit(3); break;
+        case KC::DIGIT_4:     insert_digit(4); break;
+        case KC::DIGIT_5:     insert_digit(5); break;
+        case KC::DIGIT_6:     insert_digit(6); break;
+        case KC::DIGIT_7:     insert_digit(7); break;
+        case KC::DIGIT_8:     insert_digit(8); break;
+        case KC::DIGIT_9:     insert_digit(9); break;
+        case KC::DECIMAL:     insert_digit(-1); break;
 
-        // Check if cursor is at a placeholder — replace it with the number
-        int next_idx = cursor_token_ + 1;
-        if (next_idx < static_cast<int>(tokens_.size()) &&
-            tokens_[static_cast<std::size_t>(next_idx)].type == Token_Type::Placeholder) {
-            // Replace placeholder with number token
-            if (t.text == ".")
-                t.text = "0.";
-            t.char_cursor = static_cast<int>(t.text.size());
-            tokens_[static_cast<std::size_t>(next_idx)] = t;
-            cursor_token_ = next_idx;
-            return;
-        }
+        // Hex digits
+        case KC::HEX_A:       insert_digit(10); break;
+        case KC::HEX_B:       insert_digit(11); break;
+        case KC::HEX_C:       insert_digit(12); break;
+        case KC::HEX_D:       insert_digit(13); break;
+        case KC::HEX_E:       insert_digit(14); break;
+        case KC::HEX_F:       insert_digit(15); break;
 
-        if (cursor_inside_number()) {
-            // Append character into the open number token at char_cursor.
-            Token& num = current_number_token();
+        // Operators
+        case KC::ADD:         insert_operator(ast::Binary_Op::ADD); break;
+        case KC::SUBTRACT:    insert_operator(ast::Binary_Op::SUBTRACT); break;
+        case KC::MULTIPLY:    insert_operator(ast::Binary_Op::MULTIPLY); break;
+        case KC::DIVIDE:      insert_operator(ast::Binary_Op::DIVIDE); break;
+        case KC::POWER_N:     insert_operator(ast::Binary_Op::POWER); break;
+        case KC::PERCENT:     insert_operator(ast::Binary_Op::MODULO); break;
+        case KC::BIT_AND:     insert_operator(ast::Binary_Op::BIT_AND); break;
+        case KC::BIT_OR:      insert_operator(ast::Binary_Op::BIT_OR); break;
+        case KC::BIT_XOR:     insert_operator(ast::Binary_Op::BIT_XOR); break;
+        case KC::SHIFT_LEFT:  insert_operator(ast::Binary_Op::SHIFT_LEFT); break;
+        case KC::SHIFT_RIGHT: insert_operator(ast::Binary_Op::SHIFT_RIGHT); break;
 
-            // Guard: only one decimal point per number token.
-            if (t.text == "." && num.text.find('.') != std::string::npos)
-                return;
+        // Functions
+        case KC::SIN:         insert_function(operators::Sin()); break;
+        case KC::COS:         insert_function(operators::Cos()); break;
+        case KC::TAN:         insert_function(operators::Tan()); break;
+        case KC::ASIN:        insert_function(operators::Asin()); break;
+        case KC::ACOS:        insert_function(operators::Acos()); break;
+        case KC::ATAN:        insert_function(operators::Atan()); break;
+        case KC::LOG:         insert_function(operators::Log()); break;
+        case KC::LN:          insert_function(operators::Ln()); break;
+        case KC::EXP:         insert_function(operators::Exp()); break;
+        case KC::SQRT:        insert_function(operators::Sqrt()); break;
+        case KC::CEIL:        insert_function(operators::Ceil()); break;
+        case KC::FLOOR:       insert_function(operators::Floor()); break;
+        case KC::ABS:         insert_function(operators::Abs()); break;
 
-            num.text.insert(static_cast<std::size_t>(num.char_cursor), t.text);
-            num.char_cursor += static_cast<int>(t.text.size());
-        } else {
-            // Check if cursor is at a placeholder — replace it
-            int ph_idx = cursor_token_ + 1;
-            if (ph_idx < static_cast<int>(tokens_.size()) &&
-                tokens_[static_cast<std::size_t>(ph_idx)].type == Token_Type::Placeholder) {
-                // Replace placeholder with this number
-                if (t.text == ".")
-                    t.text = "0.";
-                t.char_cursor = static_cast<int>(t.text.size());
-                tokens_[static_cast<std::size_t>(ph_idx)] = t;
-                cursor_token_ = ph_idx;
-            } else {
-                // Check if token to the left is an open number (cursor at its end).
-                // cursor_token_ points to the token we are AFTER, so look there.
-                bool merged = false;
-                if (cursor_token_ >= 0) {
-                    Token& prev = tokens_[static_cast<std::size_t>(cursor_token_)];
-                    if (prev.type == Token_Type::Number) {
-                        if (t.text == "." && prev.text.find('.') != std::string::npos)
-                            return;
-                        prev.text += t.text;
-                        prev.char_cursor = static_cast<int>(prev.text.size());
-                        merged = true;
-                    }
-                }
-                if (!merged) {
-                    // Insert a fresh number token after cursor_token_.
-                    // Auto-prepend "0" when starting a number with a decimal point.
-                    if (t.text == ".")
-                        t.text = "0.";
-                    int insert_pos = cursor_token_ + 1;
-                    t.char_cursor = static_cast<int>(t.text.size());
-                    tokens_.insert(tokens_.begin() + insert_pos, t);
-                    cursor_token_ = insert_pos;
-                }
-            }
-        }
-    } else if ( code == core::Key_Code::PAREN_OPEN ) {
-        // ── Auto-balanced parentheses ────────────────────────────────────────
-        // Insert "()" with cursor between them
-        if (cursor_inside_number())
-            close_number();
+        // Constants
+        case KC::PI:          insert_function(operators::Pi()); break;
+        case KC::EULER:       insert_function(operators::E()); break;
+        case KC::PHI:         insert_function(operators::Phi()); break;
+        case KC::TAU:         insert_function(operators::Tau()); break;
 
-        Token open_paren = make_token( core::Key_Code::PAREN_OPEN) ;
-        Token close_paren = make_token(core::Key_Code::PAREN_CLOSE );
+        // Special operators using factory pattern
+        case KC::FACTORIAL:   insert_function(operators::Factorial()); break;
+        case KC::RECIPROCAL:  insert_function(operators::Reciprocal()); break;
+        case KC::POWER_2:     insert_function(operators::Power_2()); break;
 
-        int insert_pos = cursor_token_ + 1;
-        tokens_.insert(tokens_.begin() + insert_pos, open_paren);
-        tokens_.insert(tokens_.begin() + insert_pos + 1, close_paren);
-        cursor_token_ = insert_pos;  // Cursor is between ( and )
-    } else {
-        // ── Non-number token (Operator, Function, Constant, Paren) ─────────
-        // Close any open number first (move char_cursor out).
-        if (cursor_inside_number())
-            close_number();
+        // Parentheses - in AST, grouping is implicit in tree structure
+        case KC::PAREN_OPEN:  break; // No-op, tree structure represents grouping
+        case KC::PAREN_CLOSE: break; // No-op, tree structure represents grouping
 
-        // ── Auto-insert placeholder before binary operators at start of expression ─
-        if (t.type == Token_Type::Operator && tokens_.empty()) {
-            // Insert placeholder before operator for valid syntax
-            Token placeholder{ Token_Type::Placeholder, "", core::Key_Code::NONE, -1 };
-            tokens_.push_back(placeholder);
-            tokens_.push_back(t);
-            cursor_token_ = 1;
-        } else {
-            // Check if cursor is at a placeholder — replace it (unless this is also an operator)
-            int next_idx = cursor_token_ + 1;
-            if (t.type != Token_Type::Operator &&
-                next_idx < static_cast<int>(tokens_.size()) &&
-                tokens_[static_cast<std::size_t>(next_idx)].type == Token_Type::Placeholder) {
-                // Replace placeholder with this token
-                tokens_[static_cast<std::size_t>(next_idx)] = t;
-                cursor_token_ = next_idx;
-            } else {
-                int insert_pos = cursor_token_ + 1;
-                tokens_.insert(tokens_.begin() + insert_pos, t);
-                cursor_token_ = insert_pos;
-            }
-        }
+        // Approx function
+        case KC::APPROX:      insert_function(operators::Approx()); break;
 
-        // ── Auto-insert placeholder after binary operators that need a right-hand operand ─
-        if (t.type == Token_Type::Operator) {
-            // Check if we need a placeholder (at end, or before operator/close paren)
-            bool needs_placeholder = false;
-            int ph_idx = cursor_token_ + 1;
-            if (ph_idx >= static_cast<int>(tokens_.size())) {
-                // At end of expression
-                needs_placeholder = true;
-            } else {
-                Token& next = tokens_[static_cast<std::size_t>(ph_idx)];
-                if (next.type == Token_Type::Operator ||
-                    (next.type == Token_Type::Paren && next.text == ")") ||
-                    next.type == Token_Type::Constant) {
-                    needs_placeholder = true;
-                }
-            }
-
-            if (needs_placeholder) {
-                Token placeholder{ Token_Type::Placeholder, "", core::Key_Code::NONE, -1 };
-                tokens_.insert(tokens_.begin() + ph_idx, placeholder);
-            }
-        }
+        default:
+            // Unknown key code - throw exception for definitive feedback
+            throw std::invalid_argument("Expression::insert: unknown key code");
     }
 }
 
@@ -254,126 +120,129 @@ void Expression::insert(core::Key_Code code) {
 /*               Backspace                  */
 /********************************************/
 void Expression::backspace() {
-    if (cursor_inside_number()) {
-        Token& num = current_number_token();
-        if (num.char_cursor > 0) {
-            num.text.erase(static_cast<std::size_t>(num.char_cursor - 1), 1);
-            --num.char_cursor;
-        }
-        if (num.text.empty()) {
-            tokens_.erase(tokens_.begin() + cursor_token_);
-            --cursor_token_;
-        }
+    ast::Node* cursor_node = get_cursor_node();
+
+    if (cursor_node == nullptr) {
         return;
     }
 
-    // Cursor is between tokens — delete the token to the left.
-    if (cursor_token_ < 0)
-        return;
-
-    // Check for balanced () pair — delete both atomically
-    if (cursor_token_ + 1 < static_cast<int>(tokens_.size())) {
-        const Token& left = tokens_[static_cast<std::size_t>(cursor_token_)];
-        const Token& right = tokens_[static_cast<std::size_t>(cursor_token_ + 1)];
-        if (left.type == Token_Type::Paren && left.text == "(" &&
-            right.type == Token_Type::Paren && right.text == ")") {
-            // Atomic delete of () pair
-            tokens_.erase(tokens_.begin() + cursor_token_,
-                          tokens_.begin() + cursor_token_ + 2);
-            --cursor_token_;
-            return;
+    // If cursor is on a number, remove the last digit
+    if (cursor_node->kind() == ast::Node_Kind::NUMBER) {
+        auto* number_node = static_cast<ast::Number_Node*>(cursor_node);
+        double value = number_node->value();
+        // Remove last digit by integer division
+        if (value >= 10.0) {
+            number_node->set_value(std::floor(value / 10.0));
+        } else {
+            // Single digit - replace with placeholder
+            auto new_node = std::make_unique<ast::Placeholder_Node>();
+            replace_node_at_cursor(std::move(new_node));
+            m_cursor_path = ast::Cursor_Path_Runtime();
         }
     }
-
-    // Check for operator followed by placeholder — delete both atomically
-    if (cursor_token_ + 1 < static_cast<int>(tokens_.size())) {
-        const Token& left = tokens_[static_cast<std::size_t>(cursor_token_)];
-        const Token& right = tokens_[static_cast<std::size_t>(cursor_token_ + 1)];
-        if ((left.type == Token_Type::Operator ||
-             left.type == Token_Type::Function ||
-             left.type == Token_Type::Constant) &&
-            right.type == Token_Type::Placeholder) {
-            // Atomic delete of operator+placeholder pair
-            tokens_.erase(tokens_.begin() + cursor_token_,
-                          tokens_.begin() + cursor_token_ + 2);
-            --cursor_token_;
-            return;
+    // If cursor is on a placeholder, check if parent is a function/constant to delete atomically
+    else if (cursor_node->kind() == ast::Node_Kind::PLACEHOLDER) {
+        if (!m_cursor_path.empty()) {
+            // Check if parent is a function or constant
+            ast::Cursor_Path_Runtime parent_path = m_cursor_path.parent_path();
+            ast::Node* parent = ast::get_node_at_path(m_ast_root.get(), parent_path);
+            if (parent && (parent->kind() == ast::Node_Kind::FUNCTION || parent->kind() == ast::Node_Kind::CONSTANT)) {
+                // Delete the parent function/constant atomically
+                m_cursor_path = parent_path;
+                auto new_node = std::make_unique<ast::Placeholder_Node>();
+                replace_node_at_cursor(std::move(new_node));
+                m_cursor_path = ast::Cursor_Path_Runtime();
+                return;
+            }
         }
+        // Already at empty state
     }
-
-    tokens_.erase(tokens_.begin() + cursor_token_);
-    --cursor_token_;
+    // If cursor is on a binary op, delete the operator and move to left child
+    else if (cursor_node->kind() == ast::Node_Kind::BINARY_OP) {
+        auto* bin_node = static_cast<ast::Binary_Op_Node*>(cursor_node);
+        // Replace with left child
+        auto new_node = bin_node->release_left();
+        replace_node_at_cursor(std::move(new_node));
+        m_cursor_path = ast::Cursor_Path_Runtime();
+    }
+    // If cursor is on a function, delete the function atomically
+    else if (cursor_node->kind() == ast::Node_Kind::FUNCTION) {
+        auto new_node = std::make_unique<ast::Placeholder_Node>();
+        replace_node_at_cursor(std::move(new_node));
+        m_cursor_path = ast::Cursor_Path_Runtime();
+    }
+    // If cursor is on a constant, delete the constant
+    else if (cursor_node->kind() == ast::Node_Kind::CONSTANT) {
+        auto new_node = std::make_unique<ast::Placeholder_Node>();
+        replace_node_at_cursor(std::move(new_node));
+        m_cursor_path = ast::Cursor_Path_Runtime();
+    }
 }
 
 /********************************************/
 /*               Cursor Left                */
 /********************************************/
 void Expression::cursor_left() {
-    if (cursor_inside_number()) {
-        Token& num = current_number_token();
-        if (num.char_cursor > 0) {
-            --num.char_cursor;
-            return;
-        }
-        // Exit the number on the left side.
-        num.char_cursor = -1;
-        --cursor_token_;
-        // Skip over any placeholders to the left.
-        while (cursor_token_ >= 0 &&
-               tokens_[static_cast<std::size_t>(cursor_token_)].type == Token_Type::Placeholder) {
-            --cursor_token_;
-        }
+    // Tree-based cursor left navigation
+    if (m_cursor_path.empty()) {
+        // At root, can't go left
         return;
     }
 
-    if (cursor_token_ < 0)
+    // Get current node
+    ast::Node* current = get_cursor_node();
+    if (!current) {
         return;
+    }
 
-    // Step into a number to the left if it exists.
-    Token& left = tokens_[static_cast<std::size_t>(cursor_token_)];
-    if (left.type == Token_Type::Number) {
-        left.char_cursor = static_cast<int>(left.text.size()) - 1;
-    } else {
-        --cursor_token_;
-        // Skip over any placeholders to the left.
-        while (cursor_token_ >= 0 &&
-               tokens_[static_cast<std::size_t>(cursor_token_)].type == Token_Type::Placeholder) {
-            --cursor_token_;
+    // If at a leaf node, try to move to previous sibling
+    if (current->child_count() == 0) {
+        std::size_t current_index = m_cursor_path.path()[m_cursor_path.depth() - 1];
+        if (current_index > 0) {
+            // Move to previous sibling
+            m_cursor_path.path()[m_cursor_path.depth() - 1] = current_index - 1;
+        } else {
+            // At first child, move up to parent
+            m_cursor_path.pop();
         }
+    } else {
+        // At internal node, move to last child
+        m_cursor_path.push(current->child_count() - 1);
     }
 }
-
 
 /********************************************/
 /*               Cursor Right               */
 /********************************************/
 void Expression::cursor_right() {
-    if (cursor_inside_number()) {
-        Token& num = current_number_token();
-        if (num.char_cursor < static_cast<int>(num.text.size())) {
-            ++num.char_cursor;
-            return;
+    // Tree-based cursor right navigation
+    if (m_cursor_path.empty()) {
+        // At root, try to move to first child
+        if (m_ast_root && m_ast_root->child_count() > 0) {
+            m_cursor_path.push(0);
         }
-        // Exit the number on the right side.
-        num.char_cursor = -1;
-        // Fall through to move to next token (skipping placeholders)
-    }
-
-    int next = cursor_token_ + 1;
-    // Skip over any placeholders.
-    while (next < static_cast<int>(tokens_.size()) &&
-           tokens_[static_cast<std::size_t>(next)].type == Token_Type::Placeholder) {
-        ++next;
-    }
-    if (next >= static_cast<int>(tokens_.size()))
         return;
+    }
 
-    Token& right = tokens_[static_cast<std::size_t>(next)];
-    if (right.type == Token_Type::Number) {
-        right.char_cursor = 1;
-        cursor_token_ = next;
+    // Get current node
+    ast::Node* current = get_cursor_node();
+    if (!current) {
+        return;
+    }
+
+    // If at a leaf node, try to move to next sibling
+    if (current->child_count() == 0) {
+        std::size_t current_index = m_cursor_path.path()[m_cursor_path.depth() - 1];
+        ast::Node* parent = ast::get_node_at_path(m_ast_root.get(), m_cursor_path.parent_path());
+
+        if (parent && current_index + 1 < parent->child_count()) {
+            // Move to next sibling
+            m_cursor_path.path()[m_cursor_path.depth() - 1] = current_index + 1;
+        }
+        // No next sibling, stay where we are
     } else {
-        cursor_token_ = next;
+        // At internal node, move to first child
+        m_cursor_path.push(0);
     }
 }
 
@@ -381,95 +250,550 @@ void Expression::cursor_right() {
 /*               Clear                      */
 /********************************************/
 void Expression::clear() {
-    tokens_.clear();
-    cursor_token_ = -1;
-}
-
-/********************************************/
-/*               Close Number               */
-/********************************************/
-void Expression::close_number() {
-    if (cursor_inside_number())
-        current_number_token().char_cursor = -1;
-}
-
-/********************************************/
-/*        Placeholder Text For Eval         */
-/********************************************/
-std::string Expression::placeholder_text_for_eval() {
-    return "0";  // Makes expression parsable: "8+0" is valid
-}
-
-/********************************************/
-/*        Placeholder Text For Render       */
-/********************************************/
-std::string Expression::placeholder_text_for_render() {
-    return "□";   // Unicode white square for parser recognition
+    m_ast_root = std::make_unique<ast::Placeholder_Node>();
+    m_cursor_path = ast::Cursor_Path_Runtime();
+    m_decimal_position = 0;
 }
 
 /********************************/
 /*        Has Placeholder       */
 /********************************/
 bool Expression::has_placeholder() const {
-    for (const Token& t : tokens_) {
-        if (t.type == Token_Type::Placeholder)
-            return true;
+    // Tree-based traversal to check for placeholder nodes
+    if (!m_ast_root) {
+        return false;
     }
-    return false;
+
+    std::function<bool(const ast::Node*)> check_placeholder;
+    check_placeholder = [&check_placeholder](const ast::Node* node) -> bool {
+        if (!node) {
+            return false;
+        }
+        if (node->kind() == ast::Node_Kind::PLACEHOLDER) {
+            return true;
+        }
+        // Check children recursively
+        for (std::size_t i = 0; i < static_cast<std::size_t>(node->child_count()); ++i) {
+            if (check_placeholder(node->child_at(i))) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    return check_placeholder(m_ast_root.get());
 }
 
 /**********************************************/
 /*     Remove Trailing Placeholder            */
 /**********************************************/
 void Expression::remove_trailing_placeholder() {
-    if (!tokens_.empty() && tokens_.back().type == Token_Type::Placeholder) {
-        tokens_.pop_back();
-        if (cursor_token_ >= static_cast<int>(tokens_.size())) {
-            cursor_token_ = static_cast<int>(tokens_.size()) - 1;
-        }
-    }
+    // Tree-based removal of trailing placeholder
+    // For now, this is a no-op since the tree doesn't have a concept of "trailing"
+    // This will be handled properly when we implement full tree manipulation
 }
 
-// ── render_string / eval_string ───────────────────────────────────────────────
-
+/*********************************/
+/*        Evaluate String        */
+/*********************************/
 std::string Expression::eval_string() const {
-    std::string out;
-    for (const Token& t : tokens_) {
-        if (t.type == Token_Type::Placeholder)
-            out += placeholder_text_for_eval();
-        else
-            out += t.text;
+    // Tree-based traversal to build evaluation string
+    if (!m_ast_root) {
+        return "";
     }
-    return out;
-}
 
-std::string Expression::render_string() const {
-    std::string out;
-    for (const Token& t : tokens_) {
-        if (t.type == Token_Type::Placeholder)
-            out += placeholder_text_for_render();
-        else
-            out += t.text;
+    // If root is a placeholder, return empty string (empty expression)
+    if (m_ast_root->kind() == ast::Node_Kind::PLACEHOLDER) {
+        return "";
     }
-    return out;
-}
 
-// ── cursor_glyph_pos ─────────────────────────────────────────────────────────
-
-int Expression::cursor_glyph_pos() const {
-    int glyphs = 0;
-    for (int i = 0; i < static_cast<int>(tokens_.size()); ++i) {
-        const Token& t = tokens_[static_cast<std::size_t>(i)];
-        if (t.type == Token_Type::Number && t.char_cursor >= 0) {
-            // Cursor is inside this number — count glyphs up to char_cursor.
-            glyphs += glyph_count(t.text.substr(0, static_cast<std::size_t>(t.char_cursor)));
-            return glyphs;
+    Node_Visitor_String to_eval_string;
+    to_eval_string = [&to_eval_string](const ast::Node* node) -> std::string {
+        if (!node) {
+            return "";
         }
-        glyphs += glyph_count(t.text);
-        if (i == cursor_token_)
-            return glyphs;
+
+        switch (node->kind()) {
+            case ast::Node_Kind::PLACEHOLDER:
+                return "0";  // Makes expression parsable: "8+0" is valid
+            case ast::Node_Kind::NUMBER: {
+                const auto* num = static_cast<const ast::Number_Node*>(node);
+                return num->to_string();
+            }
+            case ast::Node_Kind::BINARY_OP: {
+                const auto* bin = static_cast<const ast::Binary_Op_Node*>(node);
+                std::string left = to_eval_string(bin->left().get());
+                std::string right = to_eval_string(bin->right().get());
+                std::string op_str;
+                switch (bin->op()) {
+                    case ast::Binary_Op::ADD:       op_str = "+"; break;
+                    case ast::Binary_Op::SUBTRACT:  op_str = "-"; break;
+                    case ast::Binary_Op::MULTIPLY:  op_str = "*"; break;
+                    case ast::Binary_Op::DIVIDE:    op_str = "/"; break;
+                    case ast::Binary_Op::POWER:     op_str = "^"; break;
+                    case ast::Binary_Op::MODULO:    op_str = "%"; break;
+                    case ast::Binary_Op::BIT_AND:   op_str = "&"; break;
+                    case ast::Binary_Op::BIT_OR:    op_str = "|"; break;
+                    case ast::Binary_Op::BIT_XOR:   op_str = "^"; break;
+                    case ast::Binary_Op::SHIFT_LEFT: op_str = "<<"; break;
+                    case ast::Binary_Op::SHIFT_RIGHT:op_str = ">>"; break;
+                }
+                return left + op_str + right;
+            }
+            case ast::Node_Kind::FUNCTION: {
+                const auto* func = static_cast<const ast::Function_Node*>(node);
+                std::string args;
+                for (std::size_t i = 0; i < static_cast<std::size_t>(func->child_count()); ++i) {
+                    if (i > 0) args += ",";
+                    args += to_eval_string(func->child_at(i));
+                }
+                return func->name() + "(" + args + ")";
+            }
+            case ast::Node_Kind::FACTORIAL: {
+                const auto* fact = static_cast<const ast::Factorial_Node*>(node);
+                return to_eval_string(fact->child_at(0)) + "!";
+            }
+            case ast::Node_Kind::CONSTANT: {
+                const auto* const_node = static_cast<const ast::Constant_Node*>(node);
+                switch (const_node->id()) {
+                    case ast::Constant_Id::PI:    return "pi";
+                    case ast::Constant_Id::E:     return "e";
+                    case ast::Constant_Id::PHI:   return "phi";
+                    case ast::Constant_Id::TAU:   return "tau";
+                    default: return "";
+                }
+            }
+            default:
+                return "";
+        }
+    };
+
+    return to_eval_string(m_ast_root.get());
+}
+
+/**********************************************/
+/*          Render a String                   */
+/**********************************************/
+std::string Expression::render_string() const {
+    // Tree-based traversal to build display string
+    if (!m_ast_root) {
+        return "";
     }
-    return glyphs;
+
+    Node_Visitor_String to_render_string;
+    to_render_string = [&to_render_string](const ast::Node* node) -> std::string {
+        if (!node) {
+            return "";
+        }
+
+        switch (node->kind()) {
+            case ast::Node_Kind::PLACEHOLDER:
+                return "□";   // Unicode white square for display
+            case ast::Node_Kind::NUMBER: {
+                const auto* num = static_cast<const ast::Number_Node*>(node);
+                return num->to_string();
+            }
+            case ast::Node_Kind::BINARY_OP: {
+                const auto* bin = static_cast<const ast::Binary_Op_Node*>(node);
+                std::string left = to_render_string(bin->left().get());
+                std::string right = to_render_string(bin->right().get());
+                std::string op_str;
+                switch (bin->op()) {
+                    case ast::Binary_Op::ADD:       op_str = "+"; break;
+                    case ast::Binary_Op::SUBTRACT:  op_str = "-"; break;
+                    case ast::Binary_Op::MULTIPLY:  op_str = "×"; break;
+                    case ast::Binary_Op::DIVIDE:    op_str = "÷"; break;
+                    case ast::Binary_Op::POWER:     op_str = "^"; break;
+                    case ast::Binary_Op::MODULO:    op_str = "%"; break;
+                    case ast::Binary_Op::BIT_AND:   op_str = "&"; break;
+                    case ast::Binary_Op::BIT_OR:    op_str = "|"; break;
+                    case ast::Binary_Op::BIT_XOR:   op_str = "^"; break;
+                    case ast::Binary_Op::SHIFT_LEFT: op_str = "<<"; break;
+                    case ast::Binary_Op::SHIFT_RIGHT:op_str = ">>"; break;
+                }
+                return left + op_str + right;
+            }
+            case ast::Node_Kind::FUNCTION: {
+                const auto* func = static_cast<const ast::Function_Node*>(node);
+                std::string args;
+                for (std::size_t i = 0; i < static_cast<std::size_t>(func->child_count()); ++i) {
+                    if (i > 0) args += ",";
+                    args += to_render_string(func->child_at(i));
+                }
+                return func->name() + "(" + args + ")";
+            }
+            case ast::Node_Kind::FACTORIAL: {
+                const auto* fact = static_cast<const ast::Factorial_Node*>(node);
+                return to_render_string(fact->child_at(0)) + "!";
+            }
+            case ast::Node_Kind::CONSTANT: {
+                const auto* const_node = static_cast<const ast::Constant_Node*>(node);
+                switch (const_node->id()) {
+                    case ast::Constant_Id::PI:    return "pi";
+                    case ast::Constant_Id::E:     return "e";
+                    case ast::Constant_Id::PHI:   return "phi";
+                    case ast::Constant_Id::TAU:   return "tau";
+                    default: return "";
+                }
+            }
+            default:
+                return "";
+        }
+    };
+
+    return to_render_string(m_ast_root.get());
+}
+
+/**********************************************/
+/*          Cursor Glyph Position             */
+/**********************************************/
+std::size_t Expression::cursor_glyph_pos() const {
+    // Tree-based cursor position calculation
+    // For now, this is a simplified implementation that counts glyphs up to the cursor node
+    // Full implementation will need to handle cursor positions between nodes
+    if (!m_ast_root) {
+        return 0;
+    }
+
+    // If cursor is at root (empty path), count all glyphs in the tree
+    if (m_cursor_path.empty()) {
+        // If root is a placeholder (empty expression), cursor is at position 0
+        if (m_ast_root->kind() == ast::Node_Kind::PLACEHOLDER) {
+            return 0;
+        }
+        return render_string().length();
+    }
+
+    std::function<std::size_t(const ast::Node*, const ast::Cursor_Path_Runtime&, int)> count_glyphs_to_cursor;
+    count_glyphs_to_cursor = [&count_glyphs_to_cursor](const ast::Node* node, const ast::Cursor_Path_Runtime& path, int depth) -> std::size_t {
+        if (!node) {
+            return 0;
+        }
+
+        // If we've reached the cursor depth, return 0 (cursor is at this position)
+        if (depth >= static_cast<int>(path.depth())) {
+            return 0;
+        }
+
+        // Count glyphs for this node's representation
+        std::size_t glyph_count = 0;
+        switch (node->kind()) {
+            case ast::Node_Kind::PLACEHOLDER:
+                glyph_count = 1;  // "□"
+                break;
+            case ast::Node_Kind::NUMBER: {
+                const auto* num = static_cast<const ast::Number_Node*>(node);
+                std::string num_str = std::to_string(static_cast<long long>(num->value()));
+                glyph_count = num_str.length();
+                break;
+            }
+            case ast::Node_Kind::BINARY_OP: {
+                const auto* bin = static_cast<const ast::Binary_Op_Node*>(node);
+                std::string op_str;
+                switch (bin->op()) {
+                    case ast::Binary_Op::ADD:       op_str = "+"; break;
+                    case ast::Binary_Op::SUBTRACT:  op_str = "-"; break;
+                    case ast::Binary_Op::MULTIPLY:  op_str = "×"; break;
+                    case ast::Binary_Op::DIVIDE:    op_str = "÷"; break;
+                    case ast::Binary_Op::POWER:     op_str = "^"; break;
+                    case ast::Binary_Op::MODULO:    op_str = "%"; break;
+                    case ast::Binary_Op::BIT_AND:   op_str = "&"; break;
+                    case ast::Binary_Op::BIT_OR:    op_str = "|"; break;
+                    case ast::Binary_Op::BIT_XOR:   op_str = "^"; break;
+                    case ast::Binary_Op::SHIFT_LEFT: op_str = "<<"; break;
+                    case ast::Binary_Op::SHIFT_RIGHT:op_str = ">>"; break;
+                }
+                glyph_count = op_str.length();
+                break;
+            }
+            case ast::Node_Kind::FUNCTION: {
+                const auto* func = static_cast<const ast::Function_Node*>(node);
+                glyph_count = func->name().length() + 2;  // name + "()"
+                break;
+            }
+            default:
+                break;
+        }
+
+        // If cursor is at this depth, return the glyph count
+        if (depth == static_cast<int>(path.depth()) - 1) {
+            return glyph_count;
+        }
+
+        // Otherwise, traverse to the child at the cursor path index
+        if (depth < static_cast<int>(path.depth())) {
+            std::size_t child_index = path.path()[static_cast<std::size_t>(depth)];
+            std::size_t child_glyphs = 0;
+            for (std::size_t i = 0; i < static_cast<std::size_t>(node->child_count()); ++i) {
+                if (i == child_index) {
+                    child_glyphs = count_glyphs_to_cursor(node->child_at(i), path, depth + 1);
+                    break;
+                }
+                // Count glyphs for siblings before the cursor
+                // This is a simplified approach - full implementation needs proper traversal
+            }
+            return glyph_count + child_glyphs;
+        }
+
+        return glyph_count;
+    };
+
+    return count_glyphs_to_cursor(m_ast_root.get(), m_cursor_path, 0);
+}
+
+/********************************************/
+/*           Get Cursor Node                 */
+/********************************************/
+ast::Node* Expression::get_cursor_node() {
+    return ast::get_node_at_path(m_ast_root.get(), m_cursor_path);
+}
+
+const ast::Node* Expression::get_cursor_node() const {
+    return ast::get_node_at_path(m_ast_root.get(), m_cursor_path);
+}
+
+/********************************************/
+/*         Replace Node At Cursor            */
+/********************************************/
+void Expression::replace_node_at_cursor( ast::Node::ptr_t new_node ) {
+    if (m_cursor_path.empty()) {
+        // Replace root
+        m_ast_root = std::move(new_node);
+        return;
+    }
+
+    // Navigate to parent node
+    ast::Cursor_Path_Runtime parent_path = m_cursor_path.parent_path();
+    ast::Node* parent = ast::get_node_at_path(m_ast_root.get(), parent_path);
+
+    if (parent == nullptr) {
+        return;
+    }
+
+    // Get the index of the child to replace
+    size_t child_index = m_cursor_path[m_cursor_path.depth() - 1];
+
+    // Replace the child based on node type
+    if (parent->kind() == ast::Node_Kind::BINARY_OP) {
+        auto* bin_node = static_cast<ast::Binary_Op_Node*>(parent);
+        if (child_index == 0) {
+            bin_node->set_left(std::move(new_node));
+        } else if (child_index == 1) {
+            bin_node->set_right(std::move(new_node));
+        }
+    } else if (parent->kind() == ast::Node_Kind::FUNCTION) {
+        auto* func_node = static_cast<ast::Function_Node*>(parent);
+        func_node->set_child(child_index, std::move(new_node));
+    }
+}
+
+/********************************************/
+/*           Insert Digit                   */
+/********************************************/
+void Expression::insert_digit( int digit ) {
+    ast::Node* cursor_node = get_cursor_node();
+
+    if (cursor_node == nullptr) {
+        return;
+    }
+
+    // If cursor is on a placeholder, replace it with a number
+    if (cursor_node->kind() == ast::Node_Kind::PLACEHOLDER) {
+        if (digit == -1) {
+            // Decimal point alone becomes 0.
+            auto new_node = std::make_unique<ast::Number_Node>(0.0);
+            replace_node_at_cursor(std::move(new_node));
+            m_decimal_position = 1; // Enter decimal mode
+        } else if (digit >= 10) {
+            // Hex digit A-F (10-15), convert to hex value
+            double value = static_cast<double>(digit);
+            auto new_node = std::make_unique<ast::Number_Node>(value);
+            replace_node_at_cursor(std::move(new_node));
+            m_decimal_position = 0;
+        } else {
+            double value = static_cast<double>(digit);
+            auto new_node = std::make_unique<ast::Number_Node>(value);
+            replace_node_at_cursor(std::move(new_node));
+            m_decimal_position = 0;
+        }
+        // Cursor stays at the same position (no path change needed)
+    }
+    // If cursor is on a number, append the digit
+    else if (cursor_node->kind() == ast::Node_Kind::NUMBER) {
+        auto* number_node = static_cast<ast::Number_Node*>(cursor_node);
+        double current_value = number_node->value();
+
+        if (digit == -1) {
+            // Decimal point - only allow if not already in decimal mode
+            if (m_decimal_position == 0) {
+                m_decimal_position = 1; // Enter decimal mode
+            }
+            // If already has decimal, ignore
+            // Note: cursor stays on the number node for subsequent digit input
+            // Cursor path should remain empty (pointing to root number)
+        } else if (digit >= 10) {
+            // Hex digit A-F - append as hex digit
+            // For simplicity, treat as decimal append for now
+            // Full implementation would need hex mode tracking
+            double new_value = current_value * 16.0 + static_cast<double>(digit);
+            number_node->set_value(new_value);
+        } else {
+            // Decimal digit
+            if (m_decimal_position > 0) {
+                // In decimal mode - add digit at current decimal position
+                double divisor = std::pow(10.0, m_decimal_position);
+                double new_value = current_value + (static_cast<double>(digit) / divisor);
+                number_node->set_value(new_value);
+                m_decimal_position++;
+            } else {
+                // Integer mode - append digit
+                double new_value = current_value * 10.0 + static_cast<double>(digit);
+                number_node->set_value(new_value);
+            }
+        }
+    }
+    // If cursor is on a placeholder, replace it with a number
+    else if (cursor_node->kind() == ast::Node_Kind::PLACEHOLDER) {
+        if (digit == -1) {
+            // Decimal point alone becomes 0.
+            auto new_node = std::make_unique<ast::Number_Node>(0.0);
+            replace_node_at_cursor(std::move(new_node));
+            m_decimal_position = 1; // Enter decimal mode
+        } else if (digit >= 10) {
+            // Hex digit A-F (10-15), convert to hex value
+            double value = static_cast<double>(digit);
+            auto new_node = std::make_unique<ast::Number_Node>(value);
+            replace_node_at_cursor(std::move(new_node));
+            m_decimal_position = 0;
+        } else {
+            double value = static_cast<double>(digit);
+            auto new_node = std::make_unique<ast::Number_Node>(value);
+            replace_node_at_cursor(std::move(new_node));
+            m_decimal_position = 0;
+        }
+        m_cursor_path = ast::Cursor_Path_Runtime();
+    }
+    // If cursor is on anything else, ignore (operators, functions, constants)
+    else {
+        // Do nothing - digits can only be inserted into numbers or placeholders
+    }
+}
+
+/********************************************/
+/*         Insert Operator                  */
+/********************************************/
+void Expression::insert_operator( ast::Binary_Op op ) {
+
+    ast::Node* cursor_node = get_cursor_node();
+
+    if (cursor_node == nullptr) {
+        return;
+    }
+
+    // Reset decimal position when inserting operator
+    m_decimal_position = 0;
+
+    // If cursor is on a placeholder, replace with binary op with placeholder children
+    if (cursor_node->kind() == ast::Node_Kind::PLACEHOLDER) {
+        auto left = std::make_unique<ast::Placeholder_Node>();
+        auto right = std::make_unique<ast::Placeholder_Node>();
+        auto new_node = std::make_unique<ast::Binary_Op_Node>(op, std::move(left), std::move(right));
+        replace_node_at_cursor(std::move(new_node));
+        m_cursor_path.push(0); // Move cursor to left placeholder
+    }
+    // If cursor is on a number, create binary op with number as left child
+    else if (cursor_node->kind() == ast::Node_Kind::NUMBER) {
+        auto* number_node = static_cast<ast::Number_Node*>(cursor_node);
+        double value = number_node->value();
+        auto left = std::make_unique<ast::Number_Node>(value);
+        auto right = std::make_unique<ast::Placeholder_Node>();
+        auto new_node = std::make_unique<ast::Binary_Op_Node>(op, std::move(left), std::move(right));
+        replace_node_at_cursor(std::move(new_node));
+        m_cursor_path.push(1); // Move cursor to right placeholder
+    }
+    // If cursor is on a binary op, handle precedence by restructuring
+    else if (cursor_node->kind() == ast::Node_Kind::BINARY_OP) {
+        auto* bin_node = static_cast<ast::Binary_Op_Node*>(cursor_node);
+        ast::Binary_Op existing_op = bin_node->op();
+
+        // Simple precedence: if new op has higher or equal precedence, make it the new root
+        // This is a simplified approach - full implementation needs proper precedence table
+        bool new_op_higher = (op == ast::Binary_Op::MULTIPLY || op == ast::Binary_Op::DIVIDE) &&
+                            (existing_op == ast::Binary_Op::ADD || existing_op == ast::Binary_Op::SUBTRACT);
+
+        if (new_op_higher) {
+            // New op becomes parent of existing tree
+            auto left = std::move(m_ast_root);
+            auto right = std::make_unique<ast::Placeholder_Node>();
+            m_ast_root = std::make_unique<ast::Binary_Op_Node>(op, std::move(left), std::move(right));
+            m_cursor_path = ast::Cursor_Path_Runtime({1});
+        } else {
+            // New op becomes right child of existing op
+            auto right = std::make_unique<ast::Placeholder_Node>();
+            // Replace right child with new binary op
+            auto new_right = std::make_unique<ast::Binary_Op_Node>(op, bin_node->release_right(), std::move(right));
+            bin_node->set_right(std::move(new_right));
+            m_cursor_path.push(1);
+            m_cursor_path.push(1);
+        }
+    }
+    // If cursor is on a function, make the function the left operand
+    else if (cursor_node->kind() == ast::Node_Kind::FUNCTION) {
+        // Clone the function to use as left operand
+        auto left = cursor_node->clone();
+        auto right = std::make_unique<ast::Placeholder_Node>();
+        auto new_node = std::make_unique<ast::Binary_Op_Node>(op, std::move(left), std::move(right));
+        replace_node_at_cursor(std::move(new_node));
+        m_cursor_path.push(1);
+    }
+    // If cursor is on a constant, make the constant the left operand
+    else if (cursor_node->kind() == ast::Node_Kind::CONSTANT) {
+        auto* const_node = static_cast<ast::Constant_Node*>(cursor_node);
+        auto left = std::make_unique<ast::Constant_Node>(const_node->id());
+        auto right = std::make_unique<ast::Placeholder_Node>();
+        auto new_node = std::make_unique<ast::Binary_Op_Node>(op, std::move(left), std::move(right));
+        replace_node_at_cursor(std::move(new_node));
+        m_cursor_path.push(1);
+    }
+}
+
+/********************************************/
+/*         Insert Function                  */
+/********************************************/
+void Expression::insert_function( const operators::I_Operator& func ) {
+
+    ast::Node* cursor_node = get_cursor_node();
+
+    if (cursor_node == nullptr) {
+        return;
+    }
+
+    // Reset decimal position when inserting function
+    m_decimal_position = 0;
+
+    // If cursor is on a placeholder, replace with function with placeholder argument
+    if (cursor_node->kind() == ast::Node_Kind::PLACEHOLDER) {
+        std::vector<ast::Node::ptr_t> args;
+        if (func.operand_count() > 0) {
+            args.push_back(std::make_unique<ast::Placeholder_Node>());
+        }
+        auto new_node = func.create_node(std::move(args));
+        replace_node_at_cursor(std::move(new_node));
+        if (func.operand_count() > 0) {
+            m_cursor_path.push(0); // Move cursor to argument placeholder
+        }
+        // For constants (0 operands), cursor stays at root
+    }
+    // If cursor is on a number, create function with number as argument
+    else if (cursor_node->kind() == ast::Node_Kind::NUMBER) {
+        auto* number_node = static_cast<ast::Number_Node*>(cursor_node);
+        double value = number_node->value();
+        std::vector<ast::Node::ptr_t> args;
+        args.push_back(std::make_unique<ast::Number_Node>(value));
+        auto new_node = func.create_node(std::move(args));
+        replace_node_at_cursor(std::move(new_node));
+        m_cursor_path.push(0); // Move cursor to argument
+    }
 }
 
 } // namespace ovb::math

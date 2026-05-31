@@ -144,8 +144,10 @@ void Calc_Engine::handle_key( core::Key_Code code ) {
 /*    Expression Insert     */
 /****************************/
 void Calc_Engine::try_insert( core::Key_Code code ) {
+    s_logger.debug("try_insert: key_code=" + std::to_string(static_cast<int>(code)));
     m_state.expression.insert(code);
     m_state.display_value = m_state.expression.render_string();
+    s_logger.debug("Expression after insert: " + m_state.display_value);
 }
 
 /****************************/
@@ -184,6 +186,13 @@ void Calc_Engine::evaluate() {
 /****************************/
 void Calc_Engine::toggle_math_layout() {
     m_state.use_math_layout = !m_state.use_math_layout;
+}
+
+/******************************/
+/*      Result Shown Check    */
+/******************************/
+bool Calc_Engine::result_shown() const {
+    return m_result_shown;
 }
 
 } // namespace ovb::math

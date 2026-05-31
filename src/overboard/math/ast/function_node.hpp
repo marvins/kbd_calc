@@ -86,6 +86,62 @@ class Function_Node : public Node {
          */
         Node::ptr_t simplify() const override;
 
+        /**
+         * @brief Get the number of children (number of function arguments)
+         *
+         * @return size_t Number of children
+         */
+        size_t child_count() const override { return m_args.size(); }
+
+        /**
+         * @brief Get child node at given index
+         *
+         * @param index Child index (argument index)
+         * @return Node* Child node (nullptr if index out of bounds)
+         */
+        Node* child_at( size_t index ) override {
+            if ( index < m_args.size() ) return m_args[index].get();
+            return nullptr;
+        }
+
+        /**
+         * @brief Get child node at given index (const version)
+         *
+         * @param index Child index (argument index)
+         * @return const Node* Child node (nullptr if index out of bounds)
+         */
+        const Node* child_at( size_t index ) const override {
+            if ( index < m_args.size() ) return m_args[index].get();
+            return nullptr;
+        }
+
+        /**
+         * @brief Release a child node (for tree restructuring)
+         *
+         * @param index Child index to release
+         * @return Node::ptr_t Released child node
+         */
+        Node::ptr_t release_child( size_t index ) {
+            if ( index < m_args.size() ) {
+                Node::ptr_t node = std::move(m_args[index]);
+                m_args.erase(m_args.begin() + static_cast<std::ptrdiff_t>(index));
+                return node;
+            }
+            return nullptr;
+        }
+
+        /**
+         * @brief Set a child node at a specific index
+         *
+         * @param index Child index to set
+         * @param node New child node
+         */
+        void set_child( size_t index, Node::ptr_t node ) {
+            if ( index < m_args.size() ) {
+                m_args[index] = std::move(node);
+            }
+        }
+
     private:
 
         /// @brief Function name

@@ -122,11 +122,6 @@ bool SDL_App::init() {
             }
         }
 
-        // Wire LVGL button click callback (mouse clicks)
-        LOG_TRACE("Setting key callback");
-        m_view->set_key_callback(on_key_clicked, this);
-        LOG_TRACE("Key callback set successfully");
-
         // Create SDL input handler for physical keyboard mapping
         LOG_TRACE("Creating SDL input handler");
         m_input = std::make_unique<SDL_Input>();

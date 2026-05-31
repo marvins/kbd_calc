@@ -108,9 +108,6 @@ bool PicoCalc_App::init() {
             }
         }
 
-        // Wire LVGL button click callback
-        m_view->set_key_callback(on_key_clicked, this);
-
         m_view->render();
         m_initialized = true;
         return true;

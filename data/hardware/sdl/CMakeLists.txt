@@ -37,9 +37,9 @@ set(DISPLAY_FULL_WIDTH  480)
 set(DISPLAY_FULL_HEIGHT 800)
 set(DISPLAY_KBD_WIDTH   480)
 set(DISPLAY_KBD_HEIGHT  300)
-set(DISPLAY_PREVIEW_MAX_WIDTH  160)
-set(DISPLAY_PREVIEW_MAX_HEIGHT 100)
-set(DISPLAY_PREVIEW_OFFSET_Y    80)
+set(DISPLAY_PREVIEW_MAX_WIDTH  464)  # LCD_WIDTH - 16 (padding)
+set(DISPLAY_PREVIEW_MAX_HEIGHT 80)   # Standard entry height
+set(DISPLAY_PREVIEW_OFFSET_Y    0)    # No offset, aligned to bottom
 set(DISPLAY_KEY_PAD       2)
 set(DISPLAY_KBD_HEADER_H 20)
 set(DISPLAY_KBD_MARGIN_L  8)
@@ -59,7 +59,7 @@ set(HARDWARE_SOURCES
     src/overboard/hal/sdl/input.cpp
     src/overboard/hal/sdl/keymap.cpp
     src/overboard/gui/app_view.cpp
-    src/overboard/gui/keyboard_view.cpp
+    src/overboard/gui/keyboard_display.cpp
     src/overboard/gui/lcd_section.cpp
     src/overboard/gui/math_canvas.cpp
     src/overboard/gui/lv_font_superscript.c

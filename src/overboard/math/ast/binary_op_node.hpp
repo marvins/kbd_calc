@@ -93,6 +93,65 @@ class Binary_Op_Node : public Node {
          */
         Node::ptr_t simplify() const override;
 
+        /**
+         * @brief Get the number of children (always 2 for binary ops)
+         *
+         * @return size_t Number of children
+         */
+        size_t child_count() const override { return 2; }
+
+        /**
+         * @brief Get child node at given index
+         *
+         * @param index Child index (0 for left, 1 for right)
+         * @return Node* Child node (nullptr if index out of bounds)
+         */
+        Node* child_at( size_t index ) override {
+            if ( index == 0 ) return m_left.get();
+            if ( index == 1 ) return m_right.get();
+            return nullptr;
+        }
+
+        /**
+         * @brief Get child node at given index (const version)
+         *
+         * @param index Child index (0 for left, 1 for right)
+         * @return const Node* Child node (nullptr if index out of bounds)
+         */
+        const Node* child_at( size_t index ) const override {
+            if ( index == 0 ) return m_left.get();
+            if ( index == 1 ) return m_right.get();
+            return nullptr;
+        }
+
+        /**
+         * @brief Release the left operand (for tree restructuring)
+         *
+         * @return Node::ptr_t Released left operand
+         */
+        Node::ptr_t release_left() { return std::move(m_left); }
+
+        /**
+         * @brief Release the right operand (for tree restructuring)
+         *
+         * @return Node::ptr_t Released right operand
+         */
+        Node::ptr_t release_right() { return std::move(m_right); }
+
+        /**
+         * @brief Set the left operand (for tree restructuring)
+         *
+         * @param node New left operand
+         */
+        void set_left( Node::ptr_t node ) { m_left = std::move(node); }
+
+        /**
+         * @brief Set the right operand (for tree restructuring)
+         *
+         * @param node New right operand
+         */
+        void set_right( Node::ptr_t node ) { m_right = std::move(node); }
+
     private:
 
         /// @brief Binary operation

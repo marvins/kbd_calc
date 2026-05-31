@@ -11,7 +11,7 @@
 #include <lvgl.h>
 
 // Project Libraries
-#include <overboard/gui/keyboard_view.hpp>
+#include <overboard/gui/keyboard_display.hpp>
 #include <overboard/gui/lcd_section.hpp>
 #include <overboard/gui/lvgl_theme.hpp>
 #include <overboard/hal/display_config.hpp>
@@ -23,8 +23,8 @@ namespace ovb::gui {
 /*            Impl             */
 /*******************************/
 struct App_View::Impl {
-    std::unique_ptr<LCD_Section>   lcd;
-    std::unique_ptr<Keyboard_View> keyboard_view;
+    std::unique_ptr<LCD_Section>     lcd;
+    std::unique_ptr<Keyboard_Display> keyboard_display;
 
     lv_obj_t* lcd_container = nullptr;
     lv_obj_t* kbd_container = nullptr;
@@ -78,8 +78,8 @@ App_View::App_View( lv_obj_t*                       root,
     lv_obj_set_style_radius(m_impl->kbd_container, 0, LV_PART_MAIN);
     lv_obj_clear_flag(m_impl->kbd_container, LV_OBJ_FLAG_SCROLLABLE);
 
-    LOG_TRACE("App_View: Creating Keyboard_View");
-    m_impl->keyboard_view = std::make_unique<Keyboard_View>(
+    LOG_TRACE("App_View: Creating Keyboard_Display");
+    m_impl->keyboard_display = std::make_unique<Keyboard_Display>(
         m_impl->kbd_container, layout, layers, hal::KBD_WIDTH, hal::KBD_HEIGHT);
     LOG_TRACE("App_View: Constructor complete");
 }
@@ -95,7 +95,7 @@ void App_View::refresh() {
 /*        Update Layer        */
 /******************************/
 void App_View::update_layer() {
-    m_impl->keyboard_view->update_layer();
+    m_impl->keyboard_display->update_layer();
 }
 
 /****************************/
@@ -103,14 +103,6 @@ void App_View::update_layer() {
 /****************************/
 void App_View::render() {
     lv_timer_handler();
-}
-
-/************************************/
-/*        Set Key Callback          */
-/************************************/
-void App_View::set_key_callback( void (*cb)(int key_index, void* user_data),
-                                 void* user_data ) {
-    m_impl->keyboard_view->set_click_callback(cb, user_data);
 }
 
 } // namespace ovb::gui

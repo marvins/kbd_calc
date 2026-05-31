@@ -86,6 +86,49 @@ class Factorial_Node : public Node {
             return std::make_unique<Factorial_Node>(m_operand->simplify());
         }
 
+        /**
+         * @brief Get the number of children (always 1 for factorial)
+         *
+         * @return size_t Number of children
+         */
+        size_t child_count() const override { return 1; }
+
+        /**
+         * @brief Get child node at given index
+         *
+         * @param index Child index (0 for operand)
+         * @return Node* Child node (nullptr if index out of bounds)
+         */
+        Node* child_at( size_t index ) override {
+            if ( index == 0 ) return m_operand.get();
+            return nullptr;
+        }
+
+        /**
+         * @brief Get child node at given index (const version)
+         *
+         * @param index Child index (0 for operand)
+         * @return const Node* Child node (nullptr if index out of bounds)
+         */
+        const Node* child_at( size_t index ) const override {
+            if ( index == 0 ) return m_operand.get();
+            return nullptr;
+        }
+
+        /**
+         * @brief Release the operand (for tree restructuring)
+         *
+         * @return Node::ptr_t Released operand
+         */
+        Node::ptr_t release_operand() { return std::move(m_operand); }
+
+        /**
+         * @brief Set the operand (for tree restructuring)
+         *
+         * @param node New operand
+         */
+        void set_operand( Node::ptr_t node ) { m_operand = std::move(node); }
+
     private:
 
         /// @brief Operand

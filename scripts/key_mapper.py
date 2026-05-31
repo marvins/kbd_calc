@@ -117,7 +117,7 @@ AVAILABLE_KEY_CODES = [
     # Scientific
     "SIN", "COS", "TAN", "ASIN", "ACOS", "ATAN",
     "LOG", "LN", "EXP", "SQRT", "POWER_2", "POWER_3", "POWER_N",
-    "FACTORIAL", "RECIPROCAL", "PI", "EULER",
+    "FACTORIAL", "RECIPROCAL", "PI", "EULER", "CEIL", "FLOOR", "ABS",
     # Programmer
     "BIT_AND", "BIT_OR", "BIT_XOR", "BIT_NOT", "SHIFT_LEFT", "SHIFT_RIGHT",
     "HEX_A", "HEX_B", "HEX_C", "HEX_D", "HEX_E", "HEX_F",
@@ -151,6 +151,7 @@ KEY_CODE_TO_LABEL = {
     "SIN": "sin", "COS": "cos", "TAN": "tan", "ASIN": "asin", "ACOS": "acos", "ATAN": "atan",
     "LOG": "log", "LN": "ln", "EXP": "e^x", "SQRT": "√", "POWER_2": "x²", "POWER_3": "x³", "POWER_N": "x^y",
     "FACTORIAL": "n!", "RECIPROCAL": "1/x", "PI": "π", "EULER": "e",
+    "CEIL": "ceil", "FLOOR": "floor", "ABS": "abs",
     # Programmer
     "BIT_AND": "&", "BIT_OR": "|", "BIT_XOR": "^", "BIT_NOT": "~",
     "SHIFT_LEFT": "<<", "SHIFT_RIGHT": ">>",

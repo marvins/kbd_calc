@@ -37,6 +37,13 @@ class Number_Node : public Node {
         double value() const { return m_value; }
 
         /**
+         * @brief Set the value of the number
+         *
+         * @param v New value
+         */
+        void set_value( double v ) { m_value = v; }
+
+        /**
          * @brief Evaluate the number
          *
          * @return double Value of the number
@@ -70,6 +77,33 @@ class Number_Node : public Node {
          * @return Node::ptr_t Simplified number node
          */
         Node::ptr_t simplify() const override { return clone(); }
+
+        /**
+         * @brief Get the number of children (0 for leaf nodes)
+         *
+         * @return size_t Number of children
+         */
+        size_t child_count() const override { return 0; }
+
+        /**
+         * @brief Get child node at given index (always nullptr for leaf nodes)
+         *
+         * @param index Child index (ignored)
+         * @return Node* Always nullptr
+         */
+        Node* child_at( [[maybe_unused]] size_t index ) override {
+            return nullptr;
+        }
+
+        /**
+         * @brief Get child node at given index (const version, always nullptr)
+         *
+         * @param index Child index (ignored)
+         * @return const Node* Always nullptr
+         */
+        const Node* child_at( [[maybe_unused]] size_t index ) const override {
+            return nullptr;
+        }
 
     private:
 

@@ -185,6 +185,9 @@ std::string key_code_to_display(Key_Code code) {
         case Key_Code::LN:                 return "ln";
         case Key_Code::EXP:                return "e^x";
         case Key_Code::SQRT:               return "\xE2\x88\x9A";
+        case Key_Code::CEIL:               return "ceil";
+        case Key_Code::FLOOR:              return "floor";
+        case Key_Code::ABS:                return "abs";
         case Key_Code::POWER_2:            return "x\xC2\xB2";
         case Key_Code::POWER_3:            return "x\xC2\xB3";
         case Key_Code::POWER_N:            return "x\xE2\x81\xBF";

@@ -142,6 +142,7 @@ endif()
 # ── Tests (shared) ────────────────────────────────────────────────────────────────
 if( BUILD_TESTS )
     add_executable(calc_tests
+        test/test_main.cpp
         test/math/ast/test_ast.cpp
         test/math/test_parser.cpp
         test/math/layout/test_render.cpp
@@ -168,7 +169,7 @@ if( BUILD_TESTS )
     target_include_directories(calc_tests PRIVATE ${CMAKE_BINARY_DIR}/src)
     target_include_directories(calc_tests SYSTEM PRIVATE thirdparty/lvgl)
     target_include_directories(calc_tests SYSTEM PRIVATE thirdparty/json/include)
-    target_link_libraries(calc_tests PRIVATE GTest::gtest_main project_warnings lvgl)
+    target_link_libraries(calc_tests PRIVATE GTest::gtest project_warnings lvgl)
     include(GoogleTest)
     gtest_discover_tests(calc_tests)
 endif()

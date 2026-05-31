@@ -79,6 +79,9 @@ enum class Key_Code : uint16_t {
     RECIPROCAL,
     PI,
     EULER,
+    CEIL,
+    FLOOR,
+    ABS,
 
     // Programmer
     BIT_AND,

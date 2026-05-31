@@ -133,6 +133,29 @@ class Node {
          */
         virtual Node::ptr_t clone() const = 0;
 
+        /**
+         * @brief Get the number of children this node has
+         *
+         * @return size_t Number of children (0 for leaf nodes)
+         */
+        virtual size_t child_count() const = 0;
+
+        /**
+         * @brief Get child node at given index
+         *
+         * @param index Child index
+         * @return Node* Child node (nullptr if index out of bounds)
+         */
+        virtual Node* child_at( size_t index ) = 0;
+
+        /**
+         * @brief Get child node at given index (const version)
+         *
+         * @param index Child index
+         * @return const Node* Child node (nullptr if index out of bounds)
+         */
+        virtual const Node* child_at( size_t index ) const = 0;
+
     private:
 
         /// @brief Node kind

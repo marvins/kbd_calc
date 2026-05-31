@@ -78,6 +78,33 @@ class Variable_Node : public Node {
          */
         Node::ptr_t simplify() const override { return clone(); }
 
+        /**
+         * @brief Get the number of children (0 for leaf nodes)
+         *
+         * @return size_t Number of children
+         */
+        size_t child_count() const override { return 0; }
+
+        /**
+         * @brief Get child node at given index (always nullptr for leaf nodes)
+         *
+         * @param index Child index (ignored)
+         * @return Node* Always nullptr
+         */
+        Node* child_at( [[maybe_unused]] size_t index ) override {
+            return nullptr;
+        }
+
+        /**
+         * @brief Get child node at given index (const version, always nullptr)
+         *
+         * @param index Child index (ignored)
+         * @return const Node* Always nullptr
+         */
+        const Node* child_at( [[maybe_unused]] size_t index ) const override {
+            return nullptr;
+        }
+
     private:
 
         /// @brief Name of the variable

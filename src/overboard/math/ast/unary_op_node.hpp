@@ -97,6 +97,35 @@ class Unary_Op_Node : public Node {
             return std::make_unique<Unary_Op_Node>(m_op, m_operand->simplify());
         }
 
+        /**
+         * @brief Get the number of children (always 1 for unary ops)
+         *
+         * @return size_t Number of children
+         */
+        size_t child_count() const override { return 1; }
+
+        /**
+         * @brief Get child node at given index
+         *
+         * @param index Child index (0 for operand)
+         * @return Node* Child node (nullptr if index out of bounds)
+         */
+        Node* child_at( size_t index ) override {
+            if ( index == 0 ) return m_operand.get();
+            return nullptr;
+        }
+
+        /**
+         * @brief Get child node at given index (const version)
+         *
+         * @param index Child index (0 for operand)
+         * @return const Node* Child node (nullptr if index out of bounds)
+         */
+        const Node* child_at( size_t index ) const override {
+            if ( index == 0 ) return m_operand.get();
+            return nullptr;
+        }
+
     private:
 
         /// @brief The unary operation to perform
