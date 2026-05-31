@@ -185,8 +185,8 @@ void SDL_App::on_key_clicked(int key_index, void* user_data) {
 /*        Handle Keypress        */
 /*********************************/
 void SDL_App::handle_key(int key_index) {
-    LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index));
     const core::Key_Code code = m_layers.key_at(key_index);
+    LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + ", key_code=" + std::to_string(static_cast<int>(code)) + " (" + core::key_code_to_display(code) + ")");
 
     switch (code) {
         case core::Key_Code::LAYER_NEXT:

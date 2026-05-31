@@ -147,28 +147,40 @@ void Expression::insert(core::Key_Code code) {
             num.text.insert(static_cast<std::size_t>(num.char_cursor), t.text);
             num.char_cursor += static_cast<int>(t.text.size());
         } else {
-            // Check if token to the left is an open number (cursor at its end).
-            // cursor_token_ points to the token we are AFTER, so look there.
-            bool merged = false;
-            if (cursor_token_ >= 0) {
-                Token& prev = tokens_[static_cast<std::size_t>(cursor_token_)];
-                if (prev.type == Token_Type::Number) {
-                    if (t.text == "." && prev.text.find('.') != std::string::npos)
-                        return;
-                    prev.text += t.text;
-                    prev.char_cursor = static_cast<int>(prev.text.size());
-                    merged = true;
-                }
-            }
-            if (!merged) {
-                // Insert a fresh number token after cursor_token_.
-                // Auto-prepend "0" when starting a number with a decimal point.
+            // Check if cursor is at a placeholder — replace it
+            int ph_idx = cursor_token_ + 1;
+            if (ph_idx < static_cast<int>(tokens_.size()) &&
+                tokens_[static_cast<std::size_t>(ph_idx)].type == Token_Type::Placeholder) {
+                // Replace placeholder with this number
                 if (t.text == ".")
                     t.text = "0.";
-                int insert_pos = cursor_token_ + 1;
                 t.char_cursor = static_cast<int>(t.text.size());
-                tokens_.insert(tokens_.begin() + insert_pos, t);
-                cursor_token_ = insert_pos;
+                tokens_[static_cast<std::size_t>(ph_idx)] = t;
+                cursor_token_ = ph_idx;
+            } else {
+                // Check if token to the left is an open number (cursor at its end).
+                // cursor_token_ points to the token we are AFTER, so look there.
+                bool merged = false;
+                if (cursor_token_ >= 0) {
+                    Token& prev = tokens_[static_cast<std::size_t>(cursor_token_)];
+                    if (prev.type == Token_Type::Number) {
+                        if (t.text == "." && prev.text.find('.') != std::string::npos)
+                            return;
+                        prev.text += t.text;
+                        prev.char_cursor = static_cast<int>(prev.text.size());
+                        merged = true;
+                    }
+                }
+                if (!merged) {
+                    // Insert a fresh number token after cursor_token_.
+                    // Auto-prepend "0" when starting a number with a decimal point.
+                    if (t.text == ".")
+                        t.text = "0.";
+                    int insert_pos = cursor_token_ + 1;
+                    t.char_cursor = static_cast<int>(t.text.size());
+                    tokens_.insert(tokens_.begin() + insert_pos, t);
+                    cursor_token_ = insert_pos;
+                }
             }
         }
     } else if ( code == core::Key_Code::PAREN_OPEN ) {
@@ -404,6 +416,18 @@ bool Expression::has_placeholder() const {
             return true;
     }
     return false;
+}
+
+/**********************************************/
+/*     Remove Trailing Placeholder            */
+/**********************************************/
+void Expression::remove_trailing_placeholder() {
+    if (!tokens_.empty() && tokens_.back().type == Token_Type::Placeholder) {
+        tokens_.pop_back();
+        if (cursor_token_ >= static_cast<int>(tokens_.size())) {
+            cursor_token_ = static_cast<int>(tokens_.size()) - 1;
+        }
+    }
 }
 
 // ── render_string / eval_string ───────────────────────────────────────────────

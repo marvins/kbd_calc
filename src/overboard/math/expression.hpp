@@ -65,6 +65,9 @@ class Expression {
         // Returns true if any placeholder tokens exist (blocks evaluation).
         bool has_placeholder() const;
 
+        // Remove trailing placeholder if present (for evaluation)
+        void remove_trailing_placeholder();
+
     private:
         std::vector<Token> tokens_;
 

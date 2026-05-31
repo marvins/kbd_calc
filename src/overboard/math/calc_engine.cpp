@@ -131,6 +131,7 @@ void Calc_Engine::handle_key( core::Key_Code code ) {
             break;
 
         case core::Key_Code::EQUALS:
+        case core::Key_Code::EVAL:
             evaluate();
             break;
 
@@ -151,14 +152,18 @@ void Calc_Engine::try_insert( core::Key_Code code ) {
 /*       Evaluation         */
 /****************************/
 void Calc_Engine::evaluate() {
+    s_logger.debug("evaluate() called, expression empty: " + std::string(m_state.expression.empty() ? "yes" : "no"));
     if (m_state.expression.empty()) return;
+
     try {
         std::string expr_str = m_state.expression.eval_string();
+        s_logger.debug("Evaluating expression: " + expr_str);
         Parser        p(expr_str);
         ast::Node::ptr_t tree      = p.parse();
         ast::Node::ptr_t result    = tree->simplify();
 
         std::string result_str = result->to_string();
+        s_logger.debug("Evaluation result: " + result_str);
         m_state.display_value = result_str;
         m_state.last_ast      = std::move(tree);
         m_result_shown        = true;
