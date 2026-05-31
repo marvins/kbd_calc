@@ -138,7 +138,9 @@ void Keyboard_View::build_buttons(lv_obj_t* parent) {
         }
 
         LOG_TRACE("build_buttons: Getting display text for key " + std::to_string(i));
-        const std::string text = core::key_code_to_display(layer.keys[static_cast<std::size_t>(i)]);
+        auto key_code = layer.keys[static_cast<std::size_t>(i)];
+        LOG_TRACE("build_buttons: Key " + std::to_string(i) + " has key_code=" + std::to_string(static_cast<int>(key_code)));
+        const std::string text = core::key_code_to_display(key_code);
         LOG_TRACE("build_buttons: Display text for key " + std::to_string(i) + " is: '" + text + "' (length=" + std::to_string(text.length()) + ")");
 
         // Set label text - empty string for unassigned keys
@@ -153,6 +155,15 @@ void Keyboard_View::build_buttons(lv_obj_t* parent) {
 
         LOG_TRACE("build_buttons: Label text set for key " + std::to_string(i));
         lv_obj_set_style_text_color(lbl, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
+
+        // Use custom superscript font for power buttons and square root
+        if (key_code == core::Key_Code::POWER_2 ||
+            key_code == core::Key_Code::POWER_3 ||
+            key_code == core::Key_Code::POWER_N ||
+            key_code == core::Key_Code::SQRT) {
+            lv_obj_set_style_text_font(lbl, &lv_font_superscript, LV_PART_MAIN);
+        }
+
         lv_obj_align(lbl, LV_ALIGN_CENTER, 0, 0);
 
         m_key_indices.push_back(i);
@@ -174,6 +185,16 @@ void Keyboard_View::update_layer() {
         if (!m_labels[i]) continue;
         const std::string text = core::key_code_to_display(layer.keys[i]);
         lv_label_set_text(m_labels[i], text.c_str());
+
+        // Use custom superscript font for power buttons and square root
+        if (layer.keys[i] == core::Key_Code::POWER_2 ||
+            layer.keys[i] == core::Key_Code::POWER_3 ||
+            layer.keys[i] == core::Key_Code::POWER_N ||
+            layer.keys[i] == core::Key_Code::SQRT) {
+            lv_obj_set_style_text_font(m_labels[i], &lv_font_superscript, LV_PART_MAIN);
+        } else {
+            lv_obj_set_style_text_font(m_labels[i], LVGL_FONT_DEFAULT, LV_PART_MAIN);
+        }
     }
 }
 

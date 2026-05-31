@@ -99,6 +99,13 @@ core::Grid_Layout to_grid_layout( const Via_Layout& via_layout );
 std::map<std::string, int> build_scancode_index_map( const Via_Layout& layout );
 
 /**
+ * @brief Build a map from matrix position (row, col) -> key index
+ * @param layout Parsed VIA layout
+ * @return Map of (row, col) pair to visual key index
+ */
+std::map<std::pair<int, int>, int> build_matrix_index_map( const Via_Layout& layout );
+
+/**
  * @brief Load scancodes from a keymap JSON file and apply to an existing layout
  * @param layout Layout to update with scancode data
  * @param keymap_path Path to the keymap JSON file (contains top-level "scancodes" object)

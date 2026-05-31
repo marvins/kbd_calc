@@ -312,4 +312,16 @@ std::map<std::string, int> build_scancode_index_map(const Via_Layout& layout) {
     return result;
 }
 
+/***********************************************/
+/*      Build matrix position -> key index map */
+/***********************************************/
+std::map<std::pair<int, int>, int> build_matrix_index_map(const Via_Layout& layout) {
+    std::map<std::pair<int, int>, int> result;
+    for (int i = 0; i < static_cast<int>(layout.keys.size()); ++i) {
+        const auto& key = layout.keys[static_cast<std::size_t>(i)];
+        result[{key.row, key.col}] = i;
+    }
+    return result;
+}
+
 } // namespace ovb::io

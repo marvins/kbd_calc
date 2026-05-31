@@ -10,6 +10,7 @@
 #include <array>
 #include <cstdint>
 #include <filesystem>
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -148,10 +149,13 @@ struct Layer {
 /**
  * @brief Load keymap layers from JSON file
  * @param json_path Path to JSON file containing layer definitions
+ * @param matrix_index_map Map from (row, col) to visual key index
  * @return Array of layers loaded from JSON
  * @throws std::runtime_error if file cannot be read or parsed
  */
-std::array<Layer, LAYER_COUNT> load_layers_from_json(const std::filesystem::path& json_path);
+std::array<Layer, LAYER_COUNT> load_layers_from_json(
+    const std::filesystem::path& json_path,
+    const std::map<std::pair<int, int>, int>& matrix_index_map);
 
 /**
  * @brief Manages keyboard layer definitions and key mappings.

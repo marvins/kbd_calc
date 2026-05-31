@@ -52,7 +52,10 @@ std::unique_ptr<PicoCalc_App> PicoCalc_App::create(
 
     // Load layer assignments
     try {
-        auto layers = core::load_layers_from_json(layers_path.string());
+        // Parse layout to build matrix position -> visual index map
+        auto via_layout = io::parse_via_layout(layout_path);
+        auto matrix_index_map = io::build_matrix_index_map(via_layout);
+        auto layers = core::load_layers_from_json(layers_path.string(), matrix_index_map);
         app->m_keymap = core::Keymap(layers);
     } catch (const std::exception& e) {
         std::cerr << "PicoCalc_App: failed to load layers: " << e.what() << "\n";

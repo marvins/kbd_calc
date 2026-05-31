@@ -57,7 +57,10 @@ std::unique_ptr<SDL_App> SDL_App::create( const core::Grid_Layout&     layout,
 
     // Load layer assignments from layers JSON
     try {
-        auto layers = core::load_layers_from_json(layers_path.string());
+        // Parse layout to build matrix position -> visual index map
+        auto via_layout = io::parse_via_layout(layout_path);
+        auto matrix_index_map = io::build_matrix_index_map(via_layout);
+        auto layers = core::load_layers_from_json(layers_path.string(), matrix_index_map);
         app->m_keymap = core::Keymap(layers);
     } catch (const std::exception& e) {
         std::cerr << "Failed to load layers from " << layers_path << ": " << e.what() << "\n";
@@ -148,33 +151,22 @@ void SDL_App::run() {
     LOG_DEBUG("SDL_App::run() started");
     int loop_count = 0;
     while (!m_should_quit && !m_input->should_quit()) {
-        LOG_TRACE("Main loop iteration " + std::to_string(loop_count));
 
         // Pump SDL events (handles keyboard and mouse hit-testing)
-        LOG_TRACE("Pumping SDL events");
         m_input->pump();
-        LOG_TRACE("SDL events pumped");
 
         // Process keyboard events from SDL_Input
-        LOG_TRACE("Processing keyboard events");
         hal::Key_Event key_event;
         while (m_input->poll(key_event)) {
-            LOG_TRACE("Processing key event, key_index=" + std::to_string(key_event.key_index));
             if (key_event.type == hal::Key_Event_Type::Press) {
                 handle_key(key_event.key_index);
             }
         }
-        LOG_TRACE("Keyboard events processed");
 
-        LOG_TRACE("Ticking LVGL");
         lv_tick_inc(16);
-        LOG_TRACE("Rendering view");
         m_view->render();
-        LOG_TRACE("View rendered");
 
-        LOG_TRACE("Delaying 16ms");
         SDL_Delay(16);
-        LOG_TRACE("Delay complete");
 
         loop_count++;
     }

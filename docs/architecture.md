@@ -105,6 +105,9 @@ Platform-agnostic. Depends on `hal/` interfaces and `core/`/`math/` but **never*
 | `Keyboard_View` | LVGL button grid matching physical key layout (bottom 300 px) |
 | `math_canvas` | Standalone utility: renders a typeset expression onto an `lv_canvas` |
 | `lvgl_theme.hpp` | Centralised color constants and `lvgl_color()` helper |
+| `lv_font_superscript.c` | Custom LVGL font with superscript glyphs (², ³, ⁿ) for power buttons |
+
+See [Custom Fonts](custom_fonts.md) for font generation details.
 
 ### `hal/` — Hardware abstraction interfaces
 

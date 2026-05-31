@@ -11,6 +11,7 @@
 #include <string>
 
 // Third-Party Libraries
+#include <lvgl.h>
 #include <nlohmann/json.hpp>
 
 // Project Libraries
@@ -158,7 +159,7 @@ std::string key_code_to_display(Key_Code code) {
         case Key_Code::ADD:                return "+";
         case Key_Code::SUBTRACT:           return "-";
         case Key_Code::MULTIPLY:           return "x";
-        case Key_Code::DIVIDE:             return "\xC3\xB7";
+        case Key_Code::DIVIDE:             return "/";
         case Key_Code::EQUALS:             return "=";
         case Key_Code::EVAL:               return "Eval";
         case Key_Code::APPROX:             return "Aprx";
@@ -213,10 +214,10 @@ std::string key_code_to_display(Key_Code code) {
         case Key_Code::LAYER_VAR:          return "Var";
         case Key_Code::LAYER_HOME:         return "Home";
         case Key_Code::TOGGLE_MATH_LAYOUT: return "MATH";
-        case Key_Code::CURSOR_LEFT:        return "<";
-        case Key_Code::CURSOR_RIGHT:       return ">";
-        case Key_Code::CURSOR_UP:          return "^";
-        case Key_Code::CURSOR_DOWN:        return "v";
+        case Key_Code::CURSOR_LEFT:        return LV_SYMBOL_LEFT;
+        case Key_Code::CURSOR_RIGHT:       return LV_SYMBOL_RIGHT;
+        case Key_Code::CURSOR_UP:          return LV_SYMBOL_UP;
+        case Key_Code::CURSOR_DOWN:        return LV_SYMBOL_DOWN;
         case Key_Code::PAGE_UP:            return "PgUp";
         case Key_Code::PAGE_DOWN:          return "PgDn";
     }
@@ -226,7 +227,10 @@ std::string key_code_to_display(Key_Code code) {
 /****************************************/
 /*      Load Layers from JSON File      */
 /****************************************/
-std::array<Layer, LAYER_COUNT> load_layers_from_json(const std::filesystem::path& json_path) {
+std::array<Layer, LAYER_COUNT> load_layers_from_json(
+    const std::filesystem::path& json_path,
+    const std::map<std::pair<int, int>, int>& matrix_index_map)
+{
     std::ifstream file(json_path);
     if (!file.is_open()) {
         throw std::runtime_error("Failed to open keymap JSON file: " + json_path.string());
@@ -267,16 +271,33 @@ std::array<Layer, LAYER_COUNT> load_layers_from_json(const std::filesystem::path
         // Set layer name from JSON
         layers[i].name = layer_json["name"].get<std::string>();
 
-        // Build keys from JSON
-        layers[i].keys.clear();
-        layers[i].keys.reserve(keys_json.size());
+        // Build keys from JSON using matrix position -> visual index mapping
+        // Resize to match the number of keys in the layout (matrix_index_map size)
+        layers[i].keys.resize(matrix_index_map.size(), Key_Code::NONE);
 
         for (const auto& key_json : keys_json) {
+            int row = 0;
+            int col = 0;
+            if (key_json.contains("row") && key_json["row"].is_number()) {
+                row = key_json["row"].get<int>();
+            }
+            if (key_json.contains("col") && key_json["col"].is_number()) {
+                col = key_json["col"].get<int>();
+            }
+
             Key_Code code = Key_Code::NONE;
             if (key_json.contains("code") && key_json["code"].is_string()) {
                 code = string_to_key_code(key_json["code"].get<std::string>());
             }
-            layers[i].keys.push_back(code);
+
+            // Map matrix position to visual key index
+            auto it = matrix_index_map.find({row, col});
+            if (it != matrix_index_map.end()) {
+                int key_index = it->second;
+                if (key_index >= 0 && key_index < static_cast<int>(layers[i].keys.size())) {
+                    layers[i].keys[static_cast<std::size_t>(key_index)] = code;
+                }
+            }
         }
     }
 

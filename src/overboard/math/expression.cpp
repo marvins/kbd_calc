@@ -24,7 +24,7 @@ Token Expression::make_token(core::Key_Code code) {
         case KC::MULTIPLY:    return { Token_Type::Operator, "*",     code };
         case KC::DIVIDE:      return { Token_Type::Operator, "/",     code };
         case KC::POWER_N:     return { Token_Type::Operator, "^",     code };
-        case KC::PERCENT:     return { Token_Type::Operator, "%",     code };
+        case KC::PERCENT:     return { Token_Type::Function, "mod(",  code };
         case KC::BIT_AND:     return { Token_Type::Operator, "&",     code };
         case KC::BIT_OR:      return { Token_Type::Operator, "|",     code };
         case KC::BIT_XOR:     return { Token_Type::Operator, "^",     code };

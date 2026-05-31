@@ -221,13 +221,13 @@
                 {
                     "row": 0,
                     "col": 1,
-                    "code": "NONE",
+                    "code": "PAGE_UP",
                     "label": ""
                 },
                 {
                     "row": 0,
                     "col": 2,
-                    "code": "BACKSPACE",
+                    "code": "PAGE_DOWN",
                     "label": "BSP"
                 },
                 {
@@ -430,13 +430,13 @@
                 {
                     "row": 0,
                     "col": 1,
-                    "code": "NONE",
+                    "code": "PAGE_UP",
                     "label": ""
                 },
                 {
                     "row": 0,
                     "col": 2,
-                    "code": "BACKSPACE",
+                    "code": "PAGE_DOWN",
                     "label": "BSP"
                 },
                 {
@@ -460,7 +460,7 @@
                 {
                     "row": 0,
                     "col": 6,
-                    "code": "NONE",
+                    "code": "BACKSPACE",
                     "label": ""
                 },
                 {
@@ -639,13 +639,13 @@
                 {
                     "row": 0,
                     "col": 1,
-                    "code": "NONE",
+                    "code": "PAGE_UP",
                     "label": ""
                 },
                 {
                     "row": 0,
                     "col": 2,
-                    "code": "BACKSPACE",
+                    "code": "PAGE_DOWN",
                     "label": "BSP"
                 },
                 {
@@ -848,13 +848,13 @@
                 {
                     "row": 0,
                     "col": 1,
-                    "code": "NONE",
+                    "code": "PAGE_UP",
                     "label": ""
                 },
                 {
                     "row": 0,
                     "col": 2,
-                    "code": "BACKSPACE",
+                    "code": "PAGE_DOWN",
                     "label": "BSP"
                 },
                 {
@@ -878,7 +878,7 @@
                 {
                     "row": 0,
                     "col": 6,
-                    "code": "NONE",
+                    "code": "BACKSPACE",
                     "label": ""
                 },
                 {

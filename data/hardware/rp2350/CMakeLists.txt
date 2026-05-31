@@ -56,6 +56,7 @@ set(GUI_SOURCES
     src/overboard/gui/keyboard_view.cpp
     src/overboard/gui/lcd_section.cpp
     src/overboard/gui/math_canvas.cpp
+    src/overboard/gui/lv_font_superscript.c
 )
 
 # Bare RP2350 Pico HAL sources (stub)

@@ -32,6 +32,11 @@ double Function_Node::eval() const {
     if (m_name == "ln")   return std::log(a);
     if (m_name == "exp")  return std::exp(a);
     if (m_name == "sqrt") return std::sqrt(a);
+    if (m_name == "mod") {
+        if (m_args.size() < 2) throw std::runtime_error("mod requires 2 arguments");
+        double b = m_args[1]->eval();
+        return std::fmod(a, b);
+    }
     throw std::runtime_error("Unknown function: " + m_name);
 }
 
