@@ -190,18 +190,27 @@ void Expression::insert(core::Key_Code code) {
         if (cursor_inside_number())
             close_number();
 
-        // Check if cursor is at a placeholder — replace it (unless this is also an operator)
-        int next_idx = cursor_token_ + 1;
-        if (t.type != Token_Type::Operator &&
-            next_idx < static_cast<int>(tokens_.size()) &&
-            tokens_[static_cast<std::size_t>(next_idx)].type == Token_Type::Placeholder) {
-            // Replace placeholder with this token
-            tokens_[static_cast<std::size_t>(next_idx)] = t;
-            cursor_token_ = next_idx;
+        // ── Auto-insert placeholder before binary operators at start of expression ─
+        if (t.type == Token_Type::Operator && tokens_.empty()) {
+            // Insert placeholder before operator for valid syntax
+            Token placeholder{ Token_Type::Placeholder, "", core::Key_Code::NONE, -1 };
+            tokens_.push_back(placeholder);
+            tokens_.push_back(t);
+            cursor_token_ = 1;
         } else {
-            int insert_pos = cursor_token_ + 1;
-            tokens_.insert(tokens_.begin() + insert_pos, t);
-            cursor_token_ = insert_pos;
+            // Check if cursor is at a placeholder — replace it (unless this is also an operator)
+            int next_idx = cursor_token_ + 1;
+            if (t.type != Token_Type::Operator &&
+                next_idx < static_cast<int>(tokens_.size()) &&
+                tokens_[static_cast<std::size_t>(next_idx)].type == Token_Type::Placeholder) {
+                // Replace placeholder with this token
+                tokens_[static_cast<std::size_t>(next_idx)] = t;
+                cursor_token_ = next_idx;
+            } else {
+                int insert_pos = cursor_token_ + 1;
+                tokens_.insert(tokens_.begin() + insert_pos, t);
+                cursor_token_ = insert_pos;
+            }
         }
 
         // ── Auto-insert placeholder after binary operators that need a right-hand operand ─
