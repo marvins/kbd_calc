@@ -46,6 +46,10 @@ set(CORE_SOURCES
     src/overboard/core/input_key.cpp
     src/overboard/core/keyboard_layout.cpp
     src/overboard/core/layer_manager.cpp
+    src/overboard/display/cursor_renderer.cpp
+    src/overboard/display/dirty_region_tracker.cpp
+    src/overboard/display/history_display.cpp
+    src/overboard/display/result_display.cpp
     src/overboard/font/font_metrics.cpp
     src/overboard/io/via_layout.cpp
     src/overboard/math/ast/binary_op_node.cpp

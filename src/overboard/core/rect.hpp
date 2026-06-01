@@ -110,6 +110,14 @@ struct Rect {
         return x < other.right() && right() > other.x &&
                y < other.bottom() && bottom() > other.y;
     }
+
+    /**
+     * @brief Check if rectangle has zero area
+     * @return true if width or height is zero
+     */
+    bool empty() const {
+        return w == 0 || h == 0;
+    }
 };
 
 /**
