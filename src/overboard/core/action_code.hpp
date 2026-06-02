@@ -136,6 +136,9 @@ enum class Action_Code : uint16_t {
 
     // Editing
     BACKSPACE,
+    TAB,
+    DELETE,
+    CAPS_LOCK,
     CLEAR,
     ALL_CLEAR,
 

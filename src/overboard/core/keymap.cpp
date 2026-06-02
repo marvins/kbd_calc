@@ -87,6 +87,7 @@ std::array<Layer, LAYER_COUNT> load_layers_from_json(
         // Build keys from JSON using matrix position -> visual index mapping
         // Resize to match the number of keys in the layout (matrix_index_map size)
         layers[i].keys.resize(matrix_index_map.size(), Action_Code::NONE);
+        layers[i].labels.resize(matrix_index_map.size(), "");
 
         for (const auto& key_json : keys_json) {
             int row = 0;
@@ -103,12 +104,18 @@ std::array<Layer, LAYER_COUNT> load_layers_from_json(
                 code = string_to_action_code(key_json["code"].get<std::string>());
             }
 
+            std::string label;
+            if (key_json.contains("label") && key_json["label"].is_string()) {
+                label = key_json["label"].get<std::string>();
+            }
+
             // Map matrix position to visual key index
             auto it = matrix_index_map.find({row, col});
             if (it != matrix_index_map.end()) {
                 int key_index = it->second;
                 if (key_index >= 0 && key_index < static_cast<int>(layers[i].keys.size())) {
-                    layers[i].keys[static_cast<std::size_t>(key_index)] = code;
+                    layers[i].keys[static_cast<std::size_t>(key_index)]   = code;
+                    layers[i].labels[static_cast<std::size_t>(key_index)] = label;
                 }
             }
         }

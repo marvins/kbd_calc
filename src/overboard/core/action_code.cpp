@@ -126,6 +126,9 @@ Action_Code string_to_action_code(const std::string& str) {
 
     // Editing
     if (str == "BACKSPACE")        return Action_Code::BACKSPACE;
+    if (str == "TAB")              return Action_Code::TAB;
+    if (str == "DELETE")           return Action_Code::DELETE;
+    if (str == "CAPS_LOCK")        return Action_Code::CAPS_LOCK;
     if (str == "CLEAR")            return Action_Code::CLEAR;
     if (str == "ALL_CLEAR")        return Action_Code::ALL_CLEAR;
 
@@ -243,6 +246,9 @@ std::string action_code_to_display(Action_Code code) {
 
         // Editing
         case Action_Code::BACKSPACE:        return "BSP";
+        case Action_Code::TAB:              return "Tab";
+        case Action_Code::DELETE:           return "Del";
+        case Action_Code::CAPS_LOCK:        return "Caps";
         case Action_Code::CLEAR:            return "CLR";
         case Action_Code::ALL_CLEAR:        return "AC";
 
@@ -360,6 +366,9 @@ std::string action_code_to_string(Action_Code code) {
 
         // Editing
         case Action_Code::BACKSPACE:        return "BACKSPACE";
+        case Action_Code::TAB:              return "TAB";
+        case Action_Code::DELETE:           return "DELETE";
+        case Action_Code::CAPS_LOCK:        return "CAPS_LOCK";
         case Action_Code::CLEAR:            return "CLEAR";
         case Action_Code::ALL_CLEAR:        return "ALL_CLEAR";
 

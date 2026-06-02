@@ -29,6 +29,7 @@ static constexpr int LAYER_COUNT = 5;  // Number of keyboard layers
 struct Layer {
     std::string              name;
     std::vector<Action_Code> keys;
+    std::vector<std::string> labels;  ///< Display label for each key cap (parallel to keys)
 };
 
 /**

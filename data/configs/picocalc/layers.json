@@ -6,217 +6,217 @@
                 {
                     "row": 0,
                     "col": 1,
-                    "code": "UP",
-                    "label": "\u2191"
+                    "code": "CURSOR_UP",
+                    "label": "\u00ef\u0081\u00b7"
                 },
                 {
                     "row": 0,
                     "col": 5,
                     "code": "F1",
-                    "label": "F6"
+                    "label": "F1"
                 },
                 {
                     "row": 0,
                     "col": 6,
                     "code": "F2",
-                    "label": "F7"
+                    "label": "F2"
                 },
                 {
                     "row": 0,
                     "col": 7,
                     "code": "F3",
-                    "label": "F8"
+                    "label": "F3"
                 },
                 {
                     "row": 0,
                     "col": 8,
                     "code": "F4",
-                    "label": "F9"
+                    "label": "F4"
                 },
                 {
                     "row": 0,
                     "col": 9,
                     "code": "F5",
-                    "label": "F10"
+                    "label": "F5"
                 },
                 {
                     "row": 1,
                     "col": 0,
-                    "code": "LEFT",
-                    "label": "\u2190"
+                    "code": "CURSOR_LEFT",
+                    "label": "\u00ef\u0081\u0093"
                 },
                 {
                     "row": 1,
                     "col": 1,
-                    "code": "DOWN",
-                    "label": "\u2193"
+                    "code": "CURSOR_DOWN",
+                    "label": "\u00ef\u0081\u00b8"
                 },
                 {
                     "row": 1,
                     "col": 2,
-                    "code": "RIGHT",
-                    "label": "\u2192"
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u00ef\u0081\u0094"
                 },
                 {
                     "row": 1,
                     "col": 5,
                     "code": "ESCAPE",
-                    "label": "Ins"
+                    "label": "Esc"
                 },
                 {
                     "row": 1,
                     "col": 6,
-                    "code": "NONE",
-                    "label": "Home"
+                    "code": "TAB",
+                    "label": "Tab"
                 },
                 {
                     "row": 1,
                     "col": 7,
-                    "code": "NONE",
-                    "label": "PgUp"
+                    "code": "CAPS_LOCK",
+                    "label": "Caps"
                 },
                 {
                     "row": 1,
                     "col": 8,
-                    "code": "NONE",
-                    "label": "PgDn"
+                    "code": "DELETE",
+                    "label": "Del"
                 },
                 {
                     "row": 1,
                     "col": 9,
-                    "code": "NONE",
-                    "label": "End"
+                    "code": "BACKSPACE",
+                    "label": "\u00ef\u0081\u008a"
                 },
                 {
                     "row": 2,
-                    "col": 3,
+                    "col": 0,
                     "code": "NONE",
-                    "label": "+"
+                    "label": "`"
                 },
                 {
                     "row": 2,
-                    "col": 4,
-                    "code": "NONE",
-                    "label": "-"
-                },
-                {
-                    "row": 2,
-                    "col": 5,
-                    "code": "NONE",
-                    "label": "x"
-                },
-                {
-                    "row": 2,
-                    "col": 6,
+                    "col": 1,
                     "code": "NONE",
                     "label": "/"
                 },
                 {
                     "row": 2,
-                    "col": 7,
+                    "col": 2,
                     "code": "NONE",
-                    "label": "%"
+                    "label": "\\"
                 },
                 {
                     "row": 2,
-                    "col": 8,
-                    "code": "NONE",
-                    "label": "1/n"
-                },
-                {
-                    "row": 2,
-                    "col": 9,
+                    "col": 3,
                     "code": "NONE",
                     "label": "-"
                 },
                 {
+                    "row": 2,
+                    "col": 4,
+                    "code": "NONE",
+                    "label": "="
+                },
+                {
+                    "row": 2,
+                    "col": 5,
+                    "code": "NONE",
+                    "label": "["
+                },
+                {
+                    "row": 2,
+                    "col": 6,
+                    "code": "NONE",
+                    "label": "]"
+                },
+                {
                     "row": 3,
                     "col": 0,
-                    "code": "KEY_1",
+                    "code": "NONE",
                     "label": "1"
                 },
                 {
                     "row": 3,
                     "col": 1,
-                    "code": "KEY_2",
+                    "code": "NONE",
                     "label": "2"
                 },
                 {
                     "row": 3,
                     "col": 2,
-                    "code": "KEY_3",
+                    "code": "NONE",
                     "label": "3"
                 },
                 {
                     "row": 3,
                     "col": 3,
-                    "code": "KEY_4",
+                    "code": "NONE",
                     "label": "4"
                 },
                 {
                     "row": 3,
                     "col": 4,
-                    "code": "KEY_5",
+                    "code": "NONE",
                     "label": "5"
                 },
                 {
                     "row": 3,
                     "col": 5,
-                    "code": "KEY_6",
+                    "code": "NONE",
                     "label": "6"
                 },
                 {
                     "row": 3,
                     "col": 6,
-                    "code": "KEY_7",
+                    "code": "NONE",
                     "label": "7"
                 },
                 {
                     "row": 3,
                     "col": 7,
-                    "code": "KEY_8",
+                    "code": "NONE",
                     "label": "8"
                 },
                 {
                     "row": 3,
                     "col": 8,
-                    "code": "KEY_9",
+                    "code": "NONE",
                     "label": "9"
                 },
                 {
                     "row": 3,
                     "col": 9,
-                    "code": "KEY_0",
+                    "code": "NONE",
                     "label": "0"
                 },
                 {
                     "row": 4,
                     "col": 0,
-                    "code": "KEY_Q",
+                    "code": "NONE",
                     "label": "Q"
                 },
                 {
                     "row": 4,
                     "col": 1,
-                    "code": "KEY_W",
+                    "code": "NONE",
                     "label": "W"
                 },
                 {
                     "row": 4,
                     "col": 2,
-                    "code": "KEY_E",
+                    "code": "NONE",
                     "label": "E"
                 },
                 {
                     "row": 4,
                     "col": 3,
-                    "code": "KEY_R",
+                    "code": "NONE",
                     "label": "R"
                 },
                 {
                     "row": 4,
                     "col": 4,
-                    "code": "KEY_T",
+                    "code": "NONE",
                     "label": "T"
                 },
                 {
@@ -355,19 +355,25 @@
                     "row": 6,
                     "col": 7,
                     "code": "NONE",
-                    "label": "\u21b5"
+                    "label": ","
                 },
                 {
                     "row": 6,
                     "col": 8,
                     "code": "NONE",
-                    "label": "7"
+                    "label": "."
                 },
                 {
                     "row": 7,
                     "col": 0,
                     "code": "NONE",
                     "label": "\u21e7"
+                },
+                {
+                    "row": 7,
+                    "col": 1,
+                    "code": "NONE",
+                    "label": "Ctrl"
                 },
                 {
                     "row": 7,
@@ -385,17 +391,11 @@
                     "row": 7,
                     "col": 5,
                     "code": "NONE",
-                    "label": "."
-                },
-                {
-                    "row": 7,
-                    "col": 6,
-                    "code": "NONE",
                     "label": ";"
                 },
                 {
                     "row": 7,
-                    "col": 7,
+                    "col": 6,
                     "code": "NONE",
                     "label": "'"
                 },

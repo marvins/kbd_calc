@@ -27,6 +27,23 @@ from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QFont, QKeyEvent, QPainter, QPen, QColor
 
 # Mapping from Qt key codes to hardware-agnostic Input_Key names
+
+# LVGL symbol escape sequences to readable text
+LVGL_SYMBOLS = {
+    "\u00EF\u0081\u0093": "←",  # LV_SYMBOL_LEFT
+    "\u00EF\u0081\u0094": "→",  # LV_SYMBOL_RIGHT
+    "\u00EF\u0081\u00B7": "↑",  # LV_SYMBOL_UP
+    "\u00EF\u0081\u00B8": "↓",  # LV_SYMBOL_DOWN
+    "\u00EF\u0081\u008A": "⌫",  # LV_SYMBOL_BACKSPACE
+    "\u21e7": "⇧",  # Shift arrow
+    "\u21b5": "↵",  # Enter
+}
+
+def convert_lvgl_symbols(label: str) -> str:
+    """Convert LVGL symbol escape sequences to readable Unicode characters."""
+    for lvgl, readable in LVGL_SYMBOLS.items():
+        label = label.replace(lvgl, readable)
+    return label
 QT_KEY_TO_INPUT_KEY = {
     # Function keys
     Qt.Key.Key_F1:  "F1",   Qt.Key.Key_F2:  "F2",
@@ -135,6 +152,9 @@ class KeyCode(Enum):
     CLEAR = "CLEAR"
     ALL_CLEAR = "ALL_CLEAR"
     BACKSPACE = "BACKSPACE"
+    TAB = "TAB"
+    DELETE = "DELETE"
+    CAPS_LOCK = "CAPS_LOCK"
     # Grouping / extra basic
     PAREN_OPEN = "PAREN_OPEN"
     PAREN_CLOSE = "PAREN_CLOSE"
@@ -330,9 +350,9 @@ class KeyButton(QPushButton):
 
     def update_display(self):
         """Update button appearance based on current label/code."""
-        # Always use KEY_CODE_TO_LABEL for display, not the JSON label
-        display_text = KEY_CODE_TO_LABEL.get(self.code, "")
-        if not display_text or self.code == "NONE":
+        # Use JSON label, converting LVGL symbols to readable text
+        display_text = convert_lvgl_symbols(self.label)
+        if not display_text:
             display_text = f"{self.index}"
         self.setText(display_text)
 
@@ -674,7 +694,7 @@ class KeyMapperWindow(QMainWindow):
 
             # Create grid widget as background
             grid_widget = GridWidget()
-            grid_widget.setMinimumSize(650, 650)  # Reduced for smaller keys
+            grid_widget.setMinimumSize(800, 650)  # Increased width for 10-column layout
 
             # Build key grid for this layer
             key_buttons = self.build_layer_keys(grid_widget, layer_idx, layer_data)
@@ -860,7 +880,7 @@ class KeyMapperWindow(QMainWindow):
 
             # Create grid widget as background
             grid_widget = GridWidget()
-            grid_widget.setMinimumSize(650, 650)  # Reduced for smaller keys
+            grid_widget.setMinimumSize(800, 650)  # Increased width for 10-column layout
 
             key_buttons = self.build_layer_keys(grid_widget, layer_idx, layer_data)
 

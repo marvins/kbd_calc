@@ -139,7 +139,11 @@ void Keyboard_Display::build_keys(lv_obj_t* parent) {
         LOG_TRACE("build_keys: Getting display text for key " + std::to_string(i));
         auto action_code = layer.keys[static_cast<std::size_t>(i)];
         LOG_TRACE("build_keys: Key " + std::to_string(i) + " has action_code=" + std::to_string(static_cast<int>(action_code)));
-        const std::string text = core::action_code_to_display(action_code);
+        // Prefer the JSON label; fall back to the action code display string
+        std::string text = layer.labels[static_cast<std::size_t>(i)];
+        if (text.empty()) {
+            text = core::action_code_to_display(action_code);
+        }
         LOG_TRACE("build_keys: Display text for key " + std::to_string(i) + " is: '" + text + "' (length=" + std::to_string(text.length()) + ")");
 
         // Set label text - empty string for unassigned keys
