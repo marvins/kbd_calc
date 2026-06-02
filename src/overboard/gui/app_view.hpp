@@ -12,6 +12,7 @@
 #pragma once
 
 // C++ Standard Libraries
+#include <functional>
 #include <memory>
 
 // Third-Party Libraries
@@ -55,6 +56,16 @@ class App_View : public hal::I_Display {
 
         /// @brief Re-render keyboard display for the current layer
         void update_layer() override;
+
+        /**
+         * @brief Register a callback fired when an on-screen key button is clicked
+         *
+         * Forwards to Keyboard_Display::set_click_callback. Must be called
+         * after construction. Has no effect if the keyboard UI is not present.
+         *
+         * @param cb Callable receiving the logical key index
+         */
+        void set_key_click_callback(std::function<void(int)> cb);
 
         /// @brief Drive the LVGL render loop (call once per frame)
         void render()       override;

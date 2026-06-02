@@ -18,6 +18,7 @@ endif()
 # Set up SDL-specific compile definitions
 set(HARDWARE_COMPILE_DEFINITIONS
     TARGET_SDL=1
+    TARGET_PICOSDL=1
     SIMULATOR=1
 )
 
@@ -34,13 +35,18 @@ set(HARDWARE_INCLUDE_DIRS
 )
 
 # Display dimensions for the PicoSDL simulator (320x320)
+# Main window is LCD only; keyboard lives in a separate window.
+# KBD_HEIGHT=0 so LCD_HEIGHT = FULL_HEIGHT - 0 = 320 (fills the main window).
 set(DISPLAY_FULL_WIDTH  320)
 set(DISPLAY_FULL_HEIGHT 320)
-set(DISPLAY_KBD_WIDTH   320)
-set(DISPLAY_KBD_HEIGHT  320)
+set(DISPLAY_KBD_WIDTH   420)
+set(DISPLAY_KBD_HEIGHT       0)
+set(DISPLAY_KBD_WIN_HEIGHT 400)
+
 set(DISPLAY_PREVIEW_MAX_WIDTH  160)
 set(DISPLAY_PREVIEW_MAX_HEIGHT 100)
 set(DISPLAY_PREVIEW_OFFSET_Y    80)
+
 set(DISPLAY_KEY_PAD       2)
 set(DISPLAY_KBD_HEADER_H 20)
 set(DISPLAY_KBD_MARGIN_L  8)
@@ -58,9 +64,12 @@ set(HARDWARE_SOURCES
     src/overboard/hal/sdl/app.cpp
     src/overboard/hal/sdl/display.cpp
     src/overboard/hal/sdl/input.cpp
+    src/overboard/hal/sdl/input_key_mapping.cpp
     src/overboard/hal/sdl/keymap.cpp
+    src/overboard/hal/sdl/keyboard_window.cpp
     src/overboard/gui/app_view.cpp
     src/overboard/gui/keyboard_display.cpp
     src/overboard/gui/lcd_section.cpp
+    src/overboard/gui/lv_font_superscript.c
     src/overboard/gui/math_canvas.cpp
 )

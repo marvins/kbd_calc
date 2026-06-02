@@ -21,10 +21,12 @@
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/gui/app_view.hpp>
+#include <overboard/gui/keyboard_display.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/hal/i_app.hpp>
 #include <overboard/hal/sdl/display.hpp>
 #include <overboard/hal/sdl/input.hpp>
+#include <overboard/hal/sdl/keyboard_window.hpp>
 #include <overboard/math/calc_engine.hpp>
 
 namespace ovb::hal::sdl {
@@ -124,6 +126,12 @@ class SDL_App : public I_App {
 
         /// @brief SDL window driver
         std::unique_ptr<Display>       m_display;
+
+        /// @brief Separate keyboard window (PICOSDL only, when SHOW_KEYBOARD_UI=ON)
+        std::unique_ptr<Keyboard_Window> m_keyboard_window;
+
+        /// @brief Keyboard display widget (in separate window for PICOSDL)
+        std::unique_ptr<gui::Keyboard_Display> m_keyboard_display;
 
         /// @brief LVGL application view (LCD + keyboard widgets)
         std::unique_ptr<gui::App_View> m_view;

@@ -44,17 +44,12 @@ QT_KEY_TO_INPUT_KEY = {
     Qt.Key.Key_4: "KEY_4",  Qt.Key.Key_5: "KEY_5",
     Qt.Key.Key_6: "KEY_6",  Qt.Key.Key_7: "KEY_7",
     Qt.Key.Key_8: "KEY_8",  Qt.Key.Key_9: "KEY_9",
-    # Keypad digits (NUMPAD_0 through NUMPAD_9)
-    Qt.Key.KeypadModifier | Qt.Key.Key_0: "NUMPAD_0",
-    Qt.Key.KeypadModifier | Qt.Key.Key_1: "NUMPAD_1",
-    Qt.Key.KeypadModifier | Qt.Key.Key_2: "NUMPAD_2",
-    Qt.Key.KeypadModifier | Qt.Key.Key_3: "NUMPAD_3",
-    Qt.Key.KeypadModifier | Qt.Key.Key_4: "NUMPAD_4",
-    Qt.Key.KeypadModifier | Qt.Key.Key_5: "NUMPAD_5",
-    Qt.Key.KeypadModifier | Qt.Key.Key_6: "NUMPAD_6",
-    Qt.Key.KeypadModifier | Qt.Key.Key_7: "NUMPAD_7",
-    Qt.Key.KeypadModifier | Qt.Key.Key_8: "NUMPAD_8",
-    Qt.Key.KeypadModifier | Qt.Key.Key_9: "NUMPAD_9",
+    # Keypad digits
+    Qt.Key.Key_0: "NUMPAD_0",  Qt.Key.Key_1: "NUMPAD_1",
+    Qt.Key.Key_2: "NUMPAD_2",  Qt.Key.Key_3: "NUMPAD_3",
+    Qt.Key.Key_4: "NUMPAD_4",  Qt.Key.Key_5: "NUMPAD_5",
+    Qt.Key.Key_6: "NUMPAD_6",  Qt.Key.Key_7: "NUMPAD_7",
+    Qt.Key.Key_8: "NUMPAD_8",  Qt.Key.Key_9: "NUMPAD_9",
     # Navigation
     Qt.Key.Key_Left:     "LEFT",
     Qt.Key.Key_Right:    "RIGHT",
@@ -92,12 +87,7 @@ QT_KEY_TO_INPUT_KEY = {
     Qt.Key.Key_Minus:     "NUMPAD_SUBTRACT",
     Qt.Key.Key_Period:    "NUMPAD_DECIMAL",
     Qt.Key.Key_NumLock:   "NUMLOCKCLEAR",
-    # Keypad operators (with keypad modifier)
-    Qt.Key.KeypadModifier | Qt.Key.Key_multiply: "NUMPAD_MULTIPLY",
-    Qt.Key.KeypadModifier | Qt.Key.Key_Minus:     "NUMPAD_SUBTRACT",
-    Qt.Key.KeypadModifier | Qt.Key.Key_Plus:      "NUMPAD_ADD",
-    Qt.Key.KeypadModifier | Qt.Key.Key_Period:    "NUMPAD_DECIMAL",
-    Qt.Key.KeypadModifier | Qt.Key.Key_Enter:     "NUMPAD_ENTER",
+    Qt.Key.Key_Enter:     "NUMPAD_ENTER",
     # Modifiers (usually not useful as trigger keys, but map them anyway)
     Qt.Key.Key_Shift:   "SHIFT",
     Qt.Key.Key_Control: "CONTROL",
@@ -112,12 +102,6 @@ QT_KEY_TO_INPUT_KEY = {
 
 def qt_key_to_input_key(key: Qt.Key, text: str, modifiers: Qt.KeyboardModifier = Qt.KeyboardModifier.NoModifier) -> str:
     """Convert a Qt key event to an Input_Key name string."""
-    # Check for keypad modifier
-    if modifiers & Qt.KeyboardModifier.KeypadModifier:
-        # Check keypad-specific mapping
-        keypad_key = Qt.Key.KeypadModifier | key
-        if keypad_key in QT_KEY_TO_INPUT_KEY:
-            return QT_KEY_TO_INPUT_KEY[keypad_key]
     # Check direct mapping
     if key in QT_KEY_TO_INPUT_KEY:
         return QT_KEY_TO_INPUT_KEY[key]

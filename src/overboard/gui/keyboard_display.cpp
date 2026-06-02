@@ -8,6 +8,7 @@
 #include <overboard/gui/keyboard_display.hpp>
 
 // C++ Standard Libraries
+#include <cstdint>
 #include <string>
 
 // Project Libraries
@@ -123,7 +124,9 @@ void Keyboard_Display::build_keys(lv_obj_t* parent) {
         lv_obj_set_style_border_width(rect, 1, LV_PART_MAIN);
         lv_obj_set_style_radius(rect, 4, LV_PART_MAIN);
         lv_obj_set_style_pad_all(rect, 2, LV_PART_MAIN);
-        lv_obj_clear_flag(rect, LV_OBJ_FLAG_CLICKABLE); // Non-interactive
+        lv_obj_set_style_bg_color(rect, lvgl_color(LVGL_COLOR_BORDER_DARK), LV_PART_MAIN | LV_STATE_PRESSED);
+        lv_obj_set_style_border_width(rect, 2, LV_PART_MAIN | LV_STATE_PRESSED);
+        lv_obj_set_user_data(rect, reinterpret_cast<void*>(static_cast<intptr_t>(i)));
 
         LOG_TRACE("build_keys: Creating label for key " + std::to_string(i));
         // Label
@@ -167,6 +170,30 @@ void Keyboard_Display::build_keys(lv_obj_t* parent) {
         LOG_TRACE("build_keys: Key " + std::to_string(i) + " complete");
     }
     LOG_TRACE("build_keys: Complete - created=" + std::to_string(keys_created));
+}
+
+/********************************/
+/*      Set Click Callback      */
+/********************************/
+void Keyboard_Display::set_click_callback(Click_Callback cb) {
+    m_click_cb = std::move(cb);
+    for (lv_obj_t* rect : m_key_rects) {
+        if (!rect) continue;
+        lv_obj_add_flag(rect, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_add_event_cb(rect, on_btn_clicked, LV_EVENT_CLICKED, this);
+    }
+}
+
+/********************************/
+/*      On Button Clicked       */
+/********************************/
+void Keyboard_Display::on_btn_clicked(lv_event_t* e) {
+    auto* self = static_cast<Keyboard_Display*>(lv_event_get_user_data(e));
+    if (!self || !self->m_click_cb) return;
+    lv_obj_t* btn = static_cast<lv_obj_t*>(lv_event_get_target(e));
+    const auto key_index = static_cast<int>(
+        reinterpret_cast<intptr_t>(lv_obj_get_user_data(btn)));
+    self->m_click_cb(key_index);
 }
 
 /***************************/

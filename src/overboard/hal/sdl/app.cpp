@@ -128,6 +128,33 @@ bool SDL_App::init() {
         m_input->keymap() = m_sdl_keymap;
         LOG_TRACE("SDL input handler created successfully");
 
+#if TARGET_PICOSDL
+#if SHOW_KEYBOARD_UI
+        // PICOSDL: create separate keyboard window when SHOW_KEYBOARD_UI is enabled
+        LOG_TRACE("Creating separate keyboard window");
+        m_keyboard_window = std::make_unique<Keyboard_Window>(
+            "Keyboard", hal::KBD_WIDTH, hal::KBD_WIN_HEIGHT);
+        LOG_TRACE("Keyboard window created successfully");
+
+        // Create keyboard display in separate window
+        LOG_TRACE("Creating Keyboard_Display in separate window");
+        m_keyboard_display = std::make_unique<gui::Keyboard_Display>(
+            m_keyboard_window->screen(), m_layout, m_layers,
+            hal::KBD_WIDTH, hal::KBD_WIN_HEIGHT);
+        LOG_TRACE("Keyboard_Display created successfully");
+
+        // Wire keyboard button clicks to the same handler as physical keys
+        m_keyboard_display->set_click_callback([this](int key_index) {
+            on_key_clicked(key_index, this);
+        });
+#endif
+#else
+        // SDL: keyboard is in the same window, wire through App_View
+        m_view->set_key_click_callback([this](int key_index) {
+            on_key_clicked(key_index, this);
+        });
+#endif
+
         LOG_DEBUG("Rendering initial view");
         m_view->render();
         LOG_TRACE("Initial view rendered successfully");

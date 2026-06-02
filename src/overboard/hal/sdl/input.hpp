@@ -30,6 +30,16 @@ class SDL_Input : public ovb::hal::I_Input {
          */
         SDL_Keymap& keymap() { return m_keymap; }
 
+        /**
+         * @brief Set quit flag (called from event filter)
+         */
+        void set_quit(bool quit) { m_quit = quit; }
+
+        /**
+         * @brief Push event to queue (called from event filter)
+         */
+        void push_event(const Key_Event& event) { m_event_queue.push(event); }
+
         bool poll(Key_Event& out_event) override;
         bool should_quit() const override;
         void pump() override;

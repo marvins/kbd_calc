@@ -13,6 +13,7 @@
 #pragma once
 
 // C++ Standard Libraries
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -29,8 +30,9 @@ namespace ovb::gui {
 /**
  * @brief Simple keyboard layout display
  *
- * Renders a static grid showing keyboard layout and current layer
- * key mappings. No interactivity - physical keyboard handles input.
+ * Renders a grid showing keyboard layout and current layer key mappings.
+ * When a click callback is registered the buttons become interactive;
+ * each click fires the callback with the logical key index.
  */
 class Keyboard_Display {
 
@@ -40,6 +42,9 @@ class Keyboard_Display {
         static constexpr int HEADER_H    = ovb::hal::KBD_HEADER_H; ///< Keyboard header height
         static constexpr int MARGIN_LEFT = ovb::hal::KBD_MARGIN_L; ///< Left margin
         static constexpr int MARGIN_TOP  = ovb::hal::KBD_MARGIN_T; ///< Top margin (below header)
+
+        /// @brief Callback invoked when a key button is clicked; argument is the key index
+        using Click_Callback = std::function<void(int key_index)>;
 
         /**
          * @brief Create keyboard display on an existing LVGL screen
@@ -54,6 +59,16 @@ class Keyboard_Display {
                          const core::Layer_Manager&    layers,
                          int                           width,
                          int                           height );
+
+        /**
+         * @brief Register a callback invoked on every button click
+         *
+         * Must be called after construction. Retroactively enables
+         * LV_OBJ_FLAG_CLICKABLE on all key widgets and attaches the handler.
+         *
+         * @param cb Callable receiving the logical key index
+         */
+        void set_click_callback(Click_Callback cb);
 
         /**
          * @brief Update display to match current layer
@@ -85,6 +100,12 @@ class Keyboard_Display {
 
         /// @brief Vector of rectangle objects, one per key
         std::vector<lv_obj_t*> m_key_rects;
+
+        /// @brief Click callback (null if not interactive)
+        Click_Callback m_click_cb;
+
+        /// @brief LVGL event handler forwarded to m_click_cb
+        static void on_btn_clicked(lv_event_t* e);
 
         /// @brief Build all key display elements from current layout
         void build_keys(lv_obj_t* parent);

@@ -21,7 +21,7 @@ Options:
   -c           Clean build directory, then build
   -d           Debug build (default)
   -r           Release build
-  -p <target>  Hardware target: SDL or RP2350 (default: SDL)
+  -p <target>  Hardware target: SDL, PICOSDL, or RP2350 (default: SDL)
   -s <on|off>  Simulator mode: on or off (default: on)
   -j <jobs>    Parallel jobs (default: 1)
   -t           Trace/verbose build output
@@ -29,6 +29,7 @@ Options:
 Examples:
   $(basename "$0")              # SDL simulator, debug build
   $(basename "$0") -p RP2350    # RP2350 target, simulator off
+  $(basename "$0") -p PICOSDL   # PicoCalc SDL target, no keyboard UI
   $(basename "$0") -p SDL -r    # SDL simulator, release build
   $(basename "$0") -c -r         # Clean then release build
   $(basename "$0") -c            # Clean then build
@@ -50,6 +51,12 @@ while getopts ":hcdrp:s:j:t" opt; do
         \?) echo "Error: unknown option -${OPTARG}" >&2; usage; exit 1 ;;
     esac
 done
+
+# Validate target device
+case "${TARGET_DEVICE}" in
+    SDL|PICOSDL|RP2350|PICOCALC) ;;
+    *) echo "Error: unknown target '${TARGET_DEVICE}'. Valid targets: SDL, PICOSDL, RP2350, PICOCALC" >&2; usage; exit 1 ;;
+esac
 
 # Normalize simulator flag
 case "${SIMULATOR}" in
@@ -83,8 +90,9 @@ else
 fi
 
 echo ""
-if [[ "${SIMULATOR}" == "ON" ]]; then
-    echo "Build complete: ${BUILD_DIR}/calc_sim"
-else
-    echo "Build complete: ${BUILD_DIR}/calc_firmware"
-fi
+case "${TARGET_DEVICE}" in
+    SDL|PICOSDL)
+        echo "Build complete: ${BUILD_DIR}/calc_sim" ;;
+    *)
+        echo "Build complete: ${BUILD_DIR}/calc_firmware" ;;
+esac

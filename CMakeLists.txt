@@ -17,10 +17,20 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 #  Options Configuration
 option( SIMULATOR     "Build simulator target (requires SDL2)"  ON )
 option( BUILD_TESTS   "Build unit tests"                        ON )
+option( SHOW_KEYBOARD_UI "Show on-screen keyboard UI (SDL only)" ON )
 
 # Target device selection: SDL, PICOSDL, RP2350, or PICOCALC
 set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, PICOSDL, RP2350, PICOCALC)")
 set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL PICOSDL RP2350 PICOCALC)
+
+# Set keyboard UI default based on target
+if(TARGET_DEVICE STREQUAL "SDL")
+    set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
+elseif(TARGET_DEVICE STREQUAL "PICOSDL")
+    set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
+elseif(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
+    set(SHOW_KEYBOARD_UI OFF CACHE BOOL "Show on-screen keyboard UI" FORCE)
+endif()
 
 # ── Shared Dependencies ───────────────────────────────────────────────────────────
 include(cmake/dependencies.cmake)
@@ -93,7 +103,11 @@ target_link_libraries(${APP_TARGET} PRIVATE
     nlohmann_json
 )
 
-target_compile_definitions(${APP_TARGET} PRIVATE ${HARDWARE_COMPILE_DEFINITIONS})
+if(SHOW_KEYBOARD_UI)
+    target_compile_definitions(${APP_TARGET} PRIVATE ${HARDWARE_COMPILE_DEFINITIONS} SHOW_KEYBOARD_UI=1)
+else()
+    target_compile_definitions(${APP_TARGET} PRIVATE ${HARDWARE_COMPILE_DEFINITIONS} SHOW_KEYBOARD_UI=0)
+endif()
 
 if(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
     pico_add_extra_outputs(${APP_TARGET})

@@ -6,8 +6,8 @@
                 {
                     "row": 0,
                     "col": 1,
-                    "code": "NONE",
-                    "label": "F2"
+                    "code": "CURSOR_UP",
+                    "label": "\u2191"
                 },
                 {
                     "row": 0,
@@ -42,20 +42,20 @@
                 {
                     "row": 1,
                     "col": 0,
-                    "code": "NONE",
-                    "label": "AC"
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
                 },
                 {
                     "row": 1,
                     "col": 1,
-                    "code": "NONE",
-                    "label": "Tab"
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
                 },
                 {
                     "row": 1,
                     "col": 2,
-                    "code": "NONE",
-                    "label": "Cap"
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
                 },
                 {
                     "row": 1,
@@ -413,8 +413,8 @@
                 {
                     "row": 0,
                     "col": 1,
-                    "code": "LAYER_PREV",
-                    "label": "F2"
+                    "code": "CURSOR_UP",
+                    "label": "\u2191"
                 },
                 {
                     "row": 0,
@@ -460,15 +460,21 @@
                 },
                 {
                     "row": 1,
+                    "col": 0,
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                {
+                    "row": 1,
                     "col": 1,
-                    "code": "NONE",
-                    "label": "Tab"
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
                 },
                 {
                     "row": 1,
                     "col": 2,
-                    "code": "NONE",
-                    "label": "Cap"
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
                 },
                 {
                     "row": 1,
@@ -864,15 +870,90 @@
         },
         {
             "name": "Layer 3",
-            "keys": []
+            "keys": [
+                {
+                    "row": 0,
+                    "col": 1,
+                    "code": "CURSOR_UP",
+                    "label": "\u2191"
+                },
+                {
+                    "row": 1,
+                    "col": 0,
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                {
+                    "row": 1,
+                    "col": 1,
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
+                },
+                {
+                    "row": 1,
+                    "col": 2,
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
+                }
+            ]
         },
         {
             "name": "Layer 4",
-            "keys": []
+            "keys": [
+                {
+                    "row": 0,
+                    "col": 1,
+                    "code": "CURSOR_UP",
+                    "label": "\u2191"
+                },
+                {
+                    "row": 1,
+                    "col": 0,
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                {
+                    "row": 1,
+                    "col": 1,
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
+                },
+                {
+                    "row": 1,
+                    "col": 2,
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
+                }
+            ]
         },
         {
             "name": "Layer 5",
-            "keys": []
+            "keys": [
+                {
+                    "row": 0,
+                    "col": 1,
+                    "code": "CURSOR_UP",
+                    "label": "\u2191"
+                },
+                {
+                    "row": 1,
+                    "col": 0,
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                {
+                    "row": 1,
+                    "col": 1,
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
+                },
+                {
+                    "row": 1,
+                    "col": 2,
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
+                }
+            ]
         }
     ]
 }

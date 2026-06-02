@@ -41,6 +41,56 @@ void setup_signal_handlers() {
     }
 }
 
+// SDL event filter to intercept keyboard events
+static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
+    auto* input = static_cast<SDL_Input*>(userdata);
+
+    if (event->type == SDL_QUIT) {
+        input->set_quit(true);
+        return 0; // Don't pass to LVGL
+    }
+
+    // Handle keyboard events
+    if (event->type == SDL_KEYDOWN && event->key.repeat == 0) {
+        auto input_key = scancode_to_input_key(event->key.keysym.scancode);
+        LOG_DEBUG("KEYDOWN: scancode=", std::to_string(event->key.keysym.scancode),
+                  ", input_key=", input_key_to_string(input_key));
+        // Handle Command-Q on macOS for quit
+#ifdef __APPLE__
+        if (event->key.keysym.sym == SDLK_q && (event->key.keysym.mod & KMOD_GUI)) {
+            input->set_quit(true);
+            return 0;
+        }
+#else
+        // Handle Ctrl-C on Linux/Windows for quit
+        if (event->key.keysym.sym == SDLK_c && (event->key.keysym.mod & KMOD_CTRL)) {
+            input->set_quit(true);
+            return 0;
+        }
+#endif
+        auto key_idx = input->keymap().get_key_index(input_key);
+        if (key_idx.has_value()) {
+            LOG_DEBUG("  -> Mapped to key_index=", std::to_string(key_idx.value()));
+            input->push_event({key_idx.value(), Key_Event_Type::Press});
+            return 0; // Don't pass to LVGL, we handled it
+        } else {
+            LOG_DEBUG("  -> NOT MAPPED");
+            return 1; // Pass to LVGL
+        }
+    } else if (event->type == SDL_KEYUP) {
+        auto input_key = scancode_to_input_key(event->key.keysym.scancode);
+        auto key_idx = input->keymap().get_key_index(input_key);
+        if (key_idx.has_value()) {
+            input->push_event({key_idx.value(), Key_Event_Type::Release});
+            return 0; // Don't pass to LVGL, we handled it
+        }
+        return 1; // Pass to LVGL
+    }
+
+    // Pass all other events (mouse, window, etc.) to LVGL
+    return 1;
+}
+
 /********************************************/
 /*          Check if We Should Quit         */
 /********************************************/
@@ -56,54 +106,16 @@ void SDL_Input::pump() {
     // Set up signal handlers on first call
     setup_signal_handlers();
 
-    SDL_Event ev;
-    while (SDL_PollEvent(&ev)) {
-        if (ev.type == SDL_QUIT) {
-            m_quit = true;
-            return;
-        }
-
-        // Handle keyboard events (global - not tied to a specific window)
-        if (ev.type == SDL_KEYDOWN && ev.key.repeat == 0) {
-            auto input_key = scancode_to_input_key(ev.key.keysym.scancode);
-            LOG_DEBUG("KEYDOWN: scancode=", std::to_string(ev.key.keysym.scancode),
-                      ", input_key=", input_key_to_string(input_key));
-            // Handle Command-Q on macOS for quit
-#ifdef __APPLE__
-            if (ev.key.keysym.sym == SDLK_q && (ev.key.keysym.mod & KMOD_GUI)) {
-                m_quit = true;
-                return;
-            }
-#else
-            // Handle Ctrl-C on Linux/Windows for quit
-            if (ev.key.keysym.sym == SDLK_c && (ev.key.keysym.mod & KMOD_CTRL)) {
-                m_quit = true;
-                return;
-            }
-#endif
-            auto key_idx = m_keymap.get_key_index(input_key);
-            if (key_idx.has_value()) {
-                LOG_DEBUG("  -> Mapped to key_index=", std::to_string(key_idx.value()));
-                m_event_queue.push({key_idx.value(), Key_Event_Type::Press});
-            } else {
-                LOG_DEBUG("  -> NOT MAPPED");
-                // Not a mapped key - push back to queue for LVGL to handle
-                SDL_PushEvent(&ev);
-            }
-        } else if (ev.type == SDL_KEYUP) {
-            auto input_key = scancode_to_input_key(ev.key.keysym.scancode);
-            auto key_idx = m_keymap.get_key_index(input_key);
-            if (key_idx.has_value()) {
-                m_event_queue.push({key_idx.value(), Key_Event_Type::Release});
-            } else {
-                // Not a mapped key - push back to queue for LVGL to handle
-                SDL_PushEvent(&ev);
-            }
-        } else {
-            // Non-keyboard event (mouse, window, etc.) - push back for LVGL
-            SDL_PushEvent(&ev);
-        }
+    // Register event filter on first call
+    static bool filter_registered = false;
+    if (!filter_registered) {
+        SDL_SetEventFilter(event_filter, this);
+        filter_registered = true;
     }
+
+    // Pump SDL events - the event filter intercepts keyboard events
+    // and lets mouse/window events pass through to LVGL's event watcher
+    SDL_PumpEvents();
 }
 
 /*****************************************/

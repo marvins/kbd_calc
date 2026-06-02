@@ -39,7 +39,7 @@ App_View::~App_View() = default;
 /*          Constructor        */
 /*******************************/
 App_View::App_View( lv_obj_t*                       root,
-                    const ovb::core::Grid_Layout&   layout,
+                    [[maybe_unused]] const ovb::core::Grid_Layout&   layout,
                     const ovb::math::Calc_Engine&   engine,
                     const ovb::core::Layer_Manager& layers )
     : m_impl(std::make_unique<Impl>())
@@ -67,6 +67,7 @@ App_View::App_View( lv_obj_t*                       root,
     m_impl->lcd->build(m_impl->lcd_container);
     LOG_TRACE("App_View: LCD_Section built successfully");
 
+#if SHOW_KEYBOARD_UI
     LOG_TRACE("App_View: Creating keyboard container");
     // Keyboard container (bottom section)
     m_impl->kbd_container = lv_obj_create(root);
@@ -81,6 +82,7 @@ App_View::App_View( lv_obj_t*                       root,
     LOG_TRACE("App_View: Creating Keyboard_Display");
     m_impl->keyboard_display = std::make_unique<Keyboard_Display>(
         m_impl->kbd_container, layout, layers, hal::KBD_WIDTH, hal::KBD_HEIGHT);
+#endif
     LOG_TRACE("App_View: Constructor complete");
 }
 
@@ -95,7 +97,22 @@ void App_View::refresh() {
 /*        Update Layer        */
 /******************************/
 void App_View::update_layer() {
-    m_impl->keyboard_display->update_layer();
+#if SHOW_KEYBOARD_UI
+    if (m_impl->keyboard_display) {
+        m_impl->keyboard_display->update_layer();
+    }
+#endif
+}
+
+/*****************************************/
+/*       Set Key Click Callback          */
+/*****************************************/
+void App_View::set_key_click_callback([[maybe_unused]] std::function<void(int)> cb) {
+#if SHOW_KEYBOARD_UI
+    if (m_impl->keyboard_display) {
+        m_impl->keyboard_display->set_click_callback(std::move(cb));
+    }
+#endif
 }
 
 /****************************/

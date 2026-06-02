@@ -1,11 +1,11 @@
 /**
- * @file    display.cpp
+ * @file    keyboard_window.cpp
  * @author  Marvin Smith
- * @date    2026-05-29
+ * @date    2026-06-01
  *
- * @brief   SDL display implementation — single window with LCD and keyboard
+ * @brief   SDL keyboard window implementation
  */
-#include <overboard/hal/sdl/display.hpp>
+#include <overboard/hal/sdl/keyboard_window.hpp>
 
 // C++ Standard Libraries
 #include <stdexcept>
@@ -19,17 +19,15 @@
 #include <SDL2/SDL.h>
 #pragma GCC diagnostic pop
 #include <lvgl.h>
+#include <lvgl/src/drivers/sdl/lv_sdl_mouse.h>
 #include <lvgl/src/drivers/sdl/lv_sdl_window.h>
 
 namespace ovb::hal::sdl {
 
 /**
- * @brief PImpl (Pointer to Implementation) structure for Display
- *
- * Contains all LVGL handles and section managers. Using PImpl allows
- * changes to implementation without recompiling dependent code.
+ * @brief PImpl (Pointer to Implementation) structure for Keyboard_Window
  */
-struct Display::Impl {
+struct Keyboard_Window::Impl {
     SDL_Window*   sdl_window = nullptr;
     lv_display_t* lv_display = nullptr;
     lv_obj_t*     screen     = nullptr;
@@ -37,43 +35,44 @@ struct Display::Impl {
 
 /***************************/
 /*        Constructor        */
-/*****************************/
-Display::Display( const std::string& title, int width, int height )
+/***************************/
+Keyboard_Window::Keyboard_Window( const std::string& title, int width, int height )
     : m_impl(std::make_unique<Impl>())
 {
-    LOG_DEBUG( "Display: Creating SDL window: ", width, " x ", height );
+    LOG_DEBUG( "Keyboard_Window: Creating SDL window: ", width, " x ", height );
     m_impl->lv_display = lv_sdl_window_create(width, height);
     if (!m_impl->lv_display) {
-        throw std::runtime_error( "Display: lv_sdl_window_create failed" );
+        throw std::runtime_error( "Keyboard_Window: lv_sdl_window_create failed" );
     }
-    lv_display_set_default(m_impl->lv_display);
 
     m_impl->sdl_window = lv_sdl_window_get_window(m_impl->lv_display);
     SDL_SetWindowTitle(m_impl->sdl_window, title.c_str());
 
     m_impl->screen = lv_display_get_screen_active(m_impl->lv_display);
 
-    // Initialize global mouse handler (works for all windows)
-    lv_sdl_mouse_create();
+    // Create a dedicated mouse indev for this window and bind it to its display
+    lv_indev_t* mouse_indev = lv_sdl_mouse_create();
+    lv_indev_set_display(mouse_indev, m_impl->lv_display);
+
     lv_timer_handler();
 }
 
 /******************************/
 /*         Destructor         */
 /******************************/
-Display::~Display() = default;
+Keyboard_Window::~Keyboard_Window() = default;
 
 /***********************************/
 /*            Window ID            */
 /***********************************/
-uint32_t Display::window_id() const {
+uint32_t Keyboard_Window::window_id() const {
     return m_impl->sdl_window ? SDL_GetWindowID(m_impl->sdl_window) : 0;
 }
 
 /*************************/
 /*         Screen        */
 /*************************/
-lv_obj_t* Display::screen() const {
+lv_obj_t* Keyboard_Window::screen() const {
     return m_impl->screen;
 }
 
