@@ -147,6 +147,11 @@ bool SDL_App::init() {
         m_keyboard_display->set_click_callback([this](int key_index) {
             on_key_clicked(key_index, this);
         });
+
+        // Subscribe keyboard display to layer changes
+        m_layers.on_layer_change([this]([[maybe_unused]] int layer_index) {
+            m_keyboard_display->update_layer();
+        });
 #endif
 #else
         // SDL: keyboard is in the same window, wire through App_View
@@ -181,7 +186,12 @@ void SDL_App::run() {
         hal::Key_Event key_event;
         while (m_input->poll(key_event)) {
             if (key_event.type == hal::Key_Event_Type::Press) {
-                handle_key(key_event.key_index);
+                if (key_event.kind == hal::Key_Event_Kind::Action) {
+                    handle_key(key_event.key_index);
+                } else {
+                    m_view->handle_text(key_event.codepoint);
+                    m_view->refresh();
+                }
             }
         }
 
@@ -207,38 +217,9 @@ void SDL_App::on_key_clicked(int key_index, void* user_data) {
 /*        Handle Keypress        */
 /*********************************/
 void SDL_App::handle_key(int key_index) {
-
     const core::Action_Code code = m_layers.action_at(key_index);
     LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + ", action_code=" + std::to_string(static_cast<int>(code)) + " (" + core::action_code_to_display(code) + ")");
-
-    switch (code) {
-        case core::Action_Code::NEXT_LAYER:
-            m_layers.next_layer();
-            m_view->update_layer();
-            break;
-        case core::Action_Code::PREV_LAYER:
-            m_layers.prev_layer();
-            m_view->update_layer();
-            break;
-        case core::Action_Code::GO_CONST_LAYER:
-            m_layers.set_layer(2);
-            m_view->update_layer();
-            break;
-        case core::Action_Code::GO_ALG_LAYER:
-            m_layers.set_layer(4);
-            m_view->update_layer();
-            break;
-        case core::Action_Code::GO_HOME_LAYER:
-            m_layers.set_layer(0);
-            m_view->update_layer();
-            break;
-        case core::Action_Code::TOGGLE_MATH_LAYOUT:
-            m_engine.toggle_math_layout();
-            break;
-        default:
-            m_engine.handle_key(code);
-            break;
-    }
+    m_view->handle_input(code);
     m_view->refresh();
 }
 

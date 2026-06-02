@@ -9,6 +9,10 @@
  */
 #pragma once
 
+// C++ Standard Libraries
+#include <functional>
+#include <vector>
+
 // Project Libraries
 #include <overboard/core/keymap.hpp>
 
@@ -26,14 +30,25 @@ class Layer_Manager {
 
     public:
 
+        using Layer_Change_Cb = std::function<void(int layer_index)>;
+
         /**
          * @brief Construct layer manager with keymap
          * @param keymap Reference to keymap defining all layers
          */
         explicit Layer_Manager(const Keymap& keymap);
 
+        /**
+         * @brief Register a callback to be invoked on any layer change
+         * @param cb Callback receiving the new layer index
+         */
+        void on_layer_change(Layer_Change_Cb cb);
+
         /// @brief Get current active layer index
         int            active_layer() const;
+
+        /// @brief Get total number of layers
+        int            layer_count() const;
 
         /// @brief Switch to next layer (wraps around)
         void           next_layer();
@@ -62,11 +77,16 @@ class Layer_Manager {
 
     private:
 
+        void notify_layer_change();
+
         /// @brief Reference to keymap with all layers
-        const Keymap& m_keymap;
+        const Keymap&             m_keymap;
 
         /// @brief Currently active layer index
-        int           m_active_layer;
+        int                       m_active_layer;
+
+        /// @brief Registered layer-change callbacks
+        std::vector<Layer_Change_Cb> m_layer_change_callbacks;
 };
 
 } // namespace ovb::core

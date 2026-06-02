@@ -18,6 +18,7 @@ endif()
 set(HARDWARE_COMPILE_DEFINITIONS
     TARGET_SDL=1
     SIMULATOR=1
+    SHOW_KEYBOARD_UI=1
 )
 
 # SDL-specific libraries
@@ -61,9 +62,16 @@ set(HARDWARE_SOURCES
     src/overboard/hal/sdl/input_key_mapping.cpp
     src/overboard/hal/sdl/keymap.cpp
     src/overboard/gui/app_view.cpp
+    src/overboard/gui/app_menu.cpp
+    src/overboard/gui/calculator_app.cpp
+    src/overboard/gui/footer_bar.cpp
+    src/overboard/gui/header_bar.cpp
     src/overboard/gui/keyboard_display.cpp
     src/overboard/gui/lcd_section.cpp
     src/overboard/gui/math_canvas.cpp
     src/overboard/gui/lv_font_superscript.c
+    src/overboard/gui/panel_manager.cpp
+    src/overboard/gui/settings_page.cpp
+    src/overboard/gui/status_page.cpp
 )
 

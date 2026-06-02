@@ -112,6 +112,7 @@ Action_Code string_to_action_code(const std::string& str) {
     if (str == "PAREN_CLOSE")      return Action_Code::PAREN_CLOSE;
 
     // System
+    if (str == "ESCAPE")           return Action_Code::ESCAPE;
     if (str == "TOGGLE_MATH_LAYOUT") return Action_Code::TOGGLE_MATH_LAYOUT;
     if (str == "NONE_ACTION")      return Action_Code::NONE_ACTION;
 
@@ -127,6 +128,18 @@ Action_Code string_to_action_code(const std::string& str) {
     if (str == "BACKSPACE")        return Action_Code::BACKSPACE;
     if (str == "CLEAR")            return Action_Code::CLEAR;
     if (str == "ALL_CLEAR")        return Action_Code::ALL_CLEAR;
+
+    // Function keys
+    if (str == "FUNC_1")           return Action_Code::FUNC_1;
+    if (str == "FUNC_2")           return Action_Code::FUNC_2;
+    if (str == "FUNC_3")           return Action_Code::FUNC_3;
+    if (str == "FUNC_4")           return Action_Code::FUNC_4;
+    if (str == "FUNC_5")           return Action_Code::FUNC_5;
+    if (str == "FUNC_6")           return Action_Code::FUNC_6;
+    if (str == "FUNC_7")           return Action_Code::FUNC_7;
+    if (str == "FUNC_8")           return Action_Code::FUNC_8;
+    if (str == "FUNC_9")           return Action_Code::FUNC_9;
+    if (str == "FUNC_10")          return Action_Code::FUNC_10;
 
     return Action_Code::NONE;
 }
@@ -212,6 +225,7 @@ std::string action_code_to_display(Action_Code code) {
         case Action_Code::GO_VAR_LAYER:     return "Var";
         case Action_Code::NEXT_LAYER:       return "Next";
         case Action_Code::PREV_LAYER:       return "Prev";
+        case Action_Code::ESCAPE:            return "ESC";
         case Action_Code::TOGGLE_MATH_LAYOUT: return "MATH";
         case Action_Code::NONE_ACTION:      return "";
 
@@ -231,6 +245,18 @@ std::string action_code_to_display(Action_Code code) {
         case Action_Code::BACKSPACE:        return "BSP";
         case Action_Code::CLEAR:            return "CLR";
         case Action_Code::ALL_CLEAR:        return "AC";
+
+        // Function keys
+        case Action_Code::FUNC_1:           return "F1";
+        case Action_Code::FUNC_2:           return "F2";
+        case Action_Code::FUNC_3:           return "F3";
+        case Action_Code::FUNC_4:           return "F4";
+        case Action_Code::FUNC_5:           return "F5";
+        case Action_Code::FUNC_6:           return "F6";
+        case Action_Code::FUNC_7:           return "F7";
+        case Action_Code::FUNC_8:           return "F8";
+        case Action_Code::FUNC_9:           return "F9";
+        case Action_Code::FUNC_10:          return "F10";
     }
     return "";
 }
@@ -316,6 +342,7 @@ std::string action_code_to_string(Action_Code code) {
         case Action_Code::GO_VAR_LAYER:     return "GO_VAR_LAYER";
         case Action_Code::NEXT_LAYER:       return "NEXT_LAYER";
         case Action_Code::PREV_LAYER:       return "PREV_LAYER";
+        case Action_Code::ESCAPE:            return "ESCAPE";
         case Action_Code::TOGGLE_MATH_LAYOUT: return "TOGGLE_MATH_LAYOUT";
         case Action_Code::NONE_ACTION:      return "NONE_ACTION";
 
@@ -335,6 +362,18 @@ std::string action_code_to_string(Action_Code code) {
         case Action_Code::BACKSPACE:        return "BACKSPACE";
         case Action_Code::CLEAR:            return "CLEAR";
         case Action_Code::ALL_CLEAR:        return "ALL_CLEAR";
+
+        // Function keys
+        case Action_Code::FUNC_1:           return "FUNC_1";
+        case Action_Code::FUNC_2:           return "FUNC_2";
+        case Action_Code::FUNC_3:           return "FUNC_3";
+        case Action_Code::FUNC_4:           return "FUNC_4";
+        case Action_Code::FUNC_5:           return "FUNC_5";
+        case Action_Code::FUNC_6:           return "FUNC_6";
+        case Action_Code::FUNC_7:           return "FUNC_7";
+        case Action_Code::FUNC_8:           return "FUNC_8";
+        case Action_Code::FUNC_9:           return "FUNC_9";
+        case Action_Code::FUNC_10:          return "FUNC_10";
     }
     return "UNKNOWN";
 }

@@ -14,6 +14,7 @@ Loads VIA layout JSON and a mapping JSON, allowing interactive key assignment.
 #  Python Standard Libraries
 import json
 import sys
+from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -88,20 +89,17 @@ QT_KEY_TO_INPUT_KEY = {
     Qt.Key.Key_Period:    "NUMPAD_DECIMAL",
     Qt.Key.Key_NumLock:   "NUMLOCKCLEAR",
     Qt.Key.Key_Enter:     "NUMPAD_ENTER",
-    # Modifiers (usually not useful as trigger keys, but map them anyway)
-    Qt.Key.Key_Shift:   "SHIFT",
-    Qt.Key.Key_Control: "CONTROL",
-    Qt.Key.Key_Alt:     "ALT",
-    Qt.Key.Key_Meta:    "META",
-    Qt.Key.Key_CapsLock:   "CAPSLOCK",
-    Qt.Key.Key_ScrollLock: "SCROLLLOCK",
-    Qt.Key.Key_Print:      "PRINTSCREEN",
-    Qt.Key.Key_Pause:      "PAUSE",
 }
 
 
 def qt_key_to_input_key(key: Qt.Key, text: str, modifiers: Qt.KeyboardModifier = Qt.KeyboardModifier.NoModifier) -> str:
-    """Convert a Qt key event to an Input_Key name string."""
+    """Convert a Qt key event to an Input_Key name string.
+
+    Modifier keys (Shift, Ctrl, etc.) are intentionally not mapped here.
+    Printable characters (letters, '+', '&', etc.) arrive Shift-resolved
+    via the platform text input path (SDL_TEXTINPUT / I2C ASCII) and do
+    not need to be tracked as Input_Keys.
+    """
     # Check direct mapping
     if key in QT_KEY_TO_INPUT_KEY:
         return QT_KEY_TO_INPUT_KEY[key]
@@ -111,39 +109,116 @@ def qt_key_to_input_key(key: Qt.Key, text: str, modifiers: Qt.KeyboardModifier =
     return ""
 
 
-# Available key codes (from C++ keymap.hpp Key_Code enum)
-AVAILABLE_KEY_CODES = [
-    "NONE",
+# Available key codes (calculator actions + navigation + system)
+class KeyCode(Enum):
+    NONE = "NONE"
     # Digits
-    "DIGIT_0", "DIGIT_1", "DIGIT_2", "DIGIT_3", "DIGIT_4",
-    "DIGIT_5", "DIGIT_6", "DIGIT_7", "DIGIT_8", "DIGIT_9",
+    DIGIT_0 = "DIGIT_0"
+    DIGIT_1 = "DIGIT_1"
+    DIGIT_2 = "DIGIT_2"
+    DIGIT_3 = "DIGIT_3"
+    DIGIT_4 = "DIGIT_4"
+    DIGIT_5 = "DIGIT_5"
+    DIGIT_6 = "DIGIT_6"
+    DIGIT_7 = "DIGIT_7"
+    DIGIT_8 = "DIGIT_8"
+    DIGIT_9 = "DIGIT_9"
     # Basic ops
-    "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "EQUALS", "EVAL", "APPROX",
-    "DECIMAL", "CLEAR", "ALL_CLEAR", "BACKSPACE",
+    ADD = "ADD"
+    SUBTRACT = "SUBTRACT"
+    MULTIPLY = "MULTIPLY"
+    DIVIDE = "DIVIDE"
+    EQUALS = "EQUALS"
+    EVAL = "EVAL"
+    APPROX = "APPROX"
+    DECIMAL = "DECIMAL"
+    CLEAR = "CLEAR"
+    ALL_CLEAR = "ALL_CLEAR"
+    BACKSPACE = "BACKSPACE"
     # Grouping / extra basic
-    "PAREN_OPEN", "PAREN_CLOSE", "PERCENT", "NEGATE",
+    PAREN_OPEN = "PAREN_OPEN"
+    PAREN_CLOSE = "PAREN_CLOSE"
+    PERCENT = "PERCENT"
+    NEGATE = "NEGATE"
     # Memory
-    "MEM_STORE", "MEM_RECALL", "MEM_ADD", "MEM_CLEAR",
+    MEM_STORE = "MEM_STORE"
+    MEM_RECALL = "MEM_RECALL"
+    MEM_ADD = "MEM_ADD"
+    MEM_CLEAR = "MEM_CLEAR"
     # Scientific
-    "SIN", "COS", "TAN", "ASIN", "ACOS", "ATAN",
-    "LOG", "LN", "EXP", "SQRT", "POWER_2", "POWER_3", "POWER_N",
-    "FACTORIAL", "RECIPROCAL", "PI", "EULER", "CEIL", "FLOOR", "ABS",
+    SIN = "SIN"
+    COS = "COS"
+    TAN = "TAN"
+    ASIN = "ASIN"
+    ACOS = "ACOS"
+    ATAN = "ATAN"
+    LOG = "LOG"
+    LN = "LN"
+    EXP = "EXP"
+    SQRT = "SQRT"
+    POWER_2 = "POWER_2"
+    POWER_3 = "POWER_3"
+    POWER_N = "POWER_N"
+    FACTORIAL = "FACTORIAL"
+    RECIPROCAL = "RECIPROCAL"
+    PI = "PI"
+    EULER = "EULER"
+    CEIL = "CEIL"
+    FLOOR = "FLOOR"
+    ABS = "ABS"
     # Programmer
-    "BIT_AND", "BIT_OR", "BIT_XOR", "BIT_NOT", "SHIFT_LEFT", "SHIFT_RIGHT",
-    "HEX_A", "HEX_B", "HEX_C", "HEX_D", "HEX_E", "HEX_F",
+    BIT_AND = "BIT_AND"
+    BIT_OR = "BIT_OR"
+    BIT_XOR = "BIT_XOR"
+    BIT_NOT = "BIT_NOT"
+    SHIFT_LEFT = "SHIFT_LEFT"
+    SHIFT_RIGHT = "SHIFT_RIGHT"
+    HEX_A = "HEX_A"
+    HEX_B = "HEX_B"
+    HEX_C = "HEX_C"
+    HEX_D = "HEX_D"
+    HEX_E = "HEX_E"
+    HEX_F = "HEX_F"
     # Constants
-    "PHI", "TAU",
+    PHI = "PHI"
+    TAU = "TAU"
     # Meta / control
-    "LAYER_NEXT", "LAYER_PREV", "LAYER_CONST", "LAYER_ALG", "LAYER_TRIG",
-    "LAYER_VAR", "LAYER_HOME",
+    LAYER_NEXT = "LAYER_NEXT"
+    LAYER_PREV = "LAYER_PREV"
+    LAYER_CONST = "LAYER_CONST"
+    LAYER_ALG = "LAYER_ALG"
+    LAYER_TRIG = "LAYER_TRIG"
+    LAYER_VAR = "LAYER_VAR"
+    LAYER_HOME = "LAYER_HOME"
     # Display mode
-    "TOGGLE_MATH_LAYOUT",
+    TOGGLE_MATH_LAYOUT = "TOGGLE_MATH_LAYOUT"
+    # System
+    ESCAPE = "ESCAPE"
     # Navigation
-    "CURSOR_LEFT", "CURSOR_RIGHT", "CURSOR_UP", "CURSOR_DOWN",
-    "PAGE_UP", "PAGE_DOWN",
-]
+    CURSOR_LEFT = "CURSOR_LEFT"
+    CURSOR_RIGHT = "CURSOR_RIGHT"
+    CURSOR_UP = "CURSOR_UP"
+    CURSOR_DOWN = "CURSOR_DOWN"
+    PAGE_UP = "PAGE_UP"
+    PAGE_DOWN = "PAGE_DOWN"
+    # Function keys
+    FUNC_1 = "FUNC_1"
+    FUNC_2 = "FUNC_2"
+    FUNC_3 = "FUNC_3"
+    FUNC_4 = "FUNC_4"
+    FUNC_5 = "FUNC_5"
+    FUNC_6 = "FUNC_6"
+    FUNC_7 = "FUNC_7"
+    FUNC_8 = "FUNC_8"
+    FUNC_9 = "FUNC_9"
+    FUNC_10 = "FUNC_10"
 
-# Mapping from key codes to display labels (from C++ keymap.hpp and label_string)
+    @classmethod
+    def all_values(cls) -> List[str]:
+        """Return list of all key code values."""
+        return [code.value for code in cls]
+
+# Mapping from key codes to display labels (calculator actions)
 KEY_CODE_TO_LABEL = {
     "NONE": "",
     # Digits
@@ -176,6 +251,11 @@ KEY_CODE_TO_LABEL = {
     # Navigation
     "CURSOR_LEFT": "←", "CURSOR_RIGHT": "→", "CURSOR_UP": "↑", "CURSOR_DOWN": "↓",
     "PAGE_UP": "PgUp", "PAGE_DOWN": "PgDn",
+    # System
+    "ESCAPE": "ESC",
+    # Function keys
+    "FUNC_1": "F1",  "FUNC_2": "F2",  "FUNC_3": "F3",  "FUNC_4": "F4",  "FUNC_5": "F5",
+    "FUNC_6": "F6",  "FUNC_7": "F7",  "FUNC_8": "F8",  "FUNC_9": "F9",  "FUNC_10": "F10",
 }
 
 
@@ -323,7 +403,7 @@ class KeyEditDialog(QDialog):
         self.code_input.setEditable(True)  # Enable search/filtering
 
         # Add available codes with labels (excluding currently assigned ones, but include current)
-        available = [code for code in AVAILABLE_KEY_CODES if code not in assigned_codes or code == current_code]
+        available = [code for code in KeyCode.all_values() if code not in assigned_codes or code == current_code]
         for code in available:
             label = KEY_CODE_TO_LABEL.get(code, code)
             display_text = f"{code} ({label})" if label else code

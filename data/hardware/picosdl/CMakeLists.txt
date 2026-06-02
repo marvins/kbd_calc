@@ -20,6 +20,7 @@ set(HARDWARE_COMPILE_DEFINITIONS
     TARGET_SDL=1
     TARGET_PICOSDL=1
     SIMULATOR=1
+    SHOW_KEYBOARD_UI=1
 )
 
 # SDL-specific libraries
@@ -43,7 +44,7 @@ set(DISPLAY_KBD_WIDTH   420)
 set(DISPLAY_KBD_HEIGHT       0)
 set(DISPLAY_KBD_WIN_HEIGHT 400)
 
-set(DISPLAY_PREVIEW_MAX_WIDTH  160)
+set(DISPLAY_PREVIEW_MAX_WIDTH  304)
 set(DISPLAY_PREVIEW_MAX_HEIGHT 100)
 set(DISPLAY_PREVIEW_OFFSET_Y    80)
 
@@ -68,8 +69,18 @@ set(HARDWARE_SOURCES
     src/overboard/hal/sdl/keymap.cpp
     src/overboard/hal/sdl/keyboard_window.cpp
     src/overboard/gui/app_view.cpp
+    src/overboard/gui/app_menu.cpp
+    src/overboard/gui/calculator_app.cpp
+    src/overboard/gui/footer_bar.cpp
+    src/overboard/gui/header_bar.cpp
     src/overboard/gui/keyboard_display.cpp
     src/overboard/gui/lcd_section.cpp
     src/overboard/gui/lv_font_superscript.c
     src/overboard/gui/math_canvas.cpp
+    src/overboard/gui/panel_manager.cpp
+    src/overboard/gui/settings_page.cpp
+    src/overboard/gui/status_page.cpp
 )
+
+# keyboard_window.cpp and keyboard_display.cpp are already in HARDWARE_SOURCES above
+# because SHOW_KEYBOARD_UI=1 for this target

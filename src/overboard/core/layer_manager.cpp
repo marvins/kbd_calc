@@ -22,10 +22,34 @@ int Layer_Manager::active_layer() const {
 }
 
 /*****************************************/
+/*          Get Layer Count              */
+/*****************************************/
+int Layer_Manager::layer_count() const {
+    return m_keymap.layer_count();
+}
+
+/*****************************************/
+/*       Register Layer Change CB        */
+/*****************************************/
+void Layer_Manager::on_layer_change(Layer_Change_Cb cb) {
+    m_layer_change_callbacks.push_back(std::move(cb));
+}
+
+/******************************************/
+/*        Notify Layer Change             */
+/******************************************/
+void Layer_Manager::notify_layer_change() {
+    for (const auto& cb : m_layer_change_callbacks) {
+        cb(m_active_layer);
+    }
+}
+
+/*****************************************/
 /*          Next Layer                   */
 /*****************************************/
 void Layer_Manager::next_layer() {
     m_active_layer = (m_active_layer + 1) % m_keymap.layer_count();
+    notify_layer_change();
 }
 
 /*****************************************/
@@ -34,14 +58,17 @@ void Layer_Manager::next_layer() {
 void Layer_Manager::prev_layer() {
     const int count = m_keymap.layer_count();
     m_active_layer = (m_active_layer - 1 + count) % count;
+    notify_layer_change();
 }
 
 /*****************************************/
 /*          Set Active Layer             */
 /*****************************************/
 void Layer_Manager::set_layer(int index) {
-    if (index >= 0 && index < m_keymap.layer_count())
+    if (index >= 0 && index < m_keymap.layer_count()) {
         m_active_layer = index;
+        notify_layer_change();
+    }
 }
 
 /*****************************************/

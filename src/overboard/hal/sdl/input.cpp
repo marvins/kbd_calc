@@ -71,20 +71,51 @@ static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
         auto key_idx = input->keymap().get_key_index(input_key);
         if (key_idx.has_value()) {
             LOG_DEBUG("  -> Mapped to key_index=", std::to_string(key_idx.value()));
-            input->push_event({key_idx.value(), Key_Event_Type::Press});
+            input->push_event({Key_Event_Kind::Action, key_idx.value(), 0, Key_Event_Type::Press});
             return 0; // Don't pass to LVGL, we handled it
         } else {
-            LOG_DEBUG("  -> NOT MAPPED");
-            return 1; // Pass to LVGL
+            LOG_DEBUG("  -> NOT MAPPED, will emit Text via SDL_TEXTINPUT");
+            return 1; // Let SDL_TEXTINPUT fire for unmapped keys
         }
     } else if (event->type == SDL_KEYUP) {
         auto input_key = scancode_to_input_key(event->key.keysym.scancode);
         auto key_idx = input->keymap().get_key_index(input_key);
         if (key_idx.has_value()) {
-            input->push_event({key_idx.value(), Key_Event_Type::Release});
+            input->push_event({Key_Event_Kind::Action, key_idx.value(), 0, Key_Event_Type::Release});
             return 0; // Don't pass to LVGL, we handled it
         }
         return 1; // Pass to LVGL
+
+    }
+
+    // Text
+    else if (event->type == SDL_TEXTINPUT) {
+        // SDL_TEXTINPUT gives us Shift-resolved UTF-8 — convert to UTF-32
+        // and emit a Text event for unmapped keys.
+        const char* utf8 = event->text.text;
+        if (utf8[0] != '\0') {
+            // Decode first codepoint from UTF-8
+            char32_t cp = 0;
+            const auto b0 = static_cast<uint8_t>(utf8[0]);
+            if (b0 < 0x80) {
+                cp = b0;
+            } else if ((b0 & 0xE0) == 0xC0) {
+                cp = static_cast<char32_t>(b0 & 0x1F) << 6 |
+                     static_cast<char32_t>(static_cast<uint8_t>(utf8[1]) & 0x3F);
+            } else if ((b0 & 0xF0) == 0xE0) {
+                cp = static_cast<char32_t>(b0 & 0x0F) << 12 |
+                     static_cast<char32_t>(static_cast<uint8_t>(utf8[1]) & 0x3F) << 6 |
+                     static_cast<char32_t>(static_cast<uint8_t>(utf8[2]) & 0x3F);
+            } else {
+                cp = static_cast<char32_t>(b0 & 0x07) << 18 |
+                     static_cast<char32_t>(static_cast<uint8_t>(utf8[1]) & 0x3F) << 12 |
+                     static_cast<char32_t>(static_cast<uint8_t>(utf8[2]) & 0x3F) << 6 |
+                     static_cast<char32_t>(static_cast<uint8_t>(utf8[3]) & 0x3F);
+            }
+            LOG_DEBUG("SDL_TEXTINPUT: codepoint=", std::to_string(static_cast<uint32_t>(cp)));
+            input->push_event({Key_Event_Kind::Text, -1, cp, Key_Event_Type::Press});
+        }
+        return 0;
     }
 
     // Pass all other events (mouse, window, etc.) to LVGL

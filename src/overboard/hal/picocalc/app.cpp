@@ -122,7 +122,11 @@ void PicoCalc_App::run() {
         hal::Key_Event event;
         while (m_input->poll(event)) {
             if (event.type == hal::Key_Event_Type::Press) {
-                handle_key(event.key_index);
+                if (event.kind == hal::Key_Event_Kind::Action) {
+                    handle_key(event.key_index);
+                } else {
+                    m_view->handle_text(event.codepoint);
+                }
             }
         }
 

@@ -122,6 +122,7 @@ enum class Action_Code : uint16_t {
     PREV_LAYER,
 
     // System
+    ESCAPE,
     TOGGLE_MATH_LAYOUT,
     NONE_ACTION,  // Explicit no-op
 
@@ -137,6 +138,18 @@ enum class Action_Code : uint16_t {
     BACKSPACE,
     CLEAR,
     ALL_CLEAR,
+
+    // Function keys
+    FUNC_1,
+    FUNC_2,
+    FUNC_3,
+    FUNC_4,
+    FUNC_5,
+    FUNC_6,
+    FUNC_7,
+    FUNC_8,
+    FUNC_9,
+    FUNC_10,
 };
 
 /**

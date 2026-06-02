@@ -128,9 +128,18 @@ void PicoCalc_Input::pump() {
     }
 
     int key_index = translate(static_cast<uint8_t>(raw));
-    if (key_index < 0) return;
+    if (key_index >= 0) {
+        m_queue.push(Key_Event{ Key_Event_Kind::Action, key_index, 0, Key_Event_Type::Press });
+        return;
+    }
 
-    m_queue.push(Key_Event{ key_index, Key_Event_Type::Press });
+    // Unmapped printable ASCII — emit as a Text event so panels can handle it.
+    // Raw bytes from the I2C controller are already Shift-resolved (the STM32
+    // firmware handles modifier state), so '+', '&', uppercase letters, etc.
+    // arrive as their final character values.
+    if (raw >= 0x20 && raw < 0x7F) {
+        m_queue.push(Key_Event{ Key_Event_Kind::Text, -1, static_cast<char32_t>(raw), Key_Event_Type::Press });
+    }
 }
 
 /****************************/

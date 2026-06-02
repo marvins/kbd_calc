@@ -3,15 +3,16 @@
  * @author  Marvin Smith
  * @date    2026-05-29
  *
- * @brief   LVGL application view — LCD + keyboard display manager
+ * @brief   LVGL application view — panel system host + optional keyboard display
  *
- * Owns the LCD_Section and Keyboard_Display widgets on a given LVGL root
- * object. Implements I_Display so it can be returned through I_App.
+ * Owns a Panel_Manager and an optional Keyboard_Display. The Panel_Manager
+ * starts with Status_Page and switches to Calculator_App on first keypress.
  * Platform-agnostic: works on both SDL simulator and embedded targets.
  */
 #pragma once
 
 // C++ Standard Libraries
+#include <cstdint>
 #include <functional>
 #include <memory>
 
@@ -21,6 +22,7 @@
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/layer_manager.hpp>
+#include <overboard/gui/panel_manager.hpp>
 #include <overboard/hal/i_display.hpp>
 #include <overboard/math/calc_engine.hpp>
 
@@ -44,14 +46,26 @@ class App_View : public hal::I_Display {
          * @param engine Calculation engine for expression state and history
          * @param layers Layer manager for key label management
          */
-        App_View( lv_obj_t*                       root,
-                  const ovb::core::Grid_Layout&   layout,
-                  const ovb::math::Calc_Engine&   engine,
-                  const ovb::core::Layer_Manager& layers );
+        App_View( lv_obj_t*                      root,
+                  const ovb::core::Grid_Layout&  layout,
+                  ovb::math::Calc_Engine&        engine,
+                  ovb::core::Layer_Manager&      layers );
 
         ~App_View() override;
 
-        /// @brief Refresh the LCD section from current engine state
+        /**
+         * @brief Route an action through the active panel
+         * @param action The action to dispatch
+         */
+        void handle_input(core::Action_Code action);
+
+        /**
+         * @brief Forward a resolved text codepoint to the active panel
+         * @param codepoint UTF-32 character from platform text input
+         */
+        void handle_text(char32_t codepoint);
+
+        /// @brief Refresh the active panel from current state
         void refresh()      override;
 
         /// @brief Re-render keyboard display for the current layer
