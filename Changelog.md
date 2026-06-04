@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-03
+
 ### Added
 - Unified keyboard configuration format (`keyboard.json`) combining keys, positions, and layers
 - Target-specific default config paths (SDL/RP2350→MF, PICOSDL/PICOCALC→picocalc)
