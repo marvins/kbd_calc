@@ -132,6 +132,7 @@ Action_Code string_to_action_code(const std::string& str) {
     if (str == "DELETE")           return Action_Code::DELETE;
     if (str == "CAPS_LOCK")        return Action_Code::CAPS_LOCK;
     if (str == "RETURN")           return Action_Code::RETURN;
+    if (str == "SPACE")            return Action_Code::SPACE;
     if (str == "CLEAR")            return Action_Code::CLEAR;
     if (str == "ALL_CLEAR")        return Action_Code::ALL_CLEAR;
 
@@ -255,6 +256,7 @@ std::string action_code_to_display(Action_Code code) {
         case Action_Code::DELETE:           return "Del";
         case Action_Code::CAPS_LOCK:        return "Caps";
         case Action_Code::RETURN:           return "Enter";
+        case Action_Code::SPACE:           return "Space";
         case Action_Code::CLEAR:            return "CLR";
         case Action_Code::ALL_CLEAR:        return "AC";
 
@@ -378,6 +380,7 @@ std::string action_code_to_string(Action_Code code) {
         case Action_Code::DELETE:           return "DELETE";
         case Action_Code::CAPS_LOCK:        return "CAPS_LOCK";
         case Action_Code::RETURN:           return "RETURN";
+        case Action_Code::SPACE:           return "SPACE";
         case Action_Code::CLEAR:            return "CLEAR";
         case Action_Code::ALL_CLEAR:        return "ALL_CLEAR";
 

@@ -44,6 +44,11 @@ void Panel_Manager::push(int index) {
     m_stack.push_back(index);
     LOG_DEBUG("Panel_Manager: activating panel '", m_panels[static_cast<std::size_t>(index)]->name(), "'");
     m_panels[static_cast<std::size_t>(index)]->activate(m_parent);
+
+    // Fire panel change callback
+    if (m_panel_change_cb) {
+        m_panel_change_cb(m_panels[static_cast<std::size_t>(index)].get());
+    }
 }
 
 /*******************************/
@@ -58,6 +63,11 @@ void Panel_Manager::pop() {
     const int top = m_stack.back();
     LOG_DEBUG("Panel_Manager: restoring panel '", m_panels[static_cast<std::size_t>(top)]->name(), "'");
     m_panels[static_cast<std::size_t>(top)]->activate(m_parent);
+
+    // Fire panel change callback
+    if (m_panel_change_cb) {
+        m_panel_change_cb(m_panels[static_cast<std::size_t>(top)].get());
+    }
 }
 
 /*******************************/
@@ -97,6 +107,13 @@ I_Panel* Panel_Manager::active_panel() {
 /*******************************/
 int Panel_Manager::panel_count() const {
     return static_cast<int>(m_panels.size());
+}
+
+/*******************************/
+/*  Set Panel Change Callback */
+/*******************************/
+void Panel_Manager::set_panel_change_callback(std::function<void(I_Panel*)> cb) {
+    m_panel_change_cb = std::move(cb);
 }
 
 } // namespace ovb::gui

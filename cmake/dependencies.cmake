@@ -32,8 +32,18 @@ set(CONFIG_LV_BUILD_EXAMPLES OFF CACHE BOOL "Build LVGL examples" FORCE)
 set(CONFIG_LV_BUILD_DEMOS    OFF CACHE BOOL "Build LVGL demos"    FORCE)
 add_subdirectory(thirdparty/lvgl)
 
+# Remove SDL sources for embedded targets (LVGL doesn't respect CONFIG_LV_USE_SDL without preprocessing)
+if(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
+    get_target_property(LVGL_SOURCES lvgl SOURCES)
+    if(LVGL_SOURCES)
+        list(FILTER LVGL_SOURCES EXCLUDE REGEX ".*src/drivers/sdl/.*")
+        set_target_properties(lvgl PROPERTIES SOURCES "${LVGL_SOURCES}")
+    endif()
+endif()
+
 # ── GoogleTest (if tests enabled) ────────────────────────────────────────────────────
-if(BUILD_TESTS)
+# Only build tests for simulator targets, not embedded
+if(BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC"))
     add_subdirectory(thirdparty/gtest)
     enable_testing()
 endif()

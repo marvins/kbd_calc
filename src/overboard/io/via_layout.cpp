@@ -251,8 +251,10 @@ core::Grid_Layout to_grid_layout(const Via_Layout& via_layout) {
         // Capture fractional gaps (e.g., x=4.5 becomes col=4, col_gap=0.5)
         float col_gap = static_cast<float>(key.x - static_cast<double>(col));
         float row_gap = static_cast<float>(key.y - static_cast<double>(row));
+        float width   = static_cast<float>(key.w);
+        float height  = static_cast<float>(key.h);
 
-        positions.emplace_back(col, row, col_span, row_span, col_gap, row_gap);
+        positions.emplace_back(col, row, col_span, row_span, col_gap, row_gap, width, height);
     }
 
     // Calculate grid dimensions from bounds (use ceiling to account for gaps)

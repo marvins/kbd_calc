@@ -29,6 +29,9 @@
 #include <overboard/io/keyboard_config.hpp>
 #include <overboard/io/via_layout.hpp>
 #include <overboard/log/stdout_logger.hpp>
+#ifdef EMBEDDED_JSON
+#include <overboard/resources/embedded_json.hpp>
+#endif
 
 namespace ovb::hal::sdl {
 
@@ -164,15 +167,14 @@ bool SDL_App::init() {
         m_input->keymap() = m_sdl_keymap;
         LOG_TRACE("SDL input handler created successfully");
 
-#ifdef TARGET_PICOSDL
 #if SHOW_KEYBOARD_UI
-        // PICOSDL: create separate keyboard window when SHOW_KEYBOARD_UI is enabled
+        // Create separate keyboard window when SHOW_KEYBOARD_UI is enabled
         LOG_TRACE("Creating separate keyboard window");
         m_keyboard_window = std::make_unique<Keyboard_Window>(
             "Keyboard", hal::KBD_WIDTH, hal::KBD_WIN_HEIGHT);
         LOG_TRACE("Keyboard window created successfully");
 
-        // Create keyboard display in separate window
+        // Create keyboard display in separate window (interactive buttons)
         LOG_TRACE("Creating Keyboard_Display in separate window");
         m_keyboard_display = std::make_unique<gui::Keyboard_Display>(
             m_keyboard_window->screen(), m_layout, m_layers,
@@ -184,15 +186,32 @@ bool SDL_App::init() {
             on_key_clicked(key_index, this);
         });
 
-        // Subscribe keyboard display to layer changes
+        // Create key mapping info panel in main window at bottom (y=LCD_HEIGHT)
+        LOG_TRACE("Creating Key_Mapping_Info panel in main window");
+        // Pass callback to get custom labels from active panel
+        m_key_mapping_info = std::make_unique<gui::Key_Mapping_Info>(
+            m_display->screen(), m_layout, m_layers,
+            hal::FULL_WIDTH, hal::KBD_WIN_HEIGHT,
+            [this](int key_index) { return m_view->get_active_panel_label(key_index); });
+        // Position at bottom of main window (below LCD section)
+        lv_obj_set_pos(m_key_mapping_info->container(), 0, hal::LCD_HEIGHT);
+        LOG_TRACE("Key_Mapping_Info panel created successfully");
+
+        // Subscribe both displays to layer changes
         m_layers.on_layer_change([this]([[maybe_unused]] int layer_index) {
-            m_keyboard_display->update_layer();
+            if (m_keyboard_display) {
+                m_keyboard_display->update_layer();
+            }
+            if (m_key_mapping_info) {
+                m_key_mapping_info->update_layer();
+            }
         });
-#endif
-#else
-        // SDL: keyboard is in the same window, wire through App_View
-        m_view->set_key_click_callback([this](int key_index) {
-            on_key_clicked(key_index, this);
+
+        // Subscribe to panel changes to update Key_Mapping_Info labels
+        m_view->set_panel_change_callback([this]([[maybe_unused]] gui::I_Panel* panel) {
+            if (m_key_mapping_info) {
+                m_key_mapping_info->update_layer();
+            }
         });
 #endif
 

@@ -13,11 +13,6 @@ endif()
 
 set(PICO_SDK_PATH $ENV{PICO_SDK_PATH} CACHE PATH "Path to Raspberry Pi Pico SDK")
 
-# Import the Pico SDK
-include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
-
-# Initialize the Pico SDK
-pico_sdk_init()
 
 # PicoCalc compile definitions
 set(HARDWARE_COMPILE_DEFINITIONS

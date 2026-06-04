@@ -140,6 +140,7 @@ enum class Action_Code : uint16_t {
     DELETE,
     CAPS_LOCK,
     RETURN,
+    SPACE,
     LEFT_SHIFT,
     RIGHT_SHIFT,
     CLEAR,

@@ -48,7 +48,7 @@ App_View::~App_View() = default;
 /*          Constructor        */
 /*******************************/
 App_View::App_View( lv_obj_t*                      root,
-                    const ovb::core::Grid_Layout&  layout,
+                    [[maybe_unused]] const ovb::core::Grid_Layout&  layout,
                     ovb::math::Calc_Engine&        engine,
                     ovb::core::Layer_Manager&      layers )
     : m_impl(std::make_unique<Impl>())
@@ -108,20 +108,26 @@ App_View::App_View( lv_obj_t*                      root,
     // Boot to Status (menu accessible via ESCAPE from other panels)
     m_impl->panels->push(m_impl->status_idx);
 
+// Only create keyboard in main window if KBD_HEIGHT > 0 AND no separate keyboard window
+// (when KBD_WIN_HEIGHT > 0, SDL_App creates a separate Keyboard_Window instead)
 #if SHOW_KEYBOARD_UI
-    LOG_TRACE("App_View: Creating keyboard container");
-    m_impl->kbd_container = lv_obj_create(root);
-    lv_obj_set_size(m_impl->kbd_container, hal::KBD_WIDTH, hal::KBD_HEIGHT);
-    lv_obj_align(m_impl->kbd_container, LV_ALIGN_TOP_LEFT, 0, hal::LCD_HEIGHT);
-    lv_obj_set_style_bg_color(m_impl->kbd_container, lvgl_color(LVGL_COLOR_KBD_BG), LV_PART_MAIN);
-    lv_obj_set_style_border_width(m_impl->kbd_container, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(m_impl->kbd_container, 0, LV_PART_MAIN);
-    lv_obj_set_style_radius(m_impl->kbd_container, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(m_impl->kbd_container, LV_OBJ_FLAG_SCROLLABLE);
+    if (hal::KBD_HEIGHT > 0 && hal::KBD_WIN_HEIGHT == 0) {
+        LOG_TRACE("App_View: Creating keyboard container");
+        m_impl->kbd_container = lv_obj_create(root);
+        lv_obj_set_size(m_impl->kbd_container, hal::KBD_WIDTH, hal::KBD_HEIGHT);
+        lv_obj_align(m_impl->kbd_container, LV_ALIGN_TOP_LEFT, 0, hal::LCD_HEIGHT);
+        lv_obj_set_style_bg_color(m_impl->kbd_container, lvgl_color(LVGL_COLOR_KBD_BG), LV_PART_MAIN);
+        lv_obj_set_style_border_width(m_impl->kbd_container, 0, LV_PART_MAIN);
+        lv_obj_set_style_pad_all(m_impl->kbd_container, 0, LV_PART_MAIN);
+        lv_obj_set_style_radius(m_impl->kbd_container, 0, LV_PART_MAIN);
+        lv_obj_clear_flag(m_impl->kbd_container, LV_OBJ_FLAG_SCROLLABLE);
 
-    LOG_TRACE("App_View: Creating Keyboard_Display");
-    m_impl->keyboard_display = std::make_unique<Keyboard_Display>(
-        m_impl->kbd_container, layout, layers, hal::KBD_WIDTH, hal::KBD_HEIGHT);
+        LOG_TRACE("App_View: Creating Keyboard_Display");
+        m_impl->keyboard_display = std::make_unique<Keyboard_Display>(
+            m_impl->kbd_container, layout, layers, hal::KBD_WIDTH, hal::KBD_HEIGHT);
+    } else {
+        LOG_TRACE("App_View: Skipping keyboard creation (separate keyboard window will be used)");
+    }
 #endif
     LOG_TRACE("App_View: Constructor complete");
 }
@@ -131,6 +137,24 @@ App_View::App_View( lv_obj_t*                      root,
 /****************************/
 void App_View::handle_input(core::Action_Code action) {
     LOG_DEBUG("App_View::handle_input: action_code=", std::to_string(static_cast<int>(action)), " (", core::action_code_to_display(action), ")");
+
+    // Handle function key popups (F1-F5) - only in Calculator panel
+    I_Panel* active = m_impl->panels->active_panel();
+    if (active && active->name() == "Calculator") {
+        switch (action) {
+            case core::Action_Code::FUNC_1:
+            case core::Action_Code::FUNC_2:
+            case core::Action_Code::FUNC_3:
+            case core::Action_Code::FUNC_4:
+            case core::Action_Code::FUNC_5:
+                // TODO: Show function key popup (implement popup management)
+                LOG_DEBUG("Function key pressed - popup not yet implemented");
+                return; // Don't forward to panel
+            default:
+                break;
+        }
+    }
+
     m_impl->panels->handle_input(action);
 }
 
@@ -176,6 +200,23 @@ void App_View::set_key_click_callback([[maybe_unused]] std::function<void(int)> 
 /****************************/
 void App_View::render() {
     lv_timer_handler();
+}
+
+/****************************/
+/*  Get Active Panel Label  */
+/****************************/
+std::string App_View::get_active_panel_label(int key_index) const {
+    if (auto* panel = m_impl->panels->active_panel()) {
+        return panel->get_custom_label(key_index);
+    }
+    return "";
+}
+
+/****************************/
+/*  Set Panel Change Callback */
+/****************************/
+void App_View::set_panel_change_callback(std::function<void(I_Panel*)> cb) {
+    m_impl->panels->set_panel_change_callback(std::move(cb));
 }
 
 } // namespace ovb::gui

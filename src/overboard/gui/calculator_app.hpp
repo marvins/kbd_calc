@@ -83,6 +83,13 @@ class Calculator_App : public I_Panel {
          */
         std::string name()   const             override;
 
+        /**
+         * @brief Get custom label for keys in calculator context
+         * @param key_index The key index
+         * @return "F1"-"F4" for keys 3-6, empty for others
+         */
+        std::string get_custom_label(int key_index) const override;
+
     private:
 
         struct Impl;

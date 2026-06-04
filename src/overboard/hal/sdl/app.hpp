@@ -21,6 +21,7 @@
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/gui/app_view.hpp>
+#include <overboard/gui/key_mapping_info.hpp>
 #include <overboard/gui/keyboard_display.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/hal/i_app.hpp>
@@ -125,7 +126,10 @@ class SDL_App : public I_App {
         /// @brief Keyboard display widget (in separate window for PICOSDL)
         std::unique_ptr<gui::Keyboard_Display> m_keyboard_display;
 
-        /// @brief LVGL application view (LCD + keyboard widgets)
+        /// @brief Key mapping info panel (in main window for SDL/PICOSDL)
+        std::unique_ptr<gui::Key_Mapping_Info> m_key_mapping_info;
+
+        /// @brief LVGL application view (LCD + key mapping info panel)
         std::unique_ptr<gui::App_View> m_view;
 
         /// @brief SDL input for the calculator

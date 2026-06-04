@@ -12,6 +12,7 @@
 
 // C++ Standard Libraries
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -88,6 +89,12 @@ class Panel_Manager {
         /// @brief Number of registered panels
         int panel_count() const;
 
+        /**
+         * @brief Register a callback fired when the active panel changes
+         * @param cb Callback function to invoke on panel change
+         */
+        void set_panel_change_callback(std::function<void(I_Panel*)> cb);
+
     private:
 
         /// @brief LVGL parent object for panels
@@ -98,6 +105,9 @@ class Panel_Manager {
 
         /// @brief Stack of active panel indices
         std::vector<int>                       m_stack;
+
+        /// @brief Callback fired when active panel changes
+        std::function<void(I_Panel*)>         m_panel_change_cb;
 };
 
 } // namespace ovb::gui

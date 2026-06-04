@@ -65,6 +65,13 @@ class I_Panel {
 
         /// @brief Short human-readable panel name
         virtual std::string name() const = 0;
+
+        /**
+         * @brief Get custom label for a key in this panel context
+         * @param key_index The key index (0-33 for MF layout)
+         * @return Custom label string, or empty to use default from keyboard.json
+         */
+        virtual std::string get_custom_label([[maybe_unused]] int key_index) const { return ""; }
 };
 
 } // namespace ovb::gui

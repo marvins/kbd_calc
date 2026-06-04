@@ -31,7 +31,7 @@ std::optional<int> SDL_Keymap::get_key_index(core::Input_Key input_key) const {
         return std::nullopt;
     }
     int key_idx = m_input_key_map[idx];
-    if (key_idx < 0 || key_idx >= KEY_COUNT) {
+    if (key_idx < 0) {
         return std::nullopt;
     }
     return key_idx;

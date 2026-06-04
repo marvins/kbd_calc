@@ -35,12 +35,16 @@ set(HARDWARE_INCLUDE_DIRS
     ${PNG_INCLUDE_DIRS}
 )
 
-# Display dimensions for the SDL simulator (480x800, keyboard 480x300)
+# Display dimensions for the SDL simulator
+# Main window: LCD (480x500) + Key Mapping Info (480x300) = 480x800
+# Keyboard window: separate window (480x300)
+# Note: KBD_HEIGHT=300 reserves space for Key_Mapping_Info in main window.
+#       App_View won't create Keyboard_Display there (SDL_App does it separately).
 set(DISPLAY_FULL_WIDTH  480)
 set(DISPLAY_FULL_HEIGHT 800)
 set(DISPLAY_KBD_WIDTH   480)
-set(DISPLAY_KBD_HEIGHT     300)
-set(DISPLAY_KBD_WIN_HEIGHT   0)
+set(DISPLAY_KBD_HEIGHT  300)
+set(DISPLAY_KBD_WIN_HEIGHT 300)
 set(DISPLAY_PREVIEW_MAX_WIDTH  464)  # LCD_WIDTH - 16 (padding)
 set(DISPLAY_PREVIEW_MAX_HEIGHT 80)   # Standard entry height
 
@@ -76,7 +80,9 @@ set(HARDWARE_SOURCES
     src/overboard/gui/app_menu.cpp
     src/overboard/gui/calculator_app.cpp
     src/overboard/gui/footer_bar.cpp
+    src/overboard/gui/function_key_popup.cpp
     src/overboard/gui/header_bar.cpp
+    src/overboard/gui/key_mapping_info.cpp
     src/overboard/gui/keyboard_display.cpp
     src/overboard/gui/lcd_section.cpp
     src/overboard/gui/math_canvas.cpp

@@ -141,4 +141,18 @@ std::string Calculator_App::name() const {
     return "Calculator";
 }
 
+/*******************************/
+/*      Get Custom Label       */
+/*******************************/
+std::string Calculator_App::get_custom_label(int key_index) const {
+    // In calculator context, keys 3-6 act as F1-F4 function keys
+    switch (key_index) {
+        case 3: return "F1";
+        case 4: return "F2";
+        case 5: return "F3";
+        case 6: return "F4";
+        default: return ""; // Use default from keyboard.json
+    }
+}
+
 } // namespace ovb::gui

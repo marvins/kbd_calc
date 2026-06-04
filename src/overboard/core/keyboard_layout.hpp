@@ -37,9 +37,11 @@ struct Key_Position {
     int row_span;      ///< Number of rows this key occupies (>= 1)
     float col_gap;     ///< Fractional column offset (gap) in key units
     float row_gap;     ///< Fractional row offset (gap) in key units
+    float width;       ///< Actual width in key units (supports fractional like 1.25u)
+    float height;      ///< Actual height in key units (supports fractional like 1.5u)
 
-    Key_Position(int c=0, int r=0, int cs=1, int rs=1, float cg=0.0f, float rg=0.0f)
-        : col(c), row(r), col_span(cs), row_span(rs), col_gap(cg), row_gap(rg) {}
+    Key_Position(int c=0, int r=0, int cs=1, int rs=1, float cg=0.0f, float rg=0.0f, float w=1.0f, float h=1.0f)
+        : col(c), row(r), col_span(cs), row_span(rs), col_gap(cg), row_gap(rg), width(w), height(h) {}
 };
 
 /**

@@ -84,6 +84,19 @@ class App_View : public hal::I_Display {
         /// @brief Drive the LVGL render loop (call once per frame)
         void render()       override;
 
+        /**
+         * @brief Get custom label for a key from the active panel
+         * @param key_index The key index to query
+         * @return Custom label string, or empty if none
+         */
+        std::string get_active_panel_label(int key_index) const;
+
+        /**
+         * @brief Register a callback fired when the active panel changes
+         * @param cb Callback function to invoke on panel change
+         */
+        void set_panel_change_callback(std::function<void(I_Panel*)> cb);
+
     private:
 
         struct Impl;

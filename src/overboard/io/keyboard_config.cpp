@@ -110,9 +110,9 @@ Keyboard_Config parse_keyboard_config(const std::filesystem::path& json_path) {
     return config;
 }
 
-/*******************************/
-/*  Parse Keyboard Config String */
-/*******************************/
+/**********************************/
+/*  Parse Keyboard Config String  */
+/**********************************/
 Keyboard_Config parse_keyboard_config_string(const std::string& json_string) {
     json data;
     try {
@@ -321,8 +321,10 @@ core::Grid_Layout to_grid_layout(const Keyboard_Config& config) {
         int row_span = static_cast<int>(p.h);
         float col_gap = static_cast<float>(p.x - static_cast<double>(col));
         float row_gap = static_cast<float>(p.y - static_cast<double>(row));
+        float width   = static_cast<float>(p.w);
+        float height  = static_cast<float>(p.h);
 
-        positions.emplace_back(col, row, col_span, row_span, col_gap, row_gap);
+        positions.emplace_back(col, row, col_span, row_span, col_gap, row_gap, width, height);
         max_col = std::max(max_col, p.x + p.w);
         max_row = std::max(max_row, p.y + p.h);
     }

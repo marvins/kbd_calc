@@ -460,7 +460,7 @@
             }
         },
         "50": {
-            "input_key": "ENTER",
+            "input_key": "RETURN",
             "position": {
                 "x": 9,
                 "y": 5,
@@ -618,20 +618,16 @@
             "name": "Basic",
             "keys": {
                 "0": {
-                    "code": "CURSOR_UP",
-                    "label": "\u2191"
+                    "code": "CURSOR_UP"
                 },
                 "1": {
-                    "code": "CURSOR_LEFT",
-                    "label": "\u2190"
+                    "code": "CURSOR_LEFT"
                 },
                 "2": {
-                    "code": "CURSOR_DOWN",
-                    "label": "\u2193"
+                    "code": "CURSOR_DOWN"
                 },
                 "3": {
-                    "code": "CURSOR_RIGHT",
-                    "label": "\u2192"
+                    "code": "CURSOR_RIGHT"
                 },
                 "9": {
                     "code": "ESCAPE",
@@ -694,7 +690,7 @@
                     "label": "0"
                 },
                 "50": {
-                    "code": "RETURN",
+                    "code": "EVAL",
                     "label": "Enter"
                 },
                 "60": {
@@ -702,8 +698,7 @@
                     "label": "Shift"
                 },
                 "63": {
-                    "code": "SPACE",
-                    "label": "\u2423"
+                    "code": "SPACE"
                 },
                 "4": {
                     "code": "NONE",
@@ -891,20 +886,16 @@
             "name": "Shift",
             "keys": {
                 "0": {
-                    "code": "CURSOR_UP",
-                    "label": "\u2191"
+                    "code": "CURSOR_UP"
                 },
                 "1": {
-                    "code": "CURSOR_LEFT",
-                    "label": "\u2190"
+                    "code": "CURSOR_LEFT"
                 },
                 "2": {
-                    "code": "CURSOR_DOWN",
-                    "label": "\u2193"
+                    "code": "CURSOR_DOWN"
                 },
                 "3": {
-                    "code": "CURSOR_RIGHT",
-                    "label": "\u2192"
+                    "code": "CURSOR_RIGHT"
                 },
                 "9": {
                     "code": "PAUSE",
@@ -1123,8 +1114,7 @@
                     "label": "Alt"
                 },
                 "63": {
-                    "code": "SPACE",
-                    "label": "\u2423"
+                    "code": "SPACE"
                 },
                 "64": {
                     "code": "NONE",
@@ -1144,20 +1134,16 @@
             "name": "Caps",
             "keys": {
                 "0": {
-                    "code": "CURSOR_UP",
-                    "label": "\u2191"
+                    "code": "CURSOR_UP"
                 },
                 "1": {
-                    "code": "CURSOR_LEFT",
-                    "label": "\u2190"
+                    "code": "CURSOR_LEFT"
                 },
                 "2": {
-                    "code": "CURSOR_DOWN",
-                    "label": "\u2193"
+                    "code": "CURSOR_DOWN"
                 },
                 "3": {
-                    "code": "CURSOR_RIGHT",
-                    "label": "\u2192"
+                    "code": "CURSOR_RIGHT"
                 },
                 "9": {
                     "code": "ESCAPE",
@@ -1228,8 +1214,7 @@
                     "label": "Shift"
                 },
                 "63": {
-                    "code": "SPACE",
-                    "label": "\u2423"
+                    "code": "SPACE"
                 },
                 "4": {
                     "code": "NONE",

@@ -186,4 +186,15 @@ void App_Menu::select_current() {
     }
 }
 
+/*******************************/
+/*      Get Custom Label       */
+/*******************************/
+std::string App_Menu::get_custom_label(int key_index) const {
+    // In menu context, key 28 (Enter/Eval key) acts as "Select"
+    if (key_index == 28) {
+        return "Sel";
+    }
+    return ""; // Use default from keyboard.json
+}
+
 } // namespace ovb::gui

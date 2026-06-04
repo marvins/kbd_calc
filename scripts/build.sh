@@ -11,6 +11,7 @@ TARGET_DEVICE="SDL"
 SIMULATOR=ON
 JOBS="1"
 VERBOSE=false
+TOOLCHAIN_FILE=""
 
 get_cpu_count() {
     # Try multiple methods to get CPU count, in order of preference
@@ -33,6 +34,7 @@ Options:
   -s <on|off>  Simulator mode: on or off (default: on)
   -j [jobs]   Parallel jobs (default: 1, or all cores if omitted)
   -t           Trace/verbose build output
+  -T <file>   CMake toolchain file (for cross-compilation)
 
 Examples:
   $(basename "$0")              # SDL simulator, debug build
@@ -42,10 +44,11 @@ Examples:
   $(basename "$0") -c -r         # Clean then release build
   $(basename "$0") -c            # Clean then build
   $(basename "$0") -j 4          # Use 4 parallel jobs
+  $(basename "$0") -p RP2350 -T cmake/arm-none-eabi-gcc.cmake  # ARM cross-compile
 EOF
 }
 
-while getopts ":hcdrp:s:j::t" opt; do
+while getopts ":hcdrp:s:j::tT:" opt; do
     case "${opt}" in
         h) usage; exit 0 ;;
         c) CLEAN=true ;;
@@ -63,6 +66,7 @@ while getopts ":hcdrp:s:j::t" opt; do
             fi
             ;;
         t) VERBOSE=true ;;
+        T) TOOLCHAIN_FILE="${OPTARG}" ;;
         :) echo "Error: option -${OPTARG} requires an argument." >&2; usage; exit 1 ;;
         \?) echo "Error: unknown option -${OPTARG}" >&2; usage; exit 1 ;;
     esac
@@ -94,10 +98,22 @@ echo "Project dir   : ${PROJECT_DIR}"
 echo "Build dir     : ${BUILD_DIR}"
 echo ""
 
-cmake -S "${PROJECT_DIR}" -B "${BUILD_DIR}" \
-    -DTARGET_DEVICE="${TARGET_DEVICE}" \
-    -DSIMULATOR="${SIMULATOR}" \
-    -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+CMAKE_ARGS="-S ${PROJECT_DIR} -B ${BUILD_DIR} -DTARGET_DEVICE=${TARGET_DEVICE} -DSIMULATOR=${SIMULATOR} -DCMAKE_BUILD_TYPE=${BUILD_TYPE}"
+
+# Disable LVGL SDL drivers for embedded targets
+if [[ "${TARGET_DEVICE}" == "RP2350" || "${TARGET_DEVICE}" == "PICOCALC" ]]; then
+    CMAKE_ARGS="${CMAKE_ARGS} -DCONFIG_LV_USE_SDL=OFF"
+fi
+
+if [[ -n "${TOOLCHAIN_FILE}" ]]; then
+    if [[ "${TOOLCHAIN_FILE}" = /* ]]; then
+        CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE}"
+    else
+        CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_TOOLCHAIN_FILE=${PROJECT_DIR}/${TOOLCHAIN_FILE}"
+    fi
+fi
+
+cmake ${CMAKE_ARGS}
 
 if ${VERBOSE}; then
     cmake --build "${BUILD_DIR}" --parallel "${JOBS}" --verbose

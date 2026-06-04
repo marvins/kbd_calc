@@ -54,6 +54,13 @@ class App_Menu : public I_Panel {
         void        refresh()                  override;
         std::string name()   const             override;
 
+        /**
+         * @brief Get custom label for keys in menu context
+         * @param key_index The key index
+         * @return "Sel" for key 28 (Enter key), empty for others
+         */
+        std::string get_custom_label(int key_index) const override;
+
     private:
 
         void update_selection();

@@ -132,9 +132,9 @@ std::optional<core::Rect<int>> Grid_Layout::get_key_rect(
 
     const auto& pos = *pos_opt;
 
-    // Calculate total size including spans
-    int total_w = pos.col_span * cell_size.x;
-    int total_h = pos.row_span * cell_size.y;
+    // Calculate total size using width/height (supports fractional sizes like 1.25u)
+    int total_w = static_cast<int>(pos.width * static_cast<float>(cell_size.x));
+    int total_h = static_cast<int>(pos.height * static_cast<float>(cell_size.y));
 
     // Position is based on start cell, with fractional gap offset
     int gap_x = static_cast<int>(pos.col_gap * static_cast<float>(cell_size.x));

@@ -3,12 +3,27 @@ cmake_minimum_required(VERSION 4.0)
 # Load version configuration
 include(cmake/scripts/version.cmake)
 
+
 #  Configure the CMake Project
 project( calc_simulator
-         LANGUAGES C CXX
+         LANGUAGES C CXX ASM
          VERSION ${PROJECT_VERSION}
          DESCRIPTION "Calculator with keyboard-driven interface"
          HOMEPAGE_URL https://github.com/marvins/kbd_calc)
+
+# Initialize Pico SDK for embedded targets (after project(), before other setup)
+if(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
+    if(NOT DEFINED ENV{PICO_SDK_PATH})
+        message(FATAL_ERROR "PICO_SDK_PATH environment variable not set for embedded target")
+    endif()
+    set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
+    # Set platform/board BEFORE pico_sdk_init()
+    set(PICO_PLATFORM rp2350 CACHE STRING "Pico platform" FORCE)
+    set(PICO_BOARD pico2 CACHE STRING "Pico board" FORCE)
+    set(PICO_NO_PICOTOOL 1 CACHE BOOL "" FORCE)
+    include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+    pico_sdk_init()
+endif()
 
 #  C++ Standard Configuration
 set( CMAKE_CXX_STANDARD 23 )
@@ -20,7 +35,11 @@ option( BUILD_TESTS   "Build unit tests"                        ON )
 option( SHOW_KEYBOARD_UI "Show on-screen keyboard UI (SDL only)" ON )
 
 # Target device selection: SDL, PICOSDL, RP2350, or PICOCALC
-set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, PICOSDL, RP2350, PICOCALC)")
+if(NOT DEFINED TARGET_DEVICE OR TARGET_DEVICE STREQUAL "")
+    set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, PICOSDL, RP2350, PICOCALC)" FORCE)
+else()
+    set(TARGET_DEVICE ${TARGET_DEVICE} CACHE STRING "Target device (SDL, PICOSDL, RP2350, PICOCALC)" FORCE)
+endif()
 set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL PICOSDL RP2350 PICOCALC)
 
 # Set keyboard UI default based on target
@@ -161,7 +180,8 @@ if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
 endif()
 
 # ── Tests (shared) ────────────────────────────────────────────────────────────────
-if( BUILD_TESTS )
+# Tests only for simulator targets (gtest doesn't build for embedded ARM)
+if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC") )
     add_executable(calc_tests
         test/test_main.cpp
         test/math/ast/test_ast.cpp
