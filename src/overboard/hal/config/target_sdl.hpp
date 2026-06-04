@@ -13,16 +13,16 @@
 
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
-#include <overboard/io/via_layout.hpp>
+#include <overboard/io/keyboard_config.hpp>
 
 namespace ovb::hal::config {
 
-/// @brief SDL simulator loads layout from VIA JSON files
+/// @brief SDL simulator loads layout from keyboard.json
 inline core::Grid_Layout create_layout(
     const std::filesystem::path& layout_path)
 {
-    io::Via_Layout via_layout = io::parse_via_layout(layout_path);
-    return io::to_grid_layout(via_layout);
+    auto config = io::parse_keyboard_config(layout_path);
+    return io::to_grid_layout(config);
 }
 
 /// Target identifier

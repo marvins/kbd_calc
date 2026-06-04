@@ -43,9 +43,7 @@ int main(int argc, char* argv[]) {
 
         // Create platform-specific application via factory
         auto app = hal::App_Factory::create( layout,
-                                             config.layout_path(),
-                                             config.keymap_path(),
-                                             config.layers_path() );
+                                             config.layout_path() );
 
         if (!app) {
             std::cerr << "Failed to create application\n";

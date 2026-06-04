@@ -30,7 +30,7 @@ inline constexpr int LCD_HEIGHT { FULL_HEIGHT - KBD_HEIGHT };
 /// Math layout preview area (within LCD section)
 inline constexpr int PREVIEW_MAX_WIDTH  { @DISPLAY_PREVIEW_MAX_WIDTH@ };
 inline constexpr int PREVIEW_MAX_HEIGHT { @DISPLAY_PREVIEW_MAX_HEIGHT@ };
-inline constexpr int PREVIEW_OFFSET_Y   { @DISPLAY_PREVIEW_OFFSET_Y@ };
+inline constexpr int PREVIEW_OFFSET_Y   { (LCD_HEIGHT - PREVIEW_MAX_HEIGHT) / 2 };
 
 /// Keyboard layout margins and spacing
 inline constexpr int KEY_PAD      { @DISPLAY_KEY_PAD@ };       ///< Gap between keys

@@ -1,0 +1,1417 @@
+{
+    "name": "PicoCalc",
+    "description": "Pimoroni PicoCalc keyboard layout",
+    "layout": {
+        "key_width": 40,
+        "key_height": 40,
+        "key_spacing": 2,
+        "origin_x": 8,
+        "origin_y": 6
+    },
+    "keys": {
+        "0": {
+            "input_key": "UP",
+            "position": {
+                "x": 1,
+                "y": 0,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "1": {
+            "input_key": "LEFT",
+            "position": {
+                "x": 0,
+                "y": 1,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "2": {
+            "input_key": "DOWN",
+            "position": {
+                "x": 1,
+                "y": 1,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "3": {
+            "input_key": "RIGHT",
+            "position": {
+                "x": 2,
+                "y": 1,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "4": {
+            "input_key": "F1",
+            "position": {
+                "x": 3.75,
+                "y": 0,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "5": {
+            "input_key": "F2",
+            "position": {
+                "x": 5.0,
+                "y": 0,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "6": {
+            "input_key": "F3",
+            "position": {
+                "x": 6.25,
+                "y": 0,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "7": {
+            "input_key": "F4",
+            "position": {
+                "x": 7.5,
+                "y": 0,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "8": {
+            "input_key": "F5",
+            "position": {
+                "x": 8.75,
+                "y": 0,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "9": {
+            "input_key": "ESCAPE",
+            "position": {
+                "x": 3.75,
+                "y": 1,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "10": {
+            "input_key": "TAB",
+            "position": {
+                "x": 5.0,
+                "y": 1,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "11": {
+            "input_key": "CAPS_LOCK",
+            "position": {
+                "x": 6.25,
+                "y": 1,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "12": {
+            "input_key": "DELETE",
+            "position": {
+                "x": 7.5,
+                "y": 1,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "13": {
+            "input_key": "BACKSPACE",
+            "position": {
+                "x": 8.75,
+                "y": 1,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "14": {
+            "input_key": "GRAVE",
+            "position": {
+                "x": 3,
+                "y": 2,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "15": {
+            "input_key": "SLASH",
+            "position": {
+                "x": 4,
+                "y": 2,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "16": {
+            "input_key": "BACKSLASH",
+            "position": {
+                "x": 5,
+                "y": 2,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "17": {
+            "input_key": "MINUS",
+            "position": {
+                "x": 6,
+                "y": 2,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "18": {
+            "input_key": "EQUAL",
+            "position": {
+                "x": 7,
+                "y": 2,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "19": {
+            "input_key": "BRACKET_LEFT",
+            "position": {
+                "x": 8,
+                "y": 2,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "20": {
+            "input_key": "BRACKET_RIGHT",
+            "position": {
+                "x": 9,
+                "y": 2,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "21": {
+            "input_key": "KEY_1",
+            "position": {
+                "x": 0,
+                "y": 3,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "22": {
+            "input_key": "KEY_2",
+            "position": {
+                "x": 1,
+                "y": 3,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "23": {
+            "input_key": "KEY_3",
+            "position": {
+                "x": 2,
+                "y": 3,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "24": {
+            "input_key": "KEY_4",
+            "position": {
+                "x": 3,
+                "y": 3,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "25": {
+            "input_key": "KEY_5",
+            "position": {
+                "x": 4,
+                "y": 3,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "26": {
+            "input_key": "KEY_6",
+            "position": {
+                "x": 5,
+                "y": 3,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "27": {
+            "input_key": "KEY_7",
+            "position": {
+                "x": 6,
+                "y": 3,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "28": {
+            "input_key": "KEY_8",
+            "position": {
+                "x": 7,
+                "y": 3,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "29": {
+            "input_key": "KEY_9",
+            "position": {
+                "x": 8,
+                "y": 3,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "30": {
+            "input_key": "KEY_0",
+            "position": {
+                "x": 9,
+                "y": 3,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "31": {
+            "input_key": "KEY_Q",
+            "position": {
+                "x": 0,
+                "y": 4,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "32": {
+            "input_key": "KEY_W",
+            "position": {
+                "x": 1,
+                "y": 4,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "33": {
+            "input_key": "KEY_E",
+            "position": {
+                "x": 2,
+                "y": 4,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "34": {
+            "input_key": "KEY_R",
+            "position": {
+                "x": 3,
+                "y": 4,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "35": {
+            "input_key": "KEY_T",
+            "position": {
+                "x": 4,
+                "y": 4,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "36": {
+            "input_key": "KEY_Y",
+            "position": {
+                "x": 5,
+                "y": 4,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "37": {
+            "input_key": "KEY_U",
+            "position": {
+                "x": 6,
+                "y": 4,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "38": {
+            "input_key": "KEY_I",
+            "position": {
+                "x": 7,
+                "y": 4,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "39": {
+            "input_key": "KEY_O",
+            "position": {
+                "x": 8,
+                "y": 4,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "40": {
+            "input_key": "KEY_P",
+            "position": {
+                "x": 9,
+                "y": 4,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "41": {
+            "input_key": "KEY_A",
+            "position": {
+                "x": 0,
+                "y": 5,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "42": {
+            "input_key": "KEY_S",
+            "position": {
+                "x": 1,
+                "y": 5,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "43": {
+            "input_key": "KEY_D",
+            "position": {
+                "x": 2,
+                "y": 5,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "44": {
+            "input_key": "KEY_F",
+            "position": {
+                "x": 3,
+                "y": 5,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "45": {
+            "input_key": "KEY_G",
+            "position": {
+                "x": 4,
+                "y": 5,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "46": {
+            "input_key": "KEY_H",
+            "position": {
+                "x": 5,
+                "y": 5,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "47": {
+            "input_key": "KEY_J",
+            "position": {
+                "x": 6,
+                "y": 5,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "48": {
+            "input_key": "KEY_K",
+            "position": {
+                "x": 7,
+                "y": 5,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "49": {
+            "input_key": "KEY_L",
+            "position": {
+                "x": 8,
+                "y": 5,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "50": {
+            "input_key": "ENTER",
+            "position": {
+                "x": 9,
+                "y": 5,
+                "w": 1.0,
+                "h": 2
+            }
+        },
+        "51": {
+            "input_key": "KEY_Z",
+            "position": {
+                "x": 0,
+                "y": 6,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "52": {
+            "input_key": "KEY_X",
+            "position": {
+                "x": 1,
+                "y": 6,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "53": {
+            "input_key": "KEY_C",
+            "position": {
+                "x": 2,
+                "y": 6,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "54": {
+            "input_key": "KEY_V",
+            "position": {
+                "x": 3,
+                "y": 6,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "55": {
+            "input_key": "KEY_B",
+            "position": {
+                "x": 4,
+                "y": 6,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "56": {
+            "input_key": "KEY_N",
+            "position": {
+                "x": 5,
+                "y": 6,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "57": {
+            "input_key": "KEY_M",
+            "position": {
+                "x": 6,
+                "y": 6,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "58": {
+            "input_key": "COMMA",
+            "position": {
+                "x": 7,
+                "y": 6,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "59": {
+            "input_key": "PERIOD",
+            "position": {
+                "x": 8,
+                "y": 6,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "60": {
+            "input_key": "SHIFT",
+            "position": {
+                "x": 0,
+                "y": 7,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "61": {
+            "input_key": "CONTROL",
+            "position": {
+                "x": 1.25,
+                "y": 7,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "62": {
+            "input_key": "ALT",
+            "position": {
+                "x": 2.25,
+                "y": 7,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "63": {
+            "input_key": "SPACE",
+            "position": {
+                "x": 3.25,
+                "y": 7,
+                "w": 2,
+                "h": 1.0
+            }
+        },
+        "64": {
+            "input_key": "SEMICOLON",
+            "position": {
+                "x": 5.25,
+                "y": 7,
+                "w": 1.0,
+                "h": 1.0
+            }
+        },
+        "65": {
+            "input_key": "APOSTROPHE",
+            "position": {
+                "x": 6.25,
+                "y": 7,
+                "w": 1.25,
+                "h": 1.0
+            }
+        },
+        "66": {
+            "input_key": "SHIFT",
+            "position": {
+                "x": 7.5,
+                "y": 7,
+                "w": 1.25,
+                "h": 1.0
+            }
+        }
+    },
+    "layers": [
+        {
+            "name": "Basic",
+            "keys": {
+                "0": {
+                    "code": "CURSOR_UP",
+                    "label": "\u2191"
+                },
+                "1": {
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                "2": {
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
+                },
+                "3": {
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
+                },
+                "9": {
+                    "code": "ESCAPE",
+                    "label": "Esc"
+                },
+                "10": {
+                    "code": "TAB",
+                    "label": "Tab"
+                },
+                "11": {
+                    "code": "CAPS_LOCK",
+                    "label": "CapsLk"
+                },
+                "12": {
+                    "code": "DELETE",
+                    "label": "Del"
+                },
+                "13": {
+                    "code": "BACKSPACE",
+                    "label": "Bsp"
+                },
+                "21": {
+                    "code": "DIGIT_1",
+                    "label": "1"
+                },
+                "22": {
+                    "code": "DIGIT_2",
+                    "label": "2"
+                },
+                "23": {
+                    "code": "DIGIT_3",
+                    "label": "3"
+                },
+                "24": {
+                    "code": "DIGIT_4",
+                    "label": "4"
+                },
+                "25": {
+                    "code": "DIGIT_5",
+                    "label": "5"
+                },
+                "26": {
+                    "code": "DIGIT_6",
+                    "label": "6"
+                },
+                "27": {
+                    "code": "DIGIT_7",
+                    "label": "7"
+                },
+                "28": {
+                    "code": "DIGIT_8",
+                    "label": "8"
+                },
+                "29": {
+                    "code": "DIGIT_9",
+                    "label": "9"
+                },
+                "30": {
+                    "code": "DIGIT_0",
+                    "label": "0"
+                },
+                "50": {
+                    "code": "RETURN",
+                    "label": "Enter"
+                },
+                "60": {
+                    "code": "LEFT_SHIFT",
+                    "label": "Shift"
+                },
+                "63": {
+                    "code": "SPACE",
+                    "label": "\u2423"
+                },
+                "4": {
+                    "code": "NONE",
+                    "label": "F1"
+                },
+                "5": {
+                    "code": "NONE",
+                    "label": "F2"
+                },
+                "6": {
+                    "code": "NONE",
+                    "label": "F3"
+                },
+                "7": {
+                    "code": "NONE",
+                    "label": "F4"
+                },
+                "8": {
+                    "code": "NONE",
+                    "label": "F5"
+                },
+                "14": {
+                    "code": "NONE",
+                    "label": "`"
+                },
+                "15": {
+                    "code": "NONE",
+                    "label": "/"
+                },
+                "16": {
+                    "code": "NONE",
+                    "label": "\\"
+                },
+                "17": {
+                    "code": "NONE",
+                    "label": "-"
+                },
+                "18": {
+                    "code": "NONE",
+                    "label": "="
+                },
+                "19": {
+                    "code": "NONE",
+                    "label": "["
+                },
+                "20": {
+                    "code": "NONE",
+                    "label": "]"
+                },
+                "31": {
+                    "code": "NONE",
+                    "label": "q"
+                },
+                "32": {
+                    "code": "NONE",
+                    "label": "w"
+                },
+                "33": {
+                    "code": "NONE",
+                    "label": "e"
+                },
+                "34": {
+                    "code": "NONE",
+                    "label": "r"
+                },
+                "35": {
+                    "code": "NONE",
+                    "label": "t"
+                },
+                "36": {
+                    "code": "NONE",
+                    "label": "y"
+                },
+                "37": {
+                    "code": "NONE",
+                    "label": "u"
+                },
+                "38": {
+                    "code": "NONE",
+                    "label": "i"
+                },
+                "39": {
+                    "code": "NONE",
+                    "label": "o"
+                },
+                "40": {
+                    "code": "NONE",
+                    "label": "p"
+                },
+                "41": {
+                    "code": "NONE",
+                    "label": "a"
+                },
+                "42": {
+                    "code": "NONE",
+                    "label": "s"
+                },
+                "43": {
+                    "code": "NONE",
+                    "label": "d"
+                },
+                "44": {
+                    "code": "NONE",
+                    "label": "f"
+                },
+                "45": {
+                    "code": "NONE",
+                    "label": "g"
+                },
+                "46": {
+                    "code": "NONE",
+                    "label": "h"
+                },
+                "47": {
+                    "code": "NONE",
+                    "label": "j"
+                },
+                "48": {
+                    "code": "NONE",
+                    "label": "k"
+                },
+                "49": {
+                    "code": "NONE",
+                    "label": "l"
+                },
+                "51": {
+                    "code": "NONE",
+                    "label": "z"
+                },
+                "52": {
+                    "code": "NONE",
+                    "label": "x"
+                },
+                "53": {
+                    "code": "NONE",
+                    "label": "c"
+                },
+                "54": {
+                    "code": "NONE",
+                    "label": "v"
+                },
+                "55": {
+                    "code": "NONE",
+                    "label": "b"
+                },
+                "56": {
+                    "code": "NONE",
+                    "label": "n"
+                },
+                "57": {
+                    "code": "NONE",
+                    "label": "m"
+                },
+                "58": {
+                    "code": "NONE",
+                    "label": ","
+                },
+                "59": {
+                    "code": "NONE",
+                    "label": "."
+                },
+                "61": {
+                    "code": "NONE",
+                    "label": "Ctrl"
+                },
+                "62": {
+                    "code": "NONE",
+                    "label": "Alt"
+                },
+                "64": {
+                    "code": "NONE",
+                    "label": ";"
+                },
+                "65": {
+                    "code": "NONE",
+                    "label": "'"
+                },
+                "66": {
+                    "code": "RIGHT_SHIFT",
+                    "label": "Shift"
+                }
+            }
+        },
+        {
+            "name": "Shift",
+            "keys": {
+                "0": {
+                    "code": "CURSOR_UP",
+                    "label": "\u2191"
+                },
+                "1": {
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                "2": {
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
+                },
+                "3": {
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
+                },
+                "9": {
+                    "code": "PAUSE",
+                    "label": "Brk"
+                },
+                "10": {
+                    "code": "HOME",
+                    "label": "Home"
+                },
+                "11": {
+                    "code": "CAPS_LOCK",
+                    "label": "CapsLk"
+                },
+                "12": {
+                    "code": "END",
+                    "label": "End"
+                },
+                "13": {
+                    "code": "BACKSPACE",
+                    "label": "Bsp"
+                },
+                "14": {
+                    "code": "NONE",
+                    "label": "~"
+                },
+                "15": {
+                    "code": "NONE",
+                    "label": "?"
+                },
+                "16": {
+                    "code": "NONE",
+                    "label": "|"
+                },
+                "17": {
+                    "code": "NONE",
+                    "label": "_"
+                },
+                "18": {
+                    "code": "NONE",
+                    "label": "+"
+                },
+                "19": {
+                    "code": "NONE",
+                    "label": "{"
+                },
+                "20": {
+                    "code": "NONE",
+                    "label": "}"
+                },
+                "21": {
+                    "code": "NONE",
+                    "label": "!"
+                },
+                "22": {
+                    "code": "NONE",
+                    "label": "@"
+                },
+                "23": {
+                    "code": "NONE",
+                    "label": "#"
+                },
+                "24": {
+                    "code": "NONE",
+                    "label": "$"
+                },
+                "25": {
+                    "code": "NONE",
+                    "label": "%"
+                },
+                "26": {
+                    "code": "NONE",
+                    "label": "^"
+                },
+                "27": {
+                    "code": "NONE",
+                    "label": "&"
+                },
+                "28": {
+                    "code": "NONE",
+                    "label": "*"
+                },
+                "29": {
+                    "code": "NONE",
+                    "label": "("
+                },
+                "30": {
+                    "code": "NONE",
+                    "label": ")"
+                },
+                "31": {
+                    "code": "NONE",
+                    "label": "Q"
+                },
+                "32": {
+                    "code": "NONE",
+                    "label": "W"
+                },
+                "33": {
+                    "code": "NONE",
+                    "label": "E"
+                },
+                "34": {
+                    "code": "NONE",
+                    "label": "R"
+                },
+                "35": {
+                    "code": "NONE",
+                    "label": "T"
+                },
+                "36": {
+                    "code": "NONE",
+                    "label": "Y"
+                },
+                "37": {
+                    "code": "NONE",
+                    "label": "U"
+                },
+                "38": {
+                    "code": "NONE",
+                    "label": "I"
+                },
+                "39": {
+                    "code": "NONE",
+                    "label": "O"
+                },
+                "40": {
+                    "code": "NONE",
+                    "label": "P"
+                },
+                "41": {
+                    "code": "NONE",
+                    "label": "A"
+                },
+                "42": {
+                    "code": "NONE",
+                    "label": "S"
+                },
+                "43": {
+                    "code": "NONE",
+                    "label": "D"
+                },
+                "44": {
+                    "code": "NONE",
+                    "label": "F"
+                },
+                "45": {
+                    "code": "NONE",
+                    "label": "G"
+                },
+                "46": {
+                    "code": "NONE",
+                    "label": "H"
+                },
+                "47": {
+                    "code": "NONE",
+                    "label": "J"
+                },
+                "48": {
+                    "code": "NONE",
+                    "label": "K"
+                },
+                "49": {
+                    "code": "NONE",
+                    "label": "L"
+                },
+                "50": {
+                    "code": "RETURN",
+                    "label": "Enter"
+                },
+                "51": {
+                    "code": "NONE",
+                    "label": "Z"
+                },
+                "52": {
+                    "code": "NONE",
+                    "label": "X"
+                },
+                "53": {
+                    "code": "NONE",
+                    "label": "C"
+                },
+                "54": {
+                    "code": "NONE",
+                    "label": "V"
+                },
+                "55": {
+                    "code": "NONE",
+                    "label": "B"
+                },
+                "56": {
+                    "code": "NONE",
+                    "label": "N"
+                },
+                "57": {
+                    "code": "NONE",
+                    "label": "M"
+                },
+                "58": {
+                    "code": "NONE",
+                    "label": "<"
+                },
+                "59": {
+                    "code": "NONE",
+                    "label": ">"
+                },
+                "60": {
+                    "code": "LEFT_SHIFT",
+                    "label": "Shift"
+                },
+                "61": {
+                    "code": "NONE",
+                    "label": "Ctrl"
+                },
+                "62": {
+                    "code": "NONE",
+                    "label": "Alt"
+                },
+                "63": {
+                    "code": "SPACE",
+                    "label": "\u2423"
+                },
+                "64": {
+                    "code": "NONE",
+                    "label": ":"
+                },
+                "65": {
+                    "code": "NONE",
+                    "label": "\""
+                },
+                "66": {
+                    "code": "RIGHT_SHIFT",
+                    "label": "Shift"
+                }
+            }
+        },
+        {
+            "name": "Caps",
+            "keys": {
+                "0": {
+                    "code": "CURSOR_UP",
+                    "label": "\u2191"
+                },
+                "1": {
+                    "code": "CURSOR_LEFT",
+                    "label": "\u2190"
+                },
+                "2": {
+                    "code": "CURSOR_DOWN",
+                    "label": "\u2193"
+                },
+                "3": {
+                    "code": "CURSOR_RIGHT",
+                    "label": "\u2192"
+                },
+                "9": {
+                    "code": "ESCAPE",
+                    "label": "Esc"
+                },
+                "10": {
+                    "code": "TAB",
+                    "label": "Tab"
+                },
+                "11": {
+                    "code": "CAPS_LOCK",
+                    "label": "CapsLk"
+                },
+                "12": {
+                    "code": "DELETE",
+                    "label": "Del"
+                },
+                "13": {
+                    "code": "BACKSPACE",
+                    "label": "Bsp"
+                },
+                "21": {
+                    "code": "DIGIT_1",
+                    "label": "1"
+                },
+                "22": {
+                    "code": "DIGIT_2",
+                    "label": "2"
+                },
+                "23": {
+                    "code": "DIGIT_3",
+                    "label": "3"
+                },
+                "24": {
+                    "code": "DIGIT_4",
+                    "label": "4"
+                },
+                "25": {
+                    "code": "DIGIT_5",
+                    "label": "5"
+                },
+                "26": {
+                    "code": "DIGIT_6",
+                    "label": "6"
+                },
+                "27": {
+                    "code": "DIGIT_7",
+                    "label": "7"
+                },
+                "28": {
+                    "code": "DIGIT_8",
+                    "label": "8"
+                },
+                "29": {
+                    "code": "DIGIT_9",
+                    "label": "9"
+                },
+                "30": {
+                    "code": "DIGIT_0",
+                    "label": "0"
+                },
+                "50": {
+                    "code": "RETURN",
+                    "label": "Enter"
+                },
+                "60": {
+                    "code": "LEFT_SHIFT",
+                    "label": "Shift"
+                },
+                "63": {
+                    "code": "SPACE",
+                    "label": "\u2423"
+                },
+                "4": {
+                    "code": "NONE",
+                    "label": "F1"
+                },
+                "5": {
+                    "code": "NONE",
+                    "label": "F2"
+                },
+                "6": {
+                    "code": "NONE",
+                    "label": "F3"
+                },
+                "7": {
+                    "code": "NONE",
+                    "label": "F4"
+                },
+                "8": {
+                    "code": "NONE",
+                    "label": "F5"
+                },
+                "14": {
+                    "code": "NONE",
+                    "label": "`"
+                },
+                "15": {
+                    "code": "NONE",
+                    "label": "/"
+                },
+                "16": {
+                    "code": "NONE",
+                    "label": "\\"
+                },
+                "17": {
+                    "code": "NONE",
+                    "label": "-"
+                },
+                "18": {
+                    "code": "NONE",
+                    "label": "="
+                },
+                "19": {
+                    "code": "NONE",
+                    "label": "["
+                },
+                "20": {
+                    "code": "NONE",
+                    "label": "]"
+                },
+                "31": {
+                    "code": "NONE",
+                    "label": "Q"
+                },
+                "32": {
+                    "code": "NONE",
+                    "label": "W"
+                },
+                "33": {
+                    "code": "NONE",
+                    "label": "E"
+                },
+                "34": {
+                    "code": "NONE",
+                    "label": "R"
+                },
+                "35": {
+                    "code": "NONE",
+                    "label": "T"
+                },
+                "36": {
+                    "code": "NONE",
+                    "label": "Y"
+                },
+                "37": {
+                    "code": "NONE",
+                    "label": "U"
+                },
+                "38": {
+                    "code": "NONE",
+                    "label": "I"
+                },
+                "39": {
+                    "code": "NONE",
+                    "label": "O"
+                },
+                "40": {
+                    "code": "NONE",
+                    "label": "P"
+                },
+                "41": {
+                    "code": "NONE",
+                    "label": "A"
+                },
+                "42": {
+                    "code": "NONE",
+                    "label": "S"
+                },
+                "43": {
+                    "code": "NONE",
+                    "label": "D"
+                },
+                "44": {
+                    "code": "NONE",
+                    "label": "F"
+                },
+                "45": {
+                    "code": "NONE",
+                    "label": "G"
+                },
+                "46": {
+                    "code": "NONE",
+                    "label": "H"
+                },
+                "47": {
+                    "code": "NONE",
+                    "label": "J"
+                },
+                "48": {
+                    "code": "NONE",
+                    "label": "K"
+                },
+                "49": {
+                    "code": "NONE",
+                    "label": "L"
+                },
+                "51": {
+                    "code": "NONE",
+                    "label": "Z"
+                },
+                "52": {
+                    "code": "NONE",
+                    "label": "X"
+                },
+                "53": {
+                    "code": "NONE",
+                    "label": "C"
+                },
+                "54": {
+                    "code": "NONE",
+                    "label": "V"
+                },
+                "55": {
+                    "code": "NONE",
+                    "label": "B"
+                },
+                "56": {
+                    "code": "NONE",
+                    "label": "N"
+                },
+                "57": {
+                    "code": "NONE",
+                    "label": "M"
+                },
+                "58": {
+                    "code": "NONE",
+                    "label": ","
+                },
+                "59": {
+                    "code": "NONE",
+                    "label": "."
+                },
+                "61": {
+                    "code": "NONE",
+                    "label": "Ctrl"
+                },
+                "62": {
+                    "code": "NONE",
+                    "label": "Alt"
+                },
+                "64": {
+                    "code": "NONE",
+                    "label": ";"
+                },
+                "65": {
+                    "code": "NONE",
+                    "label": "'"
+                },
+                "66": {
+                    "code": "RIGHT_SHIFT",
+                    "label": "Shift"
+                }
+            }
+        }
+    ]
+}

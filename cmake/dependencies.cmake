@@ -28,6 +28,8 @@ target_include_directories(nlohmann_json SYSTEM INTERFACE thirdparty/json/includ
 
 # ── LVGL ────────────────────────────────────────────────────────────────────────────
 set(LV_BUILD_CONF_PATH ${CMAKE_SOURCE_DIR}/thirdparty/lv_conf.h CACHE PATH "LVGL config file")
+set(CONFIG_LV_BUILD_EXAMPLES OFF CACHE BOOL "Build LVGL examples" FORCE)
+set(CONFIG_LV_BUILD_DEMOS    OFF CACHE BOOL "Build LVGL demos"    FORCE)
 add_subdirectory(thirdparty/lvgl)
 
 # ── GoogleTest (if tests enabled) ────────────────────────────────────────────────────

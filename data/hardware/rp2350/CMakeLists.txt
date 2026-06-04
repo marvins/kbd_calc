@@ -22,6 +22,7 @@ pico_sdk_init()
 # Bare RP2350 compile definitions
 set(HARDWARE_COMPILE_DEFINITIONS
     TARGET_RP2350=1
+    DEFAULT_CONFIG_PATH="data/configs/mf/"
 )
 
 # RP2350 libraries (from Pico SDK)
@@ -74,7 +75,7 @@ set(DISPLAY_KBD_HEIGHT     100)
 set(DISPLAY_KBD_WIN_HEIGHT   0)
 set(DISPLAY_PREVIEW_MAX_WIDTH   120)
 set(DISPLAY_PREVIEW_MAX_HEIGHT   60)
-set(DISPLAY_PREVIEW_OFFSET_Y     40)
+
 set(DISPLAY_KEY_PAD       1)
 set(DISPLAY_KBD_HEADER_H 14)
 set(DISPLAY_KBD_MARGIN_L  4)

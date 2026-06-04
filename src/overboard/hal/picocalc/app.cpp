@@ -44,17 +44,17 @@ PicoCalc_App::~PicoCalc_App() = default;
 /****************************/
 std::unique_ptr<PicoCalc_App> PicoCalc_App::create(
     const core::Grid_Layout&     layout,
-    const std::filesystem::path& layout_path,
-    const std::filesystem::path& keymap_path,
-    const std::filesystem::path& layers_path )
+    const std::filesystem::path& layout_path )
 {
     auto app = std::unique_ptr<PicoCalc_App>(new PicoCalc_App(layout));
 
-    // Load layer assignments
+    // Load layer assignments from legacy VIA format
     try {
         // Parse layout to build matrix position -> visual index map
         auto via_layout = io::parse_via_layout(layout_path);
         auto matrix_index_map = io::build_matrix_index_map(via_layout);
+        // Load layers.json from same directory as layout
+        auto layers_path = layout_path.parent_path() / "layers.json";
         auto layers = core::load_layers_from_json(layers_path.string(), matrix_index_map);
         app->m_keymap = core::Keymap(layers);
     } catch (const std::exception& e) {
@@ -63,8 +63,6 @@ std::unique_ptr<PicoCalc_App> PicoCalc_App::create(
     }
 
     app->m_layout_path = layout_path;
-    app->m_keymap_path = keymap_path;
-    app->m_layers_path = layers_path;
 
     if (!app->init()) {
         return nullptr;

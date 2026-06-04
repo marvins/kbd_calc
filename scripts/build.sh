@@ -12,6 +12,14 @@ SIMULATOR=ON
 JOBS="1"
 VERBOSE=false
 
+get_cpu_count() {
+    # Try multiple methods to get CPU count, in order of preference
+    # Can be extended for other platforms
+    nproc 2>/dev/null || \
+        sysctl -n hw.ncpu 2>/dev/null || \
+        echo 1
+}
+
 usage() {
     cat <<EOF
 Usage: $(basename "$0") [options]
@@ -23,7 +31,7 @@ Options:
   -r           Release build
   -p <target>  Hardware target: SDL, PICOSDL, or RP2350 (default: SDL)
   -s <on|off>  Simulator mode: on or off (default: on)
-  -j <jobs>    Parallel jobs (default: 1)
+  -j [jobs]   Parallel jobs (default: 1, or all cores if omitted)
   -t           Trace/verbose build output
 
 Examples:
@@ -37,7 +45,7 @@ Examples:
 EOF
 }
 
-while getopts ":hcdrp:s:j:t" opt; do
+while getopts ":hcdrp:s:j::t" opt; do
     case "${opt}" in
         h) usage; exit 0 ;;
         c) CLEAN=true ;;
@@ -45,7 +53,15 @@ while getopts ":hcdrp:s:j:t" opt; do
         r) BUILD_TYPE="Release" ;;
         p) TARGET_DEVICE="${OPTARG}" ;;
         s) SIMULATOR="${OPTARG}" ;;
-        j) JOBS="${OPTARG}" ;;
+        j)
+            if [[ -n "${OPTARG}" && "${OPTARG}" != -* ]]; then
+                JOBS="${OPTARG}"
+            else
+                JOBS="$(get_cpu_count)"
+                # OPTARG was another option, put it back
+                [[ -n "${OPTARG}" ]] && OPTIND=$((OPTIND - 1))
+            fi
+            ;;
         t) VERBOSE=true ;;
         :) echo "Error: option -${OPTARG} requires an argument." >&2; usage; exit 1 ;;
         \?) echo "Error: unknown option -${OPTARG}" >&2; usage; exit 1 ;;

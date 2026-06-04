@@ -1,0 +1,19 @@
+/**
+ * @file    embedded_json.hpp
+ * @brief   Embedded JSON resource (auto-generated)
+ *
+ * This file was auto-generated from @JSON_FILE@
+ * Do not edit manually.
+ */
+#pragma once
+
+#include <cstdint>
+#include <cstddef>
+
+namespace ovb::resources {
+
+inline constexpr char embedded_json_data[] = R"JSON(@JSON_CONTENT@)JSON";
+
+inline constexpr std::size_t embedded_json_size = sizeof(embedded_json_data) - 1; // exclude null terminator
+
+} // namespace ovb::resources

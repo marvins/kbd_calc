@@ -79,7 +79,7 @@ void Calc_Engine::handle_key( core::Action_Code code ) {
         case core::Action_Code::SQRT:
         case core::Action_Code::PI:         case core::Action_Code::EULER:      case core::Action_Code::PHI: case core::Action_Code::TAU:
         case core::Action_Code::BIT_AND:    case core::Action_Code::BIT_OR:     case core::Action_Code::BIT_XOR:
-        case core::Action_Code::SHIFT_LEFT: case core::Action_Code::SHIFT_RIGHT:
+        case core::Action_Code::BITSHIFT_LEFT: case core::Action_Code::BITSHIFT_RIGHT:
         case core::Action_Code::APPROX:
             try_insert(code);
             break;

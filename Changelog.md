@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Unified keyboard configuration format (`keyboard.json`) combining keys, positions, and layers
+- Target-specific default config paths (SDL/RP2350→MF, PICOSDL/PICOCALC→picocalc)
+- Embedded JSON resource support for SDL target (keyboard.json compiled into binary)
+- JSON schema validation for keyboard configs (`data/schemas/keyboard.json.schema`)
+- Python validation script (`scripts/validate_keyboard_config.py`) for offline config testing
+- `parse_keyboard_config_string()` for parsing JSON from embedded resources
+
+### Changed
+- SDL target now only supports `keyboard.json` format (legacy VIA layout removed)
+- Command-line arguments simplified: `--layout` now points to `keyboard.json` only
+- Removed `--keymap` and `--layers` CLI options (no longer needed with unified format)
+- `App_Factory::create()` signature simplified to `(layout, layout_path)`
+- `SDL_App::create()` signature simplified to `(layout, layout_path)`
+- `PicoCalc_App::create()` signature simplified to `(layout, layout_path)`
+- Config class removed `keymap_path()` and `layers_path()` methods
+
+### Fixed
+- MF keyboard layout adjustments (up arrow position, key 32 alignment, vertical gaps)
+- SDL build errors related to missing keyboard_window.cpp source file
+- Config parsing now correctly prioritizes `keyboard.json` over legacy `main.json`
+
 ## [0.1.1] - 2026-05-30
 
 ### Added

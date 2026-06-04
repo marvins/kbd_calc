@@ -54,6 +54,9 @@ Input_Key string_to_input_key(const std::string& str) {
     if (str == "F10")            return Input_Key::F10;
     if (str == "F11")            return Input_Key::F11;
     if (str == "F12")            return Input_Key::F12;
+    if (str == "F13")            return Input_Key::F13;
+    if (str == "F14")            return Input_Key::F14;
+    if (str == "F15")            return Input_Key::F15;
 
     // Digits
     if (str == "KEY_0")          return Input_Key::KEY_0;
@@ -192,6 +195,9 @@ std::string input_key_to_string(Input_Key key) {
         case Input_Key::F10:                return "F10";
         case Input_Key::F11:                return "F11";
         case Input_Key::F12:                return "F12";
+        case Input_Key::F13:                return "F13";
+        case Input_Key::F14:                return "F14";
+        case Input_Key::F15:                return "F15";
         case Input_Key::KEY_0:              return "KEY_0";
         case Input_Key::KEY_1:              return "KEY_1";
         case Input_Key::KEY_2:              return "KEY_2";

@@ -51,13 +51,11 @@ class SDL_App : public I_App {
         /**
          * @brief Factory method to create and initialize SDL application
          * @param layout Keyboard layout for the target device
-         * @param keymap_path Path to JSON keymap file
+         * @param layout_path Path to keyboard.json file
          * @return Unique pointer to initialized SDL_App, or nullptr on failure
          */
         static std::unique_ptr<SDL_App> create(const core::Grid_Layout& layout,
-                                               const std::filesystem::path& layout_path,
-                                               const std::filesystem::path& keymap_path,
-                                               const std::filesystem::path& layers_path);
+                                               const std::filesystem::path& layout_path);
 
         /**
          * Destructor
@@ -104,12 +102,6 @@ class SDL_App : public I_App {
 
         /// @brief Path to the layout file
         std::filesystem::path             m_layout_path;
-
-        /// @brief Path to the keymap file
-        std::filesystem::path             m_keymap_path;
-
-        /// @brief Path to the layers file
-        std::filesystem::path             m_layers_path;
 
         /// @brief Flag indicating if the application has been initialized
         bool                              m_initialized = false;

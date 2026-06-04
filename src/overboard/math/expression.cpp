@@ -74,8 +74,8 @@ void Expression::insert(core::Action_Code code) {
         case AC::BIT_AND:     insert_operator(ast::Binary_Op::BIT_AND); break;
         case AC::BIT_OR:      insert_operator(ast::Binary_Op::BIT_OR); break;
         case AC::BIT_XOR:     insert_operator(ast::Binary_Op::BIT_XOR); break;
-        case AC::SHIFT_LEFT:  insert_operator(ast::Binary_Op::SHIFT_LEFT); break;
-        case AC::SHIFT_RIGHT: insert_operator(ast::Binary_Op::SHIFT_RIGHT); break;
+        case AC::BITSHIFT_LEFT:  insert_operator(ast::Binary_Op::SHIFT_LEFT); break;
+        case AC::BITSHIFT_RIGHT: insert_operator(ast::Binary_Op::SHIFT_RIGHT); break;
 
         // Functions
         case AC::SIN:         insert_function(operators::Sin()); break;

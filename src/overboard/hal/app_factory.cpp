@@ -20,16 +20,14 @@ namespace ovb::hal {
 /*      Create App Instance      */
 /*********************************/
 std::unique_ptr<I_App> App_Factory::create(const core::Grid_Layout& layout,
-                                           const std::filesystem::path& layout_path,
-                                           const std::filesystem::path& keymap_path,
-                                           const std::filesystem::path& layers_path) {
+                                           const std::filesystem::path& layout_path) {
 #ifdef TARGET_SDL
-    return sdl::SDL_App::create(layout, layout_path, keymap_path, layers_path);
+    return sdl::SDL_App::create(layout, layout_path);
 #elif defined(TARGET_RP2350)
     #ifdef BOARD_PICOCALC
-        return picocalc::PicoCalc_App::create(layout, layout_path, keymap_path, layers_path);
+        return picocalc::PicoCalc_App::create(layout, layout_path);
     #else
-        (void)layout; (void)layout_path; (void)keymap_path; (void)layers_path;
+        (void)layout; (void)layout_path;
         return std::make_unique<pico::Pico_App>(layout);
     #endif
 #else

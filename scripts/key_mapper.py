@@ -8,15 +8,16 @@
 Key Mapper GUI Tool
 
 A PyQt-based tool for visualizing and editing keyboard key mappings.
-Loads VIA layout JSON and a mapping JSON, allowing interactive key assignment.
+Loads unified keyboard.json configuration, allowing interactive key assignment.
 """
 
 #  Python Standard Libraries
 import json
 import sys
+from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 #  PyQt6
 from PyQt6.QtWidgets import (
@@ -25,6 +26,113 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QFont, QKeyEvent, QPainter, QPen, QColor
+
+
+@dataclass
+class KeyDef:
+    """Represents a key definition from keyboard.json."""
+    id: str
+    input_key: str
+    x: float
+    y: float
+    w: float = 1.0
+    h: float = 1.0
+
+@dataclass
+class LayerKey:
+    """Represents a layer override for a key."""
+    key_id: str
+    code: str = "NONE"
+    label: str = ""
+    shift_label: str = ""
+
+@dataclass
+class Layer:
+    """Represents a layer with key overrides."""
+    name: str
+    keys: Dict[str, LayerKey] = field(default_factory=dict)
+
+
+class KeyboardConfig:
+    """Unified keyboard configuration loaded from keyboard.json."""
+
+    def __init__(self, path: Path):
+        self.path = path
+        self.name = "Unknown"
+        self.description = ""
+        self.layout = {"key_width": 40, "key_height": 40, "key_spacing": 2, "origin_x": 8, "origin_y": 6}
+        self.keys: Dict[str, KeyDef] = {}
+        self.layers: List[Layer] = []
+        self._load()
+
+    def _load(self):
+        if not self.path.exists():
+            return
+
+        with open(self.path, 'r') as f:
+            data = json.load(f)
+
+        self.name = data.get("name", "Unknown")
+        self.description = data.get("description", "")
+        self.layout = data.get("layout", self.layout)
+
+        # Load keys
+        for key_id, key_data in data.get("keys", {}).items():
+            pos = key_data.get("position", {})
+
+            self.keys[key_id] = KeyDef(
+                id=key_id,
+                input_key=key_data.get("input_key", ""),
+                x=pos.get("x", 0),
+                y=pos.get("y", 0),
+                w=pos.get("w", 1.0),
+                h=pos.get("h", 1.0)
+            )
+
+        # Load layers
+        for layer_data in data.get("layers", []):
+            layer = Layer(name=layer_data.get("name", "Unnamed"))
+            for key_id, key_override in layer_data.get("keys", {}).items():
+                layer.keys[key_id] = LayerKey(
+                    key_id=key_id,
+                    code=key_override.get("code", "NONE"),
+                    label=key_override.get("label", ""),
+                    shift_label=key_override.get("shift_label", "")
+                )
+            self.layers.append(layer)
+
+    def save(self):
+        """Save configuration back to JSON."""
+        data = {
+            "name": self.name,
+            "description": self.description,
+            "layout": self.layout,
+            "keys": {},
+            "layers": []
+        }
+
+        # Save keys
+        for key in self.keys.values():
+            data["keys"][key.id] = {
+                "input_key": key.input_key,
+                "labels": {"default": key.default_label, "shift": key.shift_label},
+                "position": {"x": key.x, "y": key.y, "w": key.w, "h": key.h}
+            }
+
+        # Save layers
+        for layer in self.layers:
+            layer_data = {"name": layer.name, "keys": {}}
+            for key_id, layer_key in layer.keys.items():
+                key_data = {"code": layer_key.code}
+                if layer_key.label:
+                    key_data["label"] = layer_key.label
+                if layer_key.shift_label:
+                    key_data["shift_label"] = layer_key.shift_label
+                layer_data["keys"][key_id] = key_data
+            data["layers"].append(layer_data)
+
+        with open(self.path, 'w') as f:
+            json.dump(data, f, indent=4)
 
 # Mapping from Qt key codes to hardware-agnostic Input_Key names
 
@@ -44,6 +152,83 @@ def convert_lvgl_symbols(label: str) -> str:
     for lvgl, readable in LVGL_SYMBOLS.items():
         label = label.replace(lvgl, readable)
     return label
+
+def derive_label_from_input_key(input_key: str) -> str:
+    """Derive display label from input_key name."""
+    if not input_key:
+        return ""
+
+    # Arrow keys
+    if input_key == "UP":
+        return "↑"
+    if input_key == "DOWN":
+        return "↓"
+    if input_key == "LEFT":
+        return "←"
+    if input_key == "RIGHT":
+        return "→"
+
+    # Function keys
+    if input_key.startswith("F"):
+        return input_key  # F1, F2, etc.
+
+    # Special keys
+    if input_key == "ESCAPE":
+        return "Esc"
+    if input_key == "TAB":
+        return "Tab"
+    if input_key == "CAPS_LOCK":
+        return "CapsLk"
+    if input_key == "DELETE":
+        return "Del"
+    if input_key == "BACKSPACE":
+        return "Bsp"
+    if input_key == "ENTER":
+        return "Enter"
+    if input_key == "SPACE":
+        return "␣"
+    if input_key == "SHIFT":
+        return "Shift"
+    if input_key == "CONTROL":
+        return "Ctrl"
+    if input_key == "ALT":
+        return "Alt"
+
+    # Symbol keys
+    if input_key == "GRAVE":
+        return "`"
+    if input_key == "SLASH":
+        return "/"
+    if input_key == "BACKSLASH":
+        return "\\"
+    if input_key == "MINUS":
+        return "-"
+    if input_key == "EQUAL":
+        return "="
+    if input_key == "BRACKET_LEFT":
+        return "["
+    if input_key == "BRACKET_RIGHT":
+        return "]"
+    if input_key == "SEMICOLON":
+        return ";"
+    if input_key == "APOSTROPHE":
+        return "'"
+    if input_key == "COMMA":
+        return ","
+    if input_key == "PERIOD":
+        return "."
+    if input_key == "AMPERSAND":
+        return "&"
+
+    # Digit keys
+    if input_key.startswith("DIGIT_"):
+        return input_key.replace("DIGIT_", "")
+
+    # Letter keys
+    if input_key.startswith("KEY_"):
+        return input_key.replace("KEY_", "").lower()
+
+    return input_key
 QT_KEY_TO_INPUT_KEY = {
     # Function keys
     Qt.Key.Key_F1:  "F1",   Qt.Key.Key_F2:  "F2",
@@ -128,110 +313,113 @@ def qt_key_to_input_key(key: Qt.Key, text: str, modifiers: Qt.KeyboardModifier =
 
 # Available key codes (calculator actions + navigation + system)
 class KeyCode(Enum):
-    NONE = "NONE"
+    NONE           = "NONE"
     # Digits
-    DIGIT_0 = "DIGIT_0"
-    DIGIT_1 = "DIGIT_1"
-    DIGIT_2 = "DIGIT_2"
-    DIGIT_3 = "DIGIT_3"
-    DIGIT_4 = "DIGIT_4"
-    DIGIT_5 = "DIGIT_5"
-    DIGIT_6 = "DIGIT_6"
-    DIGIT_7 = "DIGIT_7"
-    DIGIT_8 = "DIGIT_8"
-    DIGIT_9 = "DIGIT_9"
+    DIGIT_0        = "DIGIT_0"
+    DIGIT_1        = "DIGIT_1"
+    DIGIT_2        = "DIGIT_2"
+    DIGIT_3        = "DIGIT_3"
+    DIGIT_4        = "DIGIT_4"
+    DIGIT_5        = "DIGIT_5"
+    DIGIT_6        = "DIGIT_6"
+    DIGIT_7        = "DIGIT_7"
+    DIGIT_8        = "DIGIT_8"
+    DIGIT_9        = "DIGIT_9"
     # Basic ops
-    ADD = "ADD"
-    SUBTRACT = "SUBTRACT"
-    MULTIPLY = "MULTIPLY"
-    DIVIDE = "DIVIDE"
-    EQUALS = "EQUALS"
-    EVAL = "EVAL"
-    APPROX = "APPROX"
-    DECIMAL = "DECIMAL"
-    CLEAR = "CLEAR"
-    ALL_CLEAR = "ALL_CLEAR"
-    BACKSPACE = "BACKSPACE"
-    TAB = "TAB"
-    DELETE = "DELETE"
-    CAPS_LOCK = "CAPS_LOCK"
+    ADD            = "ADD"
+    SUBTRACT       = "SUBTRACT"
+    MULTIPLY       = "MULTIPLY"
+    DIVIDE         = "DIVIDE"
+    EQUALS         = "EQUALS"
+    EVAL           = "EVAL"
+    APPROX         = "APPROX"
+    DECIMAL        = "DECIMAL"
+    CLEAR          = "CLEAR"
+    ALL_CLEAR      = "ALL_CLEAR"
+    BACKSPACE      = "BACKSPACE"
+    TAB            = "TAB"
+    DELETE         = "DELETE"
+    CAPS_LOCK      = "CAPS_LOCK"
+    RETURN         = "RETURN"
+    LEFT_SHIFT     = "LEFT_SHIFT"
+    RIGHT_SHIFT    = "RIGHT_SHIFT"
     # Grouping / extra basic
-    PAREN_OPEN = "PAREN_OPEN"
-    PAREN_CLOSE = "PAREN_CLOSE"
-    PERCENT = "PERCENT"
-    NEGATE = "NEGATE"
+    PAREN_OPEN     = "PAREN_OPEN"
+    PAREN_CLOSE    = "PAREN_CLOSE"
+    PERCENT        = "PERCENT"
+    NEGATE         = "NEGATE"
     # Memory
-    MEM_STORE = "MEM_STORE"
-    MEM_RECALL = "MEM_RECALL"
-    MEM_ADD = "MEM_ADD"
-    MEM_CLEAR = "MEM_CLEAR"
+    MEM_STORE      = "MEM_STORE"
+    MEM_RECALL     = "MEM_RECALL"
+    MEM_ADD        = "MEM_ADD"
+    MEM_CLEAR      = "MEM_CLEAR"
     # Scientific
-    SIN = "SIN"
-    COS = "COS"
-    TAN = "TAN"
-    ASIN = "ASIN"
-    ACOS = "ACOS"
-    ATAN = "ATAN"
-    LOG = "LOG"
-    LN = "LN"
-    EXP = "EXP"
-    SQRT = "SQRT"
-    POWER_2 = "POWER_2"
-    POWER_3 = "POWER_3"
-    POWER_N = "POWER_N"
-    FACTORIAL = "FACTORIAL"
-    RECIPROCAL = "RECIPROCAL"
-    PI = "PI"
-    EULER = "EULER"
-    CEIL = "CEIL"
-    FLOOR = "FLOOR"
-    ABS = "ABS"
+    SIN            = "SIN"
+    COS            = "COS"
+    TAN            = "TAN"
+    ASIN           = "ASIN"
+    ACOS           = "ACOS"
+    ATAN           = "ATAN"
+    LOG            = "LOG"
+    LN             = "LN"
+    EXP            = "EXP"
+    SQRT           = "SQRT"
+    POWER_2        = "POWER_2"
+    POWER_3        = "POWER_3"
+    POWER_N        = "POWER_N"
+    FACTORIAL      = "FACTORIAL"
+    RECIPROCAL     = "RECIPROCAL"
+    PI             = "PI"
+    EULER          = "EULER"
+    CEIL           = "CEIL"
+    FLOOR          = "FLOOR"
+    ABS            = "ABS"
     # Programmer
-    BIT_AND = "BIT_AND"
-    BIT_OR = "BIT_OR"
-    BIT_XOR = "BIT_XOR"
-    BIT_NOT = "BIT_NOT"
-    SHIFT_LEFT = "SHIFT_LEFT"
-    SHIFT_RIGHT = "SHIFT_RIGHT"
-    HEX_A = "HEX_A"
-    HEX_B = "HEX_B"
-    HEX_C = "HEX_C"
-    HEX_D = "HEX_D"
-    HEX_E = "HEX_E"
-    HEX_F = "HEX_F"
+    BIT_AND        = "BIT_AND"
+    BIT_OR         = "BIT_OR"
+    BIT_XOR        = "BIT_XOR"
+    BIT_NOT        = "BIT_NOT"
+    BITSHIFT_LEFT  = "BITSHIFT_LEFT"
+    BITSHIFT_RIGHT = "BITSHIFT_RIGHT"
+    HEX_A          = "HEX_A"
+    HEX_B          = "HEX_B"
+    HEX_C          = "HEX_C"
+    HEX_D          = "HEX_D"
+    HEX_E          = "HEX_E"
+    HEX_F          = "HEX_F"
     # Constants
-    PHI = "PHI"
-    TAU = "TAU"
+    PHI            = "PHI"
+    TAU            = "TAU"
     # Meta / control
-    LAYER_NEXT = "LAYER_NEXT"
-    LAYER_PREV = "LAYER_PREV"
-    LAYER_CONST = "LAYER_CONST"
-    LAYER_ALG = "LAYER_ALG"
-    LAYER_TRIG = "LAYER_TRIG"
-    LAYER_VAR = "LAYER_VAR"
-    LAYER_HOME = "LAYER_HOME"
+    LAYER_NEXT     = "LAYER_NEXT"
+    LAYER_PREV     = "LAYER_PREV"
+    LAYER_CONST    = "LAYER_CONST"
+    LAYER_ALG      = "LAYER_ALG"
+    LAYER_TRIG     = "LAYER_TRIG"
+    LAYER_VAR      = "LAYER_VAR"
+    LAYER_HOME     = "LAYER_HOME"
     # Display mode
     TOGGLE_MATH_LAYOUT = "TOGGLE_MATH_LAYOUT"
     # System
-    ESCAPE = "ESCAPE"
+    ESCAPE         = "ESCAPE"
     # Navigation
-    CURSOR_LEFT = "CURSOR_LEFT"
-    CURSOR_RIGHT = "CURSOR_RIGHT"
-    CURSOR_UP = "CURSOR_UP"
-    CURSOR_DOWN = "CURSOR_DOWN"
-    PAGE_UP = "PAGE_UP"
-    PAGE_DOWN = "PAGE_DOWN"
+    CURSOR_LEFT    = "CURSOR_LEFT"
+    CURSOR_RIGHT   = "CURSOR_RIGHT"
+    CURSOR_UP      = "CURSOR_UP"
+    CURSOR_DOWN    = "CURSOR_DOWN"
+    PAGE_UP        = "PAGE_UP"
+    PAGE_DOWN      = "PAGE_DOWN"
     # Function keys
-    FUNC_1 = "FUNC_1"
-    FUNC_2 = "FUNC_2"
-    FUNC_3 = "FUNC_3"
-    FUNC_4 = "FUNC_4"
-    FUNC_5 = "FUNC_5"
-    FUNC_6 = "FUNC_6"
-    FUNC_7 = "FUNC_7"
-    FUNC_8 = "FUNC_8"
-    FUNC_9 = "FUNC_9"
-    FUNC_10 = "FUNC_10"
+    FUNC_1         = "FUNC_1"
+    FUNC_2         = "FUNC_2"
+    FUNC_3         = "FUNC_3"
+    FUNC_4         = "FUNC_4"
+    FUNC_5         = "FUNC_5"
+    FUNC_6         = "FUNC_6"
+    FUNC_7         = "FUNC_7"
+    FUNC_8         = "FUNC_8"
+    FUNC_9         = "FUNC_9"
+    FUNC_10        = "FUNC_10"
 
     @classmethod
     def all_values(cls) -> List[str]:
@@ -248,6 +436,8 @@ KEY_CODE_TO_LABEL = {
     "ADD": "+", "SUBTRACT": "-", "MULTIPLY": "×", "DIVIDE": "÷", "EQUALS": "=",
     "EVAL": "Eval", "APPROX": "Aprx", "DECIMAL": ".", "CLEAR": "C",
     "ALL_CLEAR": "AC", "BACKSPACE": "BSP",
+    "TAB": "Tab", "DELETE": "Del", "CAPS_LOCK": "Caps",
+    "RETURN": "Enter", "LEFT_SHIFT": "Shift", "RIGHT_SHIFT": "Shift",
     # Grouping / extra basic
     "PAREN_OPEN": "(", "PAREN_CLOSE": ")", "PERCENT": "%", "NEGATE": "+/-",
     # Memory
@@ -259,7 +449,7 @@ KEY_CODE_TO_LABEL = {
     "CEIL": "ceil", "FLOOR": "floor", "ABS": "abs",
     # Programmer
     "BIT_AND": "&", "BIT_OR": "|", "BIT_XOR": "^", "BIT_NOT": "~",
-    "SHIFT_LEFT": "<<", "SHIFT_RIGHT": ">>",
+    "BITSHIFT_LEFT": "<<", "BITSHIFT_RIGHT": ">>",
     "HEX_A": "A", "HEX_B": "B", "HEX_C": "C", "HEX_D": "D", "HEX_E": "E", "HEX_F": "F",
     # Constants
     "PHI": "φ", "TAU": "τ",
@@ -339,8 +529,7 @@ class KeyButton(QPushButton):
         super().__init__(parent)
         self.key_data = key_data
         self.layer_index = key_data.get("layer_index", 0)
-        self.position_index = key_data.get("position_index", 0)
-        self.index = key_data.get("index", 0)
+        self.key_id = key_data.get("id", "")
         self.label = key_data.get("label", "")
         self.code = key_data.get("code", "NONE")
         self.input_key = key_data.get("input_key", "")
@@ -353,7 +542,8 @@ class KeyButton(QPushButton):
         # Use JSON label, converting LVGL symbols to readable text
         display_text = convert_lvgl_symbols(self.label)
         if not display_text:
-            display_text = f"{self.index}"
+            # Fallback to key_id or default label from action code
+            display_text = self.key_data.get("id", "")
         self.setText(display_text)
 
         # Style based on whether key is assigned
@@ -402,9 +592,10 @@ class KeyButton(QPushButton):
             self.update_display()
             self.window().mapping_changed = True
             self.window().update_assigned_codes(old_code, self.code)
-            self.window().update_input_key( self.key_data.get("row"),
-                                           self.key_data.get("col"),
-                                           self.input_key )
+            # Update input_key using key_id
+            key_id = self.key_data.get("id")
+            if key_id:
+                self.window().update_input_key(key_id, self.input_key)
 
 
 class KeyEditDialog(QDialog):
@@ -412,7 +603,8 @@ class KeyEditDialog(QDialog):
 
     def __init__(self, parent, current_label: str, current_code: str, current_input_key: str, assigned_codes: set):
         super().__init__(parent)
-        self.setWindowTitle(f"Edit Key {parent.index} (row {parent.key_data.get('row')}, col {parent.key_data.get('col')})")
+        key_id = parent.key_data.get('id', '?')
+        self.setWindowTitle(f"Edit Key {key_id}")
         self.setFixedSize(500, 310)
         self._recording = False
 
@@ -581,35 +773,29 @@ class KeyEditDialog(QDialog):
 class KeyMapperWindow(QMainWindow):
     """Main window for the key mapper tool."""
 
-    def __init__(self, layout_path: str, keymap_path: str, layers_path: str):
+    def __init__(self, keyboard_path: str):
         super().__init__()
-        self.layout_path = Path(layout_path)
-        self.keymap_path = Path(keymap_path)
-        self.layers_path = Path(layers_path)
+        self.config = KeyboardConfig(Path(keyboard_path))
         self.mapping_changed = False
         self.assigned_codes = set()
         self.current_layer_index = 0
-
-        self.layout_data = self.load_layout()
-        self.keymap_data = self.load_or_create_keymap()   # input_keys only
-        self.layers_data = self.load_or_create_layers()   # layer assignments
+        self.key_buttons: Dict[str, KeyButton] = {}  # key_id -> button
 
         # Initialize assigned codes from existing mapping
         self.refresh_assigned_codes()
 
         self.init_ui()
-        self.setWindowTitle(f"Key Mapper - {self.layout_data.get('name', 'Unknown')}")
+        self.setWindowTitle(f"Key Mapper - {self.config.name}")
         self.resize(900, 700)
 
     def refresh_assigned_codes(self):
         """Refresh the assigned codes set from current layer's mapping data."""
         self.assigned_codes.clear()
-        layers = self.layers_data.get("layers", [])
-        if self.current_layer_index < len(layers):
-            for key in layers[self.current_layer_index].get("keys", []):
-                code = key.get("code", "NONE")
-                if code and code != "NONE":
-                    self.assigned_codes.add(code)
+        if self.current_layer_index < len(self.config.layers):
+            layer = self.config.layers[self.current_layer_index]
+            for layer_key in layer.keys.values():
+                if layer_key.code and layer_key.code != "NONE":
+                    self.assigned_codes.add(layer_key.code)
 
     def get_assigned_codes(self) -> set:
         """Get the set of currently assigned key codes for current layer."""
@@ -622,39 +808,6 @@ class KeyMapperWindow(QMainWindow):
         if new_code and new_code != "NONE":
             self.assigned_codes.add(new_code)
 
-    def load_layout(self) -> Dict:
-        """Load the VIA layout JSON."""
-        if not self.layout_path.exists():
-            QMessageBox.critical(self, "Error", f"Layout file not found: {self.layout_path}")
-            sys.exit(1)
-
-        with open(self.layout_path, 'r') as f:
-            return json.load(f)
-
-    def load_or_create_keymap(self) -> Dict:
-        """Load keymap JSON (input_keys only) or create an empty one."""
-        if self.keymap_path.exists():
-            with open(self.keymap_path, 'r') as f:
-                data = json.load(f)
-            if "input_keys" not in data:
-                data["input_keys"] = {}
-            return data
-        return {"input_keys": {}}
-
-    def load_or_create_layers(self) -> Dict:
-        """Load layers JSON or create default layers from layout."""
-        if self.layers_path.exists():
-            with open(self.layers_path, 'r') as f:
-                return json.load(f)
-        layer_names = ["Basic", "TRG", "Constants", "Programmer", "Algebra"]
-        positions = self.extract_key_positions()
-        return {
-            "layers": [
-                {"name": name, "keys": [{"code": "NONE"} for _ in positions]}
-                for name in layer_names
-            ]
-        }
-
     def init_ui(self):
         """Initialize the user interface with layer tabs."""
         central_widget = QWidget()
@@ -664,8 +817,8 @@ class KeyMapperWindow(QMainWindow):
 
         # Toolbar
         toolbar = QHBoxLayout()
-        save_btn = QPushButton("Save Keymap")
-        save_btn.clicked.connect(self.save_keymap)
+        save_btn = QPushButton("Save Config")
+        save_btn.clicked.connect(self.save_config)
         toolbar.addWidget(save_btn)
 
         reload_btn = QPushButton("Reload")
@@ -682,27 +835,22 @@ class KeyMapperWindow(QMainWindow):
         # Layer tabs
         self.tab_widget = QTabWidget()
         self.layer_widgets = []  # Store scroll content widgets for each layer
-        self.key_buttons_per_layer = []  # Store key buttons for each layer
-
-        # Extract key positions from layout (shared across all layers)
-        self.key_positions = self.extract_key_positions()
 
         # Create a tab for each layer
-        for layer_idx, layer_data in enumerate(self.layers_data.get("layers", [])):
+        for layer_idx, layer in enumerate(self.config.layers):
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
 
             # Create grid widget as background
             grid_widget = GridWidget()
-            grid_widget.setMinimumSize(800, 650)  # Increased width for 10-column layout
+            grid_widget.setMinimumSize(800, 650)
 
             # Build key grid for this layer
-            key_buttons = self.build_layer_keys(grid_widget, layer_idx, layer_data)
+            self.build_layer_keys(grid_widget, layer_idx)
 
             scroll.setWidget(grid_widget)
-            self.tab_widget.addTab(scroll, layer_data.get("name", f"Layer {layer_idx}"))
+            self.tab_widget.addTab(scroll, layer.name)
             self.layer_widgets.append(grid_widget)
-            self.key_buttons_per_layer.append(key_buttons)
 
         main_layout.addWidget(self.tab_widget)
 
@@ -710,7 +858,7 @@ class KeyMapperWindow(QMainWindow):
         self.tab_widget.currentChanged.connect(self.on_tab_changed)
 
         # Status bar
-        self.status_label = QLabel(f"Layers: {len(self.layers_data.get('layers', []))}")
+        self.status_label = QLabel(f"Layers: {len(self.config.layers)}, Keys: {len(self.config.keys)}")
         main_layout.addWidget(self.status_label)
 
     def on_tab_changed(self, index: int):
@@ -718,144 +866,85 @@ class KeyMapperWindow(QMainWindow):
         self.current_layer_index = index
         self.refresh_assigned_codes()
 
-    def update_input_key(self, row: Optional[int], col: Optional[int], input_key: str):
-        """Update an input_key entry in keymap_data."""
-        if row is None or col is None:
-            return
-        key_str = f"{row},{col}"
-        if "input_keys" not in self.keymap_data:
-            self.keymap_data["input_keys"] = {}
-        if input_key:
-            self.keymap_data["input_keys"][key_str] = input_key
-        else:
-            self.keymap_data["input_keys"].pop(key_str, None)
+    def update_input_key(self, key_id: str, input_key: str):
+        """Update an input_key for a key."""
+        if key_id in self.config.keys:
+            self.config.keys[key_id].input_key = input_key
 
-    def extract_key_positions(self) -> List[Dict]:
-        """Extract key positions from layout JSON, with input_keys from keymap JSON."""
-        positions = []
-        keymap_layout = self.layout_data.get("layouts", {}).get("keymap", [])
-        input_key_map = self.keymap_data.get("input_keys", {})
-        index = 0
-        cursor_x = 0.0
-        cursor_y = 0.0
-        pending_w = 1.0
-        pending_h = 1.0
-
-        for row in keymap_layout:
-            cursor_x = 0.0
-            pending_w = 1.0
-            pending_h = 1.0
-
-            for item in row:
-                if isinstance(item, dict):
-                    if "x" in item:
-                        cursor_x += item["x"]
-                    if "y" in item:
-                        cursor_y += item["y"]
-                    if "w" in item:
-                        pending_w = item["w"]
-                    if "h" in item:
-                        pending_h = item["h"]
-                    # Empty dict acts as a 1x1 placeholder
-                    if not item:
-                        cursor_x += 1.0
-                elif isinstance(item, str):
-                    row_col = item.split(',')
-                    if len(row_col) == 2:
-                        r, c = int(row_col[0]), int(row_col[1])
-                        positions.append({
-                            "index": index,
-                            "row": r,
-                            "col": c,
-                            "x": cursor_x,
-                            "y": cursor_y,
-                            "w": pending_w,
-                            "h": pending_h,
-                            "input_key": input_key_map.get(f"{r},{c}", "")
-                        })
-                        index += 1
-                        cursor_x += pending_w
-                        pending_w = 1.0
-                        pending_h = 1.0
-
-            cursor_y += 1.0
-
-        return positions
-
-    def build_layer_keys(self, parent_widget, layer_idx: int, layer_data: Dict) -> List[KeyButton]:
+    def build_layer_keys(self, parent_widget, layer_idx: int):
         """Build key buttons for a specific layer."""
-        key_buttons = []
-        layer_keys = layer_data.get("keys", [])
-        input_key_map = self.keymap_data.get("input_keys", {})
-
-        # Constants for rendering (match C++ render_layout.cpp)
-        KEY_SIZE = 67  # Reduced by ~10% from 75
+        # Constants for rendering
+        KEY_SIZE = 67
         PADDING = 6
         MARGIN = 20
-        LABEL_MARGIN = 30  # Extra space for row/column labels
+        LABEL_MARGIN = 30
 
-        # Build a lookup from (row,col) -> position data for rendering
-        pos_by_rc = {(p["row"], p["col"]): p for p in self.key_positions}
+        layout = self.config.layout
+        scale = KEY_SIZE  # Base unit size
 
-        for pos_idx, key_data in enumerate(layer_keys):
-                r, c = key_data.get("row"), key_data.get("col")
-                pos = pos_by_rc.get((r, c))
-                if pos is None:
-                    continue
-                input_key = input_key_map.get(f"{r},{c}", "")
-                full_key_data = {**pos, **key_data,
-                                 "layer_index": layer_idx,
-                                 "position_index": pos_idx,
-                                 "input_key": input_key}
+        # Get layer data
+        layer = self.config.layers[layer_idx] if layer_idx < len(self.config.layers) else None
 
-                key_x = pos.get("x", 0.0)
-                key_y = pos.get("y", 0.0)
-                key_w = pos.get("w", 1.0)
-                key_h = pos.get("h", 1.0)
+        for key_id, key_def in self.config.keys.items():
+            # Get layer override if exists
+            layer_key = layer.keys.get(key_id) if layer else None
+            code = layer_key.code if layer_key else "NONE"
 
-                # Offset for row/column labels
-                btn_x = MARGIN + LABEL_MARGIN + int(key_x * KEY_SIZE)
-                btn_y = MARGIN + LABEL_MARGIN + int(key_y * KEY_SIZE)
-                btn_w = int(key_w * KEY_SIZE) - PADDING
-                btn_h = int(key_h * KEY_SIZE) - PADDING
+            # Get label: layer label > derived from input_key > key_id
+            if layer_key and layer_key.label:
+                label = layer_key.label
+            else:
+                label = derive_label_from_input_key(key_def.input_key)
 
-                btn = KeyButton(full_key_data)
-                btn.setFixedSize(btn_w, btn_h)
-                btn.setParent(parent_widget)
-                btn.move(btn_x, btn_y)
-                btn.show()
-                key_buttons.append(btn)
+            # Build key data for button
+            key_data = {
+                "id": key_id,
+                "input_key": key_def.input_key,
+                "label": label,
+                "code": code,
+                "layer_index": layer_idx
+            }
 
-        return key_buttons
+            # Calculate position
+            origin_x = layout.get("origin_x", 8)
+            origin_y = layout.get("origin_y", 6)
+            spacing = layout.get("key_spacing", 2)
 
-    def save_keymap(self):
-        """Save input_keys to keymap file and layer assignments to layers file."""
+            btn_x = MARGIN + LABEL_MARGIN + int(origin_x + key_def.x * scale)
+            btn_y = MARGIN + LABEL_MARGIN + int(origin_y + key_def.y * scale)
+            btn_w = int(key_def.w * scale) - PADDING
+            btn_h = int(key_def.h * scale) - PADDING
+
+            btn = KeyButton(key_data)
+            btn.setFixedSize(btn_w, btn_h)
+            btn.setParent(parent_widget)
+            btn.move(btn_x, btn_y)
+            btn.show()
+            self.key_buttons[key_id] = btn
+
+    def save_config(self):
+        """Save keyboard configuration back to JSON."""
         try:
-            # Update layer key data from buttons, matched by row/col
-            for layer_idx, key_buttons in enumerate(self.key_buttons_per_layer):
-                layer_keys = self.layers_data["layers"][layer_idx]["keys"]
-                rc_to_key = {(k.get("row"), k.get("col")): k for k in layer_keys}
-                for btn in key_buttons:
-                    r, c = btn.key_data.get("row"), btn.key_data.get("col")
-                    entry = rc_to_key.get((r, c))
-                    if entry is not None:
-                        entry["code"] = btn.code
+            # Update layer data from buttons
+            for btn in self.key_buttons.values():
+                layer_idx = btn.key_data.get("layer_index", 0)
+                key_id = btn.key_data.get("id")
 
-            # Save input_keys (keymap file)
-            with open(self.keymap_path, 'w') as f:
-                json.dump(self.keymap_data, f, indent=4)
+                if layer_idx < len(self.config.layers) and key_id:
+                    layer = self.config.layers[layer_idx]
+                    if key_id not in layer.keys:
+                        layer.keys[key_id] = LayerKey(key_id=key_id)
+                    layer.keys[key_id].code = btn.code
+                    layer.keys[key_id].label = btn.label
 
-            # Save layer assignments (layers file)
-            with open(self.layers_path, 'w') as f:
-                json.dump(self.layers_data, f, indent=4)
-
+            self.config.save()
             self.mapping_changed = False
-            self.status_label.setText(f"Saved")
+            self.status_label.setText(f"Saved to {self.config.path}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save: {e}")
 
     def reload(self):
-        """Reload the keymap from file."""
+        """Reload the config from file."""
         if self.mapping_changed:
             reply = QMessageBox.question(
                 self, "Unsaved Changes",
@@ -865,31 +954,28 @@ class KeyMapperWindow(QMainWindow):
             if reply == QMessageBox.StandardButton.No:
                 return
 
-        self.keymap_data = self.load_or_create_keymap()
-        self.layers_data = self.load_or_create_layers()
+        self.config = KeyboardConfig(self.config.path)
+        self.key_buttons.clear()
         self.refresh_assigned_codes()
+
         # Rebuild UI
         self.tab_widget.clear()
         self.layer_widgets.clear()
-        self.key_buttons_per_layer.clear()
-        self.key_positions = self.extract_key_positions()
 
-        for layer_idx, layer_data in enumerate(self.layers_data.get("layers", [])):
+        for layer_idx, layer in enumerate(self.config.layers):
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
 
-            # Create grid widget as background
             grid_widget = GridWidget()
-            grid_widget.setMinimumSize(800, 650)  # Increased width for 10-column layout
+            grid_widget.setMinimumSize(800, 650)
 
-            key_buttons = self.build_layer_keys(grid_widget, layer_idx, layer_data)
+            self.build_layer_keys(grid_widget, layer_idx)
 
             scroll.setWidget(grid_widget)
-            self.tab_widget.addTab(scroll, layer_data.get("name", f"Layer {layer_idx}"))
+            self.tab_widget.addTab(scroll, layer.name)
             self.layer_widgets.append(grid_widget)
-            self.key_buttons_per_layer.append(key_buttons)
 
-        self.status_label.setText("Reloaded")
+        self.status_label.setText(f"Reloaded: {self.config.name}")
 
     def clear_all(self):
         """Clear all key codes to NONE across all layers."""
@@ -902,19 +988,17 @@ class KeyMapperWindow(QMainWindow):
             return
 
         # Clear all codes in layers data
-        for layer in self.layers_data.get("layers", []):
-            for key in layer.get("keys", []):
-                key["code"] = "NONE"
+        for layer in self.config.layers:
+            layer.keys.clear()
 
         # Refresh assigned codes
         self.refresh_assigned_codes()
 
         # Update all button displays
-        for key_buttons in self.key_buttons_per_layer:
-            for btn in key_buttons:
-                btn.code = "NONE"
-                btn.key_data["code"] = "NONE"
-                btn.update_display()
+        for btn in self.key_buttons.values():
+            btn.code = "NONE"
+            btn.key_data["code"] = "NONE"
+            btn.update_display()
 
         self.mapping_changed = True
         self.status_label.setText("Cleared all key codes")
@@ -937,7 +1021,7 @@ class KeyMapperWindow(QMainWindow):
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel
             )
             if reply == QMessageBox.StandardButton.Yes:
-                self.save_keymap()
+                self.save_config()
                 event.accept()
             elif reply == QMessageBox.StandardButton.No:
                 event.accept()
@@ -948,36 +1032,20 @@ class KeyMapperWindow(QMainWindow):
 
 
 def main():
-    DEFAULT_CONFIG_PATH = "data/configs/mf/"
+    DEFAULT_CONFIG_PATH = "data/configs/mf/keyboard.json"
 
-    layout_path = DEFAULT_CONFIG_PATH
-    keymap_path = None
-    layers_path = None
+    keyboard_path = DEFAULT_CONFIG_PATH
 
     if len(sys.argv) >= 2:
-        layout_path = sys.argv[1]
+        keyboard_path = sys.argv[1]
 
-    # Auto-derive paths if layout_path is a directory
-    layout_path_obj = Path(layout_path)
-    if layout_path_obj.is_dir():
-        layout_path = layout_path_obj / "main.json"
-        keymap_path = layout_path_obj / "keymap.json"
-        layers_path = layout_path_obj / "layers.json"
-    else:
-        # If layout_path is a file, derive keymap and layers from its directory
-        if keymap_path is None:
-            keymap_path = layout_path_obj.parent / "keymap.json"
-        if layers_path is None:
-            layers_path = layout_path_obj.parent / "layers.json"
-
-    # Allow override via command line
-    if len(sys.argv) >= 3:
-        keymap_path = sys.argv[2]
-    if len(sys.argv) >= 4:
-        layers_path = sys.argv[3]
+    # Auto-derive path if directory is provided
+    path_obj = Path(keyboard_path)
+    if path_obj.is_dir():
+        keyboard_path = path_obj / "keyboard.json"
 
     app = QApplication(sys.argv)
-    window = KeyMapperWindow(layout_path, keymap_path, layers_path)
+    window = KeyMapperWindow(str(keyboard_path))
     window.show()
     sys.exit(app.exec())
 

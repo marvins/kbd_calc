@@ -49,16 +49,12 @@ class PicoCalc_App : public I_App {
          * @brief Factory method — loads keymap/layers and initialises hardware
          *
          * @param layout       Key grid geometry
-         * @param layout_path  Path to VIA layout JSON
-         * @param keymap_path  Path to scancode mapping JSON
-         * @param layers_path  Path to layer definitions JSON
+         * @param layout_path  Path to VIA layout JSON (main.json)
          * @return Initialised PicoCalc_App, or nullptr on failure
          */
         static std::unique_ptr<PicoCalc_App> create(
             const core::Grid_Layout&     layout,
-            const std::filesystem::path& layout_path,
-            const std::filesystem::path& keymap_path,
-            const std::filesystem::path& layers_path );
+            const std::filesystem::path& layout_path );
 
         ~PicoCalc_App() override;
 
@@ -78,8 +74,6 @@ class PicoCalc_App : public I_App {
 
         const core::Grid_Layout&  m_layout;
         std::filesystem::path     m_layout_path;
-        std::filesystem::path     m_keymap_path;
-        std::filesystem::path     m_layers_path;
 
         bool m_initialized  = false;
         bool m_should_quit  = false;

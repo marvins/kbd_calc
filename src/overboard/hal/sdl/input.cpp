@@ -55,6 +55,16 @@ static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
         auto input_key = scancode_to_input_key(event->key.keysym.scancode);
         LOG_DEBUG("KEYDOWN: scancode=", std::to_string(event->key.keysym.scancode),
                   ", input_key=", input_key_to_string(input_key));
+
+        // Track modifier state
+        if (input_key == core::Input_Key::SHIFT) {
+            input->set_shift_pressed(true);
+        } else if (input_key == core::Input_Key::CONTROL) {
+            input->set_control_pressed(true);
+        } else if (input_key == core::Input_Key::ALT) {
+            input->set_alt_pressed(true);
+        }
+
         // Handle Command-Q on macOS for quit
 #ifdef __APPLE__
         if (event->key.keysym.sym == SDLK_q && (event->key.keysym.mod & KMOD_GUI)) {
@@ -79,6 +89,16 @@ static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
         }
     } else if (event->type == SDL_KEYUP) {
         auto input_key = scancode_to_input_key(event->key.keysym.scancode);
+
+        // Track modifier state
+        if (input_key == core::Input_Key::SHIFT) {
+            input->set_shift_pressed(false);
+        } else if (input_key == core::Input_Key::CONTROL) {
+            input->set_control_pressed(false);
+        } else if (input_key == core::Input_Key::ALT) {
+            input->set_alt_pressed(false);
+        }
+
         auto key_idx = input->keymap().get_key_index(input_key);
         if (key_idx.has_value()) {
             input->push_event({Key_Event_Kind::Action, key_idx.value(), 0, Key_Event_Type::Release});

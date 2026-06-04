@@ -64,6 +64,9 @@ enum class Input_Key : uint16_t {
     F10,
     F11,
     F12,
+    F13,
+    F14,
+    F15,
 
     // Digits (top row)
     KEY_0,

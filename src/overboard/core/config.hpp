@@ -27,8 +27,11 @@ class Config {
 
     public:
 
-        /// @brief Default config folder path
-        static constexpr std::string_view DEFAULT_CONFIG_PATH  = "data/configs/mf/";
+        /// @brief Default config folder path (set by target-specific CMakeLists.txt)
+        #ifndef DEFAULT_CONFIG_PATH
+        #define DEFAULT_CONFIG_PATH "data/configs/mf/"
+        #endif
+        static constexpr std::string_view DEFAULT_CONFIG_PATH_STR  = DEFAULT_CONFIG_PATH;
 
         /**
          * @brief Parse command-line arguments
@@ -52,19 +55,9 @@ class Config {
         static log::Log_Level parse_log_level( std::string_view level_str);
 
         /**
-         * @return Path to VIA layout JSON file
+         * @return Path to keyboard.json file
          */
         inline const std::filesystem::path& layout_path() const { return m_layout_path; }
-
-        /**
-         * @return Path to keymap JSON file (scancodes)
-         */
-        inline const std::filesystem::path& keymap_path() const { return m_keymap_path; }
-
-        /**
-         * @return Path to layers JSON file (key-code assignments per layer)
-         */
-        inline const std::filesystem::path& layers_path() const { return m_layers_path; }
 
         /**
          * @return Log severity level
@@ -91,14 +84,8 @@ class Config {
         /// @brief Program name
         std::filesystem::path m_program_name;
 
-        /// @brief Path to VIA layout JSON file
+        /// @brief Path to keyboard.json file
         std::filesystem::path m_layout_path;
-
-        /// @brief Path to keymap JSON file (scancodes)
-        std::filesystem::path m_keymap_path;
-
-        /// @brief Path to layers JSON file (key-code assignments per layer)
-        std::filesystem::path m_layers_path;
 
         /// @brief Log severity level
         log::Log_Level m_log_level;

@@ -77,8 +77,10 @@ Action_Code string_to_action_code(const std::string& str) {
     if (str == "BIT_OR")           return Action_Code::BIT_OR;
     if (str == "BIT_XOR")          return Action_Code::BIT_XOR;
     if (str == "BIT_NOT")          return Action_Code::BIT_NOT;
-    if (str == "SHIFT_LEFT")       return Action_Code::SHIFT_LEFT;
-    if (str == "SHIFT_RIGHT")      return Action_Code::SHIFT_RIGHT;
+    if (str == "BITSHIFT_LEFT")    return Action_Code::BITSHIFT_LEFT;
+    if (str == "BITSHIFT_RIGHT")   return Action_Code::BITSHIFT_RIGHT;
+    if (str == "LEFT_SHIFT")       return Action_Code::LEFT_SHIFT;
+    if (str == "RIGHT_SHIFT")      return Action_Code::RIGHT_SHIFT;
     if (str == "HEX_A")            return Action_Code::HEX_A;
     if (str == "HEX_B")            return Action_Code::HEX_B;
     if (str == "HEX_C")            return Action_Code::HEX_C;
@@ -129,6 +131,7 @@ Action_Code string_to_action_code(const std::string& str) {
     if (str == "TAB")              return Action_Code::TAB;
     if (str == "DELETE")           return Action_Code::DELETE;
     if (str == "CAPS_LOCK")        return Action_Code::CAPS_LOCK;
+    if (str == "RETURN")           return Action_Code::RETURN;
     if (str == "CLEAR")            return Action_Code::CLEAR;
     if (str == "ALL_CLEAR")        return Action_Code::ALL_CLEAR;
 
@@ -205,8 +208,10 @@ std::string action_code_to_display(Action_Code code) {
         case Action_Code::BIT_OR:           return "|";
         case Action_Code::BIT_XOR:          return "^";
         case Action_Code::BIT_NOT:          return "~";
-        case Action_Code::SHIFT_LEFT:       return "<<";
-        case Action_Code::SHIFT_RIGHT:      return ">>";
+        case Action_Code::BITSHIFT_LEFT:     return "<<";
+        case Action_Code::BITSHIFT_RIGHT:    return ">>";
+        case Action_Code::LEFT_SHIFT:        return "Shift";
+        case Action_Code::RIGHT_SHIFT:       return "Shift";
         case Action_Code::HEX_A:            return "A";
         case Action_Code::HEX_B:            return "B";
         case Action_Code::HEX_C:            return "C";
@@ -249,6 +254,7 @@ std::string action_code_to_display(Action_Code code) {
         case Action_Code::TAB:              return "Tab";
         case Action_Code::DELETE:           return "Del";
         case Action_Code::CAPS_LOCK:        return "Caps";
+        case Action_Code::RETURN:           return "Enter";
         case Action_Code::CLEAR:            return "CLR";
         case Action_Code::ALL_CLEAR:        return "AC";
 
@@ -325,8 +331,10 @@ std::string action_code_to_string(Action_Code code) {
         case Action_Code::BIT_OR:           return "BIT_OR";
         case Action_Code::BIT_XOR:          return "BIT_XOR";
         case Action_Code::BIT_NOT:          return "BIT_NOT";
-        case Action_Code::SHIFT_LEFT:       return "SHIFT_LEFT";
-        case Action_Code::SHIFT_RIGHT:      return "SHIFT_RIGHT";
+        case Action_Code::BITSHIFT_LEFT:    return "BITSHIFT_LEFT";
+        case Action_Code::BITSHIFT_RIGHT:   return "BITSHIFT_RIGHT";
+        case Action_Code::LEFT_SHIFT:        return "LEFT_SHIFT";
+        case Action_Code::RIGHT_SHIFT:       return "RIGHT_SHIFT";
         case Action_Code::HEX_A:            return "HEX_A";
         case Action_Code::HEX_B:            return "HEX_B";
         case Action_Code::HEX_C:            return "HEX_C";
@@ -369,6 +377,7 @@ std::string action_code_to_string(Action_Code code) {
         case Action_Code::TAB:              return "TAB";
         case Action_Code::DELETE:           return "DELETE";
         case Action_Code::CAPS_LOCK:        return "CAPS_LOCK";
+        case Action_Code::RETURN:           return "RETURN";
         case Action_Code::CLEAR:            return "CLEAR";
         case Action_Code::ALL_CLEAR:        return "ALL_CLEAR";
 

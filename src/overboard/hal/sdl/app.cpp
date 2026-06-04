@@ -19,11 +19,14 @@
 #include <lvgl.h>
 
 // Project Libraries
+#include <overboard/core/action_code.hpp>
+#include <overboard/core/input_key.hpp>
 #include <overboard/core/keymap.hpp>
 #include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/hal/sdl/keymap.hpp>
 #include <overboard/hal/sdl/input.hpp>
+#include <overboard/io/keyboard_config.hpp>
 #include <overboard/io/via_layout.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
@@ -50,26 +53,57 @@ SDL_App::~SDL_App() {
 /*          Create the app          */
 /************************************/
 std::unique_ptr<SDL_App> SDL_App::create( const core::Grid_Layout&     layout,
-                                          const std::filesystem::path& layout_path,
-                                          const std::filesystem::path& keymap_path,
-                                          const std::filesystem::path& layers_path ) {
+                                          const std::filesystem::path& layout_path ) {
     auto app = std::unique_ptr<SDL_App>(new SDL_App(layout));
 
-    // Load layer assignments from layers JSON
+    // Load keyboard configuration from keyboard.json
+    io::Keyboard_Config keyboard_config;
     try {
-        // Parse layout to build matrix position -> visual index map
-        auto via_layout = io::parse_via_layout(layout_path);
-        auto matrix_index_map = io::build_matrix_index_map(via_layout);
-        auto layers = core::load_layers_from_json(layers_path.string(), matrix_index_map);
-        app->m_keymap = core::Keymap(layers);
+        keyboard_config = io::parse_keyboard_config(layout_path.parent_path() / "keyboard.json");
     } catch (const std::exception& e) {
-        std::cerr << "Failed to load layers from " << layers_path << ": " << e.what() << "\n";
+#ifdef EMBEDDED_JSON
+        // Fall back to embedded resource
+        LOG_TRACE("Failed to load keyboard.json from disk, using embedded resource");
+        try {
+            keyboard_config = io::parse_keyboard_config_string(
+                std::string(ovb::resources::embedded_json_data, ovb::resources::embedded_json_size)
+            );
+        } catch (const std::exception& e2) {
+            std::cerr << "Failed to load embedded keyboard config: " << e2.what() << "\n";
+            return nullptr;
+        }
+#else
+        std::cerr << "Failed to load keyboard config: " << e.what() << "\n";
         return nullptr;
+#endif
     }
 
+    // Convert keyboard_config to Keymap format
+    std::array<core::Layer, core::LAYER_COUNT> layers;
+    layers.fill(core::Layer{});  // Initialize with empty layers
+
+    for (std::size_t i = 0; i < keyboard_config.layers.size() && i < static_cast<std::size_t>(core::LAYER_COUNT); ++i) {
+        const auto& config_layer = keyboard_config.layers[i];
+        layers[i].name = config_layer.name;
+
+        // Convert layer keys from string ID map to vector indexed by key ID
+        for (const auto& [key_id_str, layer_key] : config_layer.keys) {
+            std::size_t key_id = static_cast<std::size_t>(std::stoi(key_id_str));
+            // Convert code string to Action_Code
+            core::Action_Code code = core::string_to_action_code(layer_key.code);
+
+            // Ensure layer.keys and labels vectors are large enough
+            if (layers[i].keys.size() <= key_id) {
+                layers[i].keys.resize(key_id + 1, core::Action_Code::NONE);
+                layers[i].labels.resize(key_id + 1, "");
+            }
+            layers[i].keys[key_id]   = code;
+            layers[i].labels[key_id] = layer_key.label;
+        }
+    }
+
+    app->m_keymap = core::Keymap(layers);
     app->m_layout_path  = layout_path;
-    app->m_keymap_path  = keymap_path;
-    app->m_layers_path  = layers_path;
 
     if (!app->init()) {
         return nullptr;
@@ -106,20 +140,22 @@ bool SDL_App::init() {
             m_display->screen(), m_layout, m_engine, m_layers);
         LOG_TRACE("App_View created successfully");
 
-        // Load input_key bindings from keymap JSON into the SDL keymap
-        if (!m_layout_path.empty() && !m_keymap_path.empty()) {
-            LOG_TRACE("Loading input_key bindings from " + m_layout_path.string());
-            try {
-                auto via_layout = io::parse_via_layout(m_layout_path);
-                io::apply_input_keys_from_json(via_layout, m_keymap_path);
-                auto key_map = io::build_input_key_index_map(via_layout);
-                if (!key_map.empty()) {
-                    m_sdl_keymap.load_from_map(key_map);
+        // Build input_key -> key_index mapping from keyboard.json
+        LOG_TRACE("Building input_key mapping from keyboard.json");
+        try {
+            auto keyboard_config = io::parse_keyboard_config(m_layout_path.parent_path() / "keyboard.json");
+            int bindings_count = 0;
+            for (const auto& [key_id_str, key_def] : keyboard_config.keys) {
+                int key_id = std::stoi(key_id_str);
+                core::Input_Key input_key = core::string_to_input_key(key_def.input_key);
+                if (input_key != core::Input_Key::NONE) {
+                    m_sdl_keymap.bind(input_key, key_id);
+                    bindings_count++;
                 }
-                LOG_TRACE("Input key bindings loaded successfully");
-            } catch (const std::exception& e) {
-                std::cerr << "Warning: failed to load input_keys: " << e.what() << "\n";
             }
+            LOG_TRACE("Input key mapping loaded: " + std::to_string(bindings_count) + " keys");
+        } catch (const std::exception& e) {
+            std::cerr << "Warning: failed to build input_key mapping: " << e.what() << "\n";
         }
 
         // Create SDL input handler for physical keyboard mapping
@@ -128,7 +164,7 @@ bool SDL_App::init() {
         m_input->keymap() = m_sdl_keymap;
         LOG_TRACE("SDL input handler created successfully");
 
-#if TARGET_PICOSDL
+#ifdef TARGET_PICOSDL
 #if SHOW_KEYBOARD_UI
         // PICOSDL: create separate keyboard window when SHOW_KEYBOARD_UI is enabled
         LOG_TRACE("Creating separate keyboard window");
@@ -177,6 +213,8 @@ bool SDL_App::init() {
 void SDL_App::run() {
     LOG_DEBUG("SDL_App::run() started");
     int loop_count = 0;
+    int last_shift_state = 0;
+
     while (!m_should_quit && !m_input->should_quit()) {
 
         // Pump SDL events (handles keyboard and mouse hit-testing)
@@ -193,6 +231,15 @@ void SDL_App::run() {
                     m_view->refresh();
                 }
             }
+        }
+
+        // Check shift state and switch layers
+        int current_shift_state = m_input->is_shift_pressed() ? 1 : 0;
+        if (current_shift_state != last_shift_state) {
+            // Shift changed: switch between Basic (0) and Shift (1)
+            int target_layer = current_shift_state ? 1 : 0;
+            m_layers.set_layer(target_layer);
+            last_shift_state = current_shift_state;
         }
 
         lv_tick_inc(16);

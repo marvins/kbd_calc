@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Keyboard Configuration Schema",
+  "description": "Schema for keyboard.json unified keyboard configuration format",
+  "type": "object",
+  "required": ["name", "keys", "layers"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Keyboard layout name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Keyboard layout description"
+    },
+    "layout": {
+      "type": "object",
+      "description": "Physical layout parameters",
+      "properties": {
+        "key_width": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Key width in pixels"
+        },
+        "key_height": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Key height in pixels"
+        },
+        "key_spacing": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Spacing between keys in pixels"
+        },
+        "origin_x": {
+          "type": "number",
+          "minimum": 0,
+          "description": "X origin offset in pixels"
+        },
+        "origin_y": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Y origin offset in pixels"
+        }
+      }
+    },
+    "keys": {
+      "type": "object",
+      "description": "Key definitions indexed by numeric string ID",
+      "patternProperties": {
+        "^[0-9]+$": {
+          "type": "object",
+          "required": ["input_key", "position"],
+          "properties": {
+            "input_key": {
+              "type": "string",
+              "description": "Input key identifier (e.g., KEY_A, ESCAPE, SHIFT)"
+            },
+            "position": {
+              "type": "object",
+              "required": ["x", "y", "w", "h"],
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "X position in key units"
+                },
+                "y": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Y position in key units"
+                },
+                "w": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Width in key units"
+                },
+                "h": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Height in key units"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "description": "Layer definitions",
+      "items": {
+        "type": "object",
+        "required": ["name", "keys"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Layer name (e.g., Basic, Shift, Algebra)"
+          },
+          "keys": {
+            "type": "object",
+            "description": "Layer key mappings indexed by numeric string ID",
+            "patternProperties": {
+              "^[0-9]+$": {
+                "type": "object",
+                "required": ["code"],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "Action code for this key on this layer"
+                  },
+                  "label": {
+                    "type": "string",
+                    "description": "Display label for this key on this layer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

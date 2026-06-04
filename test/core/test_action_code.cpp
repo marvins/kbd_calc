@@ -65,8 +65,8 @@ TEST(String_To_Action_Code, Programmer) {
     EXPECT_EQ( core::string_to_action_code("BIT_OR"),      core::Action_Code::BIT_OR );
     EXPECT_EQ( core::string_to_action_code("BIT_XOR"),     core::Action_Code::BIT_XOR );
     EXPECT_EQ( core::string_to_action_code("BIT_NOT"),     core::Action_Code::BIT_NOT );
-    EXPECT_EQ( core::string_to_action_code("SHIFT_LEFT"),  core::Action_Code::SHIFT_LEFT );
-    EXPECT_EQ( core::string_to_action_code("SHIFT_RIGHT"), core::Action_Code::SHIFT_RIGHT );
+    EXPECT_EQ( core::string_to_action_code("BITSHIFT_LEFT"),  core::Action_Code::BITSHIFT_LEFT );
+    EXPECT_EQ( core::string_to_action_code("BITSHIFT_RIGHT"), core::Action_Code::BITSHIFT_RIGHT );
     EXPECT_EQ( core::string_to_action_code("HEX_A"),       core::Action_Code::HEX_A );
     EXPECT_EQ( core::string_to_action_code("HEX_B"),       core::Action_Code::HEX_B );
     EXPECT_EQ( core::string_to_action_code("HEX_C"),       core::Action_Code::HEX_C );
@@ -159,8 +159,8 @@ TEST(Action_Code_To_Display, Programmer) {
     EXPECT_EQ( core::action_code_to_display(core::Action_Code::BIT_OR),      "|" );
     EXPECT_EQ( core::action_code_to_display(core::Action_Code::BIT_XOR),     "^" );
     EXPECT_EQ( core::action_code_to_display(core::Action_Code::BIT_NOT),     "~" );
-    EXPECT_EQ( core::action_code_to_display(core::Action_Code::SHIFT_LEFT),  "<<" );
-    EXPECT_EQ( core::action_code_to_display(core::Action_Code::SHIFT_RIGHT), ">>" );
+    EXPECT_EQ( core::action_code_to_display(core::Action_Code::BITSHIFT_LEFT),  "<<" );
+    EXPECT_EQ( core::action_code_to_display(core::Action_Code::BITSHIFT_RIGHT), ">>" );
     EXPECT_EQ( core::action_code_to_display(core::Action_Code::HEX_A),       "A" );
     EXPECT_EQ( core::action_code_to_display(core::Action_Code::HEX_B),       "B" );
     EXPECT_EQ( core::action_code_to_display(core::Action_Code::HEX_C),       "C" );

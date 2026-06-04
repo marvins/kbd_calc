@@ -61,6 +61,7 @@ set(CORE_SOURCES
     src/overboard/display/history_display.cpp
     src/overboard/display/result_display.cpp
     src/overboard/font/font_metrics.cpp
+    src/overboard/io/keyboard_config.cpp
     src/overboard/io/via_layout.cpp
     src/overboard/math/ast/binary_op_node.cpp
     src/overboard/math/ast/function_node.cpp
