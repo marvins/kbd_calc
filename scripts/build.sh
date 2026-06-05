@@ -30,7 +30,7 @@ Options:
   -c           Clean build directory, then build
   -d           Debug build (default)
   -r           Release build
-  -p <target>  Hardware target: SDL, PICOSDL, or RP2350 (default: SDL)
+  -p <target>  Hardware target: SDL, PICOSDL, RP2350, PICOCALC, or ZERO (default: SDL)
   -s <on|off>  Simulator mode: on or off (default: on)
   -j [jobs]   Parallel jobs (default: 1, or all cores if omitted)
   -t           Trace/verbose build output
@@ -40,6 +40,7 @@ Examples:
   $(basename "$0")              # SDL simulator, debug build
   $(basename "$0") -p RP2350    # RP2350 target, simulator off
   $(basename "$0") -p PICOSDL   # PicoCalc SDL target, no keyboard UI
+  $(basename "$0") -p ZERO      # Pi Zero DRM target, direct HDMI
   $(basename "$0") -p SDL -r    # SDL simulator, release build
   $(basename "$0") -c -r         # Clean then release build
   $(basename "$0") -c            # Clean then build
@@ -72,10 +73,17 @@ while getopts ":hcdrp:s:j::tT:" opt; do
     esac
 done
 
-# Validate target device
+# Validate target device and classify
 case "${TARGET_DEVICE}" in
-    SDL|PICOSDL|RP2350|PICOCALC) ;;
-    *) echo "Error: unknown target '${TARGET_DEVICE}'. Valid targets: SDL, PICOSDL, RP2350, PICOCALC" >&2; usage; exit 1 ;;
+    SDL|PICOSDL|RP2350|PICOCALC|ZERO) ;;
+    *) echo "Error: unknown target '${TARGET_DEVICE}'. Valid targets: SDL, PICOSDL, RP2350, PICOCALC, ZERO" >&2; usage; exit 1 ;;
+esac
+
+# Classify targets: SDL-based vs embedded (non-SDL)
+TARGET_USES_SDL=OFF
+case "${TARGET_DEVICE}" in
+    SDL|PICOSDL) TARGET_USES_SDL=ON ;;
+    *) TARGET_USES_SDL=OFF ;;
 esac
 
 # Normalize simulator flag
@@ -101,7 +109,7 @@ echo ""
 CMAKE_ARGS="-S ${PROJECT_DIR} -B ${BUILD_DIR} -DTARGET_DEVICE=${TARGET_DEVICE} -DSIMULATOR=${SIMULATOR} -DCMAKE_BUILD_TYPE=${BUILD_TYPE}"
 
 # Disable LVGL SDL drivers for embedded targets
-if [[ "${TARGET_DEVICE}" == "RP2350" || "${TARGET_DEVICE}" == "PICOCALC" ]]; then
+if [[ "${TARGET_USES_SDL}" == "OFF" ]]; then
     CMAKE_ARGS="${CMAKE_ARGS} -DCONFIG_LV_USE_SDL=OFF"
 fi
 
@@ -125,6 +133,8 @@ echo ""
 case "${TARGET_DEVICE}" in
     SDL|PICOSDL)
         echo "Build complete: ${BUILD_DIR}/calc_sim" ;;
+    ZERO)
+        echo "Build complete: ${BUILD_DIR}/calc_app" ;;
     *)
         echo "Build complete: ${BUILD_DIR}/calc_firmware" ;;
 esac

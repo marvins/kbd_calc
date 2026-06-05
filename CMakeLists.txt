@@ -34,20 +34,20 @@ option( SIMULATOR     "Build simulator target (requires SDL2)"  ON )
 option( BUILD_TESTS   "Build unit tests"                        ON )
 option( SHOW_KEYBOARD_UI "Show on-screen keyboard UI (SDL only)" ON )
 
-# Target device selection: SDL, PICOSDL, RP2350, or PICOCALC
+# Target device selection: SDL, PICOSDL, RP2350, PICOCALC, or ZERO
 if(NOT DEFINED TARGET_DEVICE OR TARGET_DEVICE STREQUAL "")
-    set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, PICOSDL, RP2350, PICOCALC)" FORCE)
+    set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, PICOSDL, RP2350, PICOCALC, ZERO)" FORCE)
 else()
-    set(TARGET_DEVICE ${TARGET_DEVICE} CACHE STRING "Target device (SDL, PICOSDL, RP2350, PICOCALC)" FORCE)
+    set(TARGET_DEVICE ${TARGET_DEVICE} CACHE STRING "Target device (SDL, PICOSDL, RP2350, PICOCALC, ZERO)" FORCE)
 endif()
-set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL PICOSDL RP2350 PICOCALC)
+set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL PICOSDL RP2350 PICOCALC ZERO)
 
 # Set keyboard UI default based on target
 if(TARGET_DEVICE STREQUAL "SDL")
     set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
 elseif(TARGET_DEVICE STREQUAL "PICOSDL")
     set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
-elseif(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
+elseif(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO")
     set(SHOW_KEYBOARD_UI OFF CACHE BOOL "Show on-screen keyboard UI" FORCE)
 endif()
 
@@ -63,6 +63,8 @@ elseif(TARGET_DEVICE STREQUAL "RP2350")
     include(data/hardware/rp2350/CMakeLists.txt)
 elseif(TARGET_DEVICE STREQUAL "PICOCALC")
     include(data/hardware/picocalc/CMakeLists.txt)
+elseif(TARGET_DEVICE STREQUAL "ZERO")
+    include(data/hardware/pi_zero/CMakeLists.txt)
 else()
     message(FATAL_ERROR "Unknown TARGET_DEVICE: ${TARGET_DEVICE}")
 endif()
@@ -98,6 +100,9 @@ if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
     set(APP_LIBRARIES ${HARDWARE_LIBRARIES} lvgl)
 elseif(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
     set(APP_TARGET calc_firmware)
+    set(APP_LIBRARIES ${HARDWARE_LIBRARIES} lvgl)
+elseif(TARGET_DEVICE STREQUAL "ZERO")
+    set(APP_TARGET calc_app)
     set(APP_LIBRARIES ${HARDWARE_LIBRARIES} lvgl)
 endif()
 
@@ -180,8 +185,8 @@ if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
 endif()
 
 # ── Tests (shared) ────────────────────────────────────────────────────────────────
-# Tests only for simulator targets (gtest doesn't build for embedded ARM)
-if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC") )
+# Tests only for simulator targets (gtest doesn't build for embedded ARM or Pi Zero)
+if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO") )
     add_executable(calc_tests
         test/test_main.cpp
         test/math/ast/test_ast.cpp

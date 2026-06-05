@@ -10,8 +10,10 @@
     #else
         #include <overboard/hal/pico/app.hpp>
     #endif
+#elif defined(TARGET_ZERO)
+    #include <overboard/hal/pi_zero/app.hpp>
 #else
-    #error "No target defined. Define TARGET_SDL or TARGET_RP2350."
+    #error "No target defined. Define TARGET_SDL, TARGET_RP2350, or TARGET_ZERO."
 #endif
 
 namespace ovb::hal {
@@ -30,6 +32,8 @@ std::unique_ptr<I_App> App_Factory::create(const core::Grid_Layout& layout,
         (void)layout; (void)layout_path;
         return std::make_unique<pico::Pico_App>(layout);
     #endif
+#elif defined(TARGET_ZERO)
+    return pi_zero::PiZero_App::create(layout, layout_path);
 #else
     #error "No target defined"
 #endif
