@@ -138,19 +138,34 @@ if(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
     pico_add_extra_outputs(${APP_TARGET})
 endif()
 
-# ── Utility Apps (SDL-only) ─────────────────────────────────────────────────────────
-if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
-    # Keylogger utility for mapping physical keys
-    add_executable(keylogger
+# ── Keylogger Utility ────────────────────────────────────────────────────────────────
+# Enabled per-target via hardware-specific CMakeLists.txt
+if(BUILD_KEYLOGGER)
+    set(KEYLOGGER_SOURCES
         src/tools/keylogger.cpp
         src/overboard/log/stdout_logger.cpp
         src/overboard/log/log_level.cpp
     )
-    target_include_directories(keylogger PRIVATE src)
-    target_include_directories(keylogger SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
-    target_link_libraries(keylogger PRIVATE ${SDL2_LIBRARIES} project_warnings)
 
-    # Test math rendering tool
+    add_executable(keylogger ${KEYLOGGER_SOURCES})
+    target_include_directories(keylogger PRIVATE src)
+
+    # Add target-specific sources and defines
+    if(KEYLOGGER_USE_SDL)
+        target_include_directories(keylogger SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
+        target_link_libraries(keylogger PRIVATE ${SDL2_LIBRARIES})
+        target_compile_definitions(keylogger PRIVATE TARGET_SDL=1)
+    else()
+        # Pi Zero / evdev version
+        target_sources(keylogger PRIVATE src/overboard/hal/pi_zero/input_linux.cpp)
+        target_compile_definitions(keylogger PRIVATE TARGET_ZERO=1)
+    endif()
+
+    target_link_libraries(keylogger PRIVATE project_warnings)
+endif()
+
+# ── Test Math Rendering Tool (SDL-only) ───────────────────────────────────────────────
+if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
     add_executable(test_math_render
         src/overboard/apps/test_math_render/test_math_render.cpp
         src/overboard/apps/test_math_render/config.cpp

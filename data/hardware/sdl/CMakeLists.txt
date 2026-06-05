@@ -92,3 +92,6 @@ set(HARDWARE_SOURCES
     src/overboard/gui/status_page.cpp
 )
 
+# Enable keylogger for SDL (uses SDL input)
+set(BUILD_KEYLOGGER ON)
+set(KEYLOGGER_USE_SDL ON)

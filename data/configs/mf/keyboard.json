@@ -38,11 +38,11 @@
             "position": {"x": 6.25, "y": 0.25, "w": 1, "h": 1}
         },
         "7": {
-            "input_key": "HOME",
+            "input_key": "TAB",
             "position": {"x": 0, "y": 1.5, "w": 1, "h": 1}
         },
         "8": {
-            "input_key": "END",
+            "input_key": "HOME",
             "position": {"x": 1, "y": 1.5, "w": 1, "h": 1}
         },
         "9": {
@@ -66,15 +66,15 @@
             "position": {"x": 6.25, "y": 1.25, "w": 1, "h": 1}
         },
         "14": {
-            "input_key": "NUMPAD_7",
+            "input_key": "DELETE",
             "position": {"x": 0, "y": 2.5, "w": 1, "h": 1}
         },
         "15": {
-            "input_key": "NUMPAD_8",
+            "input_key": "END",
             "position": {"x": 1, "y": 2.5, "w": 1, "h": 1}
         },
         "16": {
-            "input_key": "NUMPAD_9",
+            "input_key": "PAGE_DOWN",
             "position": {"x": 2, "y": 2.5, "w": 1, "h": 1}
         },
         "17": {
@@ -184,25 +184,6 @@
                 "31": {"code": "CURSOR_RIGHT"},
                 "32": {"code": "DIGIT_0", "label": "0"},
                 "33": {"code": "DECIMAL", "label": "."}
-            }
-        },
-        {
-            "name": "TRG",
-            "keys": {
-                "6": {"code": "BACKSPACE", "label": "Bsp"},
-                "17": {"code": "SIN", "label": "sin"},
-                "18": {"code": "COS", "label": "cos"},
-                "19": {"code": "TAN", "label": "tan"},
-                "20": {"code": "APPROX", "label": "~"},
-                "21": {"code": "ASIN", "label": "asin"},
-                "22": {"code": "ACOS", "label": "acos"},
-                "23": {"code": "ATAN", "label": "atan"},
-                "25": {"code": "PI", "label": "π"},
-                "26": {"code": "EULER", "label": "e"},
-                "27": {"code": "PHI", "label": "φ"},
-                "28": {"code": "EVAL", "label": "Eval"},
-                "32": {"code": "TAU", "label": "τ"},
-                "33": {"code": "PERIOD", "label": "."}
             }
         },
         {

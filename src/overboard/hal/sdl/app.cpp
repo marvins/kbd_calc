@@ -232,7 +232,6 @@ bool SDL_App::init() {
 void SDL_App::run() {
     LOG_DEBUG("SDL_App::run() started");
     int loop_count = 0;
-    int last_shift_state = 0;
 
     while (!m_should_quit && !m_input->should_quit()) {
 
@@ -252,14 +251,10 @@ void SDL_App::run() {
             }
         }
 
-        // Check shift state and switch layers
-        int current_shift_state = m_input->is_shift_pressed() ? 1 : 0;
-        if (current_shift_state != last_shift_state) {
-            // Shift changed: switch between Basic (0) and Shift (1)
-            int target_layer = current_shift_state ? 1 : 0;
-            m_layers.set_layer(target_layer);
-            last_shift_state = current_shift_state;
-        }
+        // Track shift state for future mode system
+        // Note: Hardcoded Shift layer switching removed.
+        // Layer switching will be handled by the app mode system.
+        [[maybe_unused]] int current_shift_state = m_input->is_shift_pressed() ? 1 : 0;
 
         lv_tick_inc(16);
         m_view->render();

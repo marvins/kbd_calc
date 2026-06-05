@@ -82,3 +82,7 @@ set(HARDWARE_SOURCES
     src/overboard/gui/settings_page.cpp
     src/overboard/gui/status_page.cpp
 )
+
+# Enable keylogger for Pi Zero (uses evdev/Linux input)
+set(BUILD_KEYLOGGER ON)
+set(KEYLOGGER_USE_SDL OFF)
