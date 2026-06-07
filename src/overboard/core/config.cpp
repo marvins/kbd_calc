@@ -46,6 +46,7 @@ std::optional<Config> Config::parse(int argc, char* argv[]) {
     // Set default paths from config folder
     std::filesystem::path default_config_path = DEFAULT_CONFIG_PATH_STR;
     config.m_layout_path  = default_config_path / "keyboard.json";
+    config.m_mapping_path = default_config_path / "mapping.json";
     config.m_log_level    = log::Log_Level::Info;
 
     for (int i = 1; i < argc; ++i) {
@@ -54,9 +55,11 @@ std::optional<Config> Config::parse(int argc, char* argv[]) {
         if (arg == "--layout" && i + 1 < argc) {
             std::filesystem::path layout_path = argv[++i];
             if (std::filesystem::is_directory(layout_path)) {
-                config.m_layout_path = layout_path / "keyboard.json";
+                config.m_layout_path  = layout_path / "keyboard.json";
+                config.m_mapping_path = layout_path / "mapping.json";
             } else {
-                config.m_layout_path = layout_path;
+                config.m_layout_path  = layout_path;
+                config.m_mapping_path = layout_path.parent_path() / "mapping.json";
             }
         } else if (arg == "-v" && i + 1 < argc) {
             config.m_log_level = Config::parse_log_level(argv[++i]);

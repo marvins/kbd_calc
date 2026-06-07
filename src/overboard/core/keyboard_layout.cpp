@@ -202,7 +202,7 @@ Grid_Layout Grid_Layout::standard_5x6() {
 }
 
 /**
- * @brief KISNT KN34-style layout
+ * @brief KISNT MF34-style layout
  *
  * Visual layout matching user's design:
  * - Top: 3 keys (left), gap (1u), 4 keys (right/numpad top)

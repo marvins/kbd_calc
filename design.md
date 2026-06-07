@@ -104,7 +104,7 @@ A custom mechanical keyboard that replaces the traditional numpad with a dedicat
 
 ## Software Architecture
 
-The firmware is written in C++23 and targets two platforms: an **SDL desktop simulator** for development and the **RP2350 embedded target** (KN34) for production. A layered architecture keeps platform-specific code isolated from portable logic.
+The firmware is written in C++23 and targets two platforms: an **SDL desktop simulator** for development and the **RP2350 embedded target** (MF34) for production. A layered architecture keeps platform-specific code isolated from portable logic.
 
 ### Layer Overview
 
@@ -155,7 +155,7 @@ The firmware is written in C++23 and targets two platforms: an **SDL desktop sim
 - `SDL_Keymap` — maps SDL scancodes to calculator key indices
 
 **`src/overboard/hal/kn34/`** — RP2350 embedded target (stub, pending hardware bring-up)
-- `KN34_App`, `KN34_Display` — implement the HAL interfaces with TODO stubs
+- `MF34_App`, `MF34_Display` — implement the HAL interfaces with TODO stubs
 
 **`src/overboard/gui/`** — LVGL widget management, platform-agnostic
 - `App_View` — root GUI object; owns `LCD_Section` + `Keyboard_View`; implements `I_Display`

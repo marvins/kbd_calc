@@ -1,5 +1,3 @@
-#pragma once
-
 /**
  * @file keyboard_layout.hpp
  * @brief Configurable grid-based keyboard layout
@@ -7,14 +5,18 @@
  * Defines key positions, sizes, and visibility on a grid.
  * Supports asymmetric layouts with empty cells and multi-cell keys.
  */
+#pragma once
 
-#include <overboard/core/keymap.hpp>
-#include <overboard/core/point.hpp>
-#include <overboard/core/rect.hpp>
+// C++ Standard Libraries
 #include <array>
 #include <cstdint>
 #include <optional>
 #include <vector>
+
+// Project Libraries
+#include <overboard/core/keymap.hpp>
+#include <overboard/core/point.hpp>
+#include <overboard/core/rect.hpp>
 
 namespace ovb::core {
 
@@ -167,14 +169,14 @@ class Grid_Layout {
         static Grid_Layout standard_5x6();
 
         /**
-         * @brief Create KISNT KN34-style asymmetric layout
+         * @brief Create KISNT MF34-style asymmetric layout
          *
          * Split layout with:
          * - Left section: function keys and arrows
          * - Right section: numpad with tall + and Enter keys
          * - Visual gaps between sections
          *
-         * @return Grid layout matching KN34 form factor
+         * @return Grid layout matching MF34 form factor
          */
         static Grid_Layout kn34();
 

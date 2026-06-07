@@ -10,13 +10,30 @@ find_package(PNG REQUIRED)
 find_library(DRM_LIBRARY drm REQUIRED)
 find_library(GBM_LIBRARY gbm REQUIRED)
 
+# Find DRM include directory
+find_path(DRM_INCLUDE_DIR drm/drm.h
+    PATHS
+        /usr/include/libdrm
+        /usr/local/include/libdrm
+        /usr/include
+        /usr/local/include
+)
+if(DRM_INCLUDE_DIR)
+    message(STATUS "DRM include dir found: ${DRM_INCLUDE_DIR}")
+else()
+    message(FATAL_ERROR "DRM headers not found")
+endif()
+
+message(STATUS "DRM library found: ${DRM_LIBRARY}")
+message(STATUS "GBM library found: ${GBM_LIBRARY}")
+
 # Set up Pi Zero-specific compile definitions
 set(HARDWARE_COMPILE_DEFINITIONS
     TARGET_ZERO=1
     SIMULATOR=0
-    SHOW_KEYBOARD_UI=0
     DEFAULT_CONFIG_PATH="data/configs/mf/"
     EMBEDDED_JSON=1
+    LV_USE_SDL=0
     LV_USE_LINUX_DRM=1
 )
 
@@ -29,19 +46,23 @@ set(HARDWARE_LIBRARIES
 )
 
 # Pi Zero-specific include directories
+# DRM_INCLUDE_DIR is e.g. /usr/include; also add /usr/include/drm so that
+# xf86drm.h's bare #include <drm.h> resolves (headers live in the drm/ subdir)
 set(HARDWARE_INCLUDE_DIRS
     ${PNG_INCLUDE_DIRS}
+    ${DRM_INCLUDE_DIR}
+    ${DRM_INCLUDE_DIR}/drm
 )
 
-# Display dimensions for Pi Zero (portrait mode - matches rotated display)
-# Portrait: 480x800 (physical rotated from landscape)
-set(DISPLAY_FULL_WIDTH  480)
-set(DISPLAY_FULL_HEIGHT 800)
-set(DISPLAY_KBD_WIDTH   480)
-set(DISPLAY_KBD_HEIGHT  300)
-set(DISPLAY_KBD_WIN_HEIGHT 300)
-set(DISPLAY_PREVIEW_MAX_WIDTH  464)
-set(DISPLAY_PREVIEW_MAX_HEIGHT 80)
+# Display dimensions for Pi Zero (native portrait after 270° rotation)
+# Physical display: 1024x600 landscape -> logical: 600x1024 portrait
+set(DISPLAY_FULL_WIDTH  600)
+set(DISPLAY_FULL_HEIGHT 1024)
+set(DISPLAY_KBD_WIDTH   600)
+set(DISPLAY_KBD_HEIGHT  400)
+set(DISPLAY_KBD_WIN_HEIGHT 0)
+set(DISPLAY_PREVIEW_MAX_WIDTH  584)
+set(DISPLAY_PREVIEW_MAX_HEIGHT 120)
 
 set(DISPLAY_KEY_PAD       2)
 set(DISPLAY_KBD_HEADER_H 20)
@@ -75,6 +96,7 @@ set(HARDWARE_SOURCES
     src/overboard/gui/function_key_popup.cpp
     src/overboard/gui/header_bar.cpp
     src/overboard/gui/key_mapping_info.cpp
+    src/overboard/gui/keyboard_display.cpp
     src/overboard/gui/lcd_section.cpp
     src/overboard/gui/lv_font_superscript.c
     src/overboard/gui/math_canvas.cpp

@@ -14,7 +14,7 @@ src/overboard/
 ├── gui/         — LVGL widget management (platform-agnostic)
 ├── hal/         — hardware abstraction interfaces + platform drivers
 │   ├── sdl/     — SDL desktop simulator
-│   ├── pico/    — RP2350 stub (minimal)
+│   ├── pi_zero/ — Raspberry Pi Zero (DRM/KMS display + Linux input)
 │   └── picocalc/ — ClockworkPi PicoCalc (ILI9488 + I2C keyboard)
 └── apps/        — application entry points
 ```
@@ -36,7 +36,7 @@ graph TB
     subgraph HAL
         C[hal/ interfaces]
         D[hal/sdl/]
-        E[hal/pico/]
+        E[hal/pi_zero/]
         F[hal/picocalc/]
     end
 
@@ -96,7 +96,7 @@ Parses VIA-format JSON layouts and scancode mapping files.
 Lightweight `Stdout_Logger` with log-level filtering.
 
 ### `gui/` — LVGL widget management
-Platform-agnostic. Depends on `hal/` interfaces and `core/`/`math/` but **never** on `hal/sdl/` or `hal/kn34/`.
+Platform-agnostic. Depends on `hal/` interfaces and `core/`/`math/` but **never** on any specific HAL implementation (`hal/sdl/`, `hal/pi_zero/`, `hal/picocalc/`).
 
 | File | Responsibility |
 |------|---------------|
@@ -128,8 +128,8 @@ See [Custom Fonts](custom_fonts.md) for font generation details.
 | `SDL_Input` | SDL event pump → `Key_Event` queue |
 | `SDL_Keymap` | Maps SDL scancodes to calculator key indices |
 
-### `hal/pico/` — RP2350 embedded target
-Stub implementations of `I_App`, `I_Display`, and `I_Input`. Pending hardware bring-up.
+### `hal/pi_zero/` — Raspberry Pi Zero target
+Linux DRM/KMS display driver (`Display_DRM`), Linux evdev input handler (`Linux_Input`), and the main `PiZero_App` lifecycle class.
 
 ---
 
@@ -139,8 +139,8 @@ Stub implementations of `I_App`, `I_Display`, and `I_Input`. Pending hardware br
 |-------|---------------|--------------------|
 | `core/`, `math/`, `font/` | each other | `hal/`, `gui/`, platform headers |
 | `hal/` interfaces | `core/` | `gui/`, platform headers |
-| `hal/sdl/`, `hal/picocalc/` | `hal/` interfaces, `core/`, `gui/` | each other |
-| `gui/` | `hal/` interfaces, `core/`, `math/` | `hal/sdl/`, `hal/picocalc/` |
+| `hal/sdl/`, `hal/pi_zero/`, `hal/picocalc/` | `hal/` interfaces, `core/`, `gui/` | each other |
+| `gui/` | `hal/` interfaces, `core/`, `math/` | `hal/sdl/`, `hal/pi_zero/`, `hal/picocalc/` |
 | `apps/` | everything | — |
 
 **Key invariant**: `gui/` has no dependency on any specific HAL implementation. The SDL window driver exposes `lv_obj_t* screen()` as the single coupling point — `App_View` uses it to attach LVGL widgets without knowing anything about SDL.
@@ -197,17 +197,23 @@ Scancode bindings are loaded at startup from VIA-format JSON via `io/via_layout`
 | Target | Binary | Description |
 |--------|--------|-------------|
 | `TARGET_SDL` | `calc_sim` | SDL desktop simulator (default) |
-| `TARGET_RP2350` | `calc_firmware` | RP2350 embedded firmware (Pico) |
+| `TARGET_PICOSDL` | `calc_sim` | SDL simulator with PicoCalc layout |
+| `TARGET_MF34` | `calc_firmware` | RP2350 embedded firmware (MF34 macropad) |
+| `TARGET_PICOCALC` | `calc_firmware` | ClockworkPi PicoCalc embedded firmware |
+| `TARGET_ZERO` | `calc_app` | Raspberry Pi Zero (DRM/KMS) |
 
 ---
 
 ## Platform Support
 
 ### SDL Simulator
-Desktop development and testing. Uses SDL2 + LVGL SDL driver. Activated with `-DTARGET=sdl`.
+Desktop development and testing. Uses SDL2 + LVGL SDL driver. Activated with `-DTARGET_DEVICE=SDL` or `-DTARGET_DEVICE=PICOSDL`.
 
-### ClockworkPi PicoCalc (RP2040/RP2350)
-Self-contained calculator with ILI9488 320×320 SPI display and STM32-driven I2C keyboard. HAL implemented in `hal/picocalc/`. Activated with `-DTARGET=rp2350`.
+### Raspberry Pi Zero (`TARGET_ZERO`)
+Linux target using DRM/KMS for direct HDMI output (no X11). HAL implemented in `hal/pi_zero/`. Uses Linux `/dev/input/event*` for keyboard input. Activated with `-DTARGET_DEVICE=ZERO`.
 
-### Raspberry Pi Pico (RP2350)
-Custom calculator hardware with integrated display. Embedded target. Activated with `-DTARGET=rp2350`. HAL implementation is a stub pending hardware bring-up.
+### ClockworkPi PicoCalc (`TARGET_PICOCALC`)
+Self-contained calculator with ILI9488 320×320 SPI display and STM32-driven I2C keyboard. HAL implemented in `hal/picocalc/`. Activated with `-DTARGET_DEVICE=PICOCALC`.
+
+### RP2350 / MF34 Macropad (`TARGET_MF34`)
+Custom embedded hardware with the KISNT MF34 34-key macropad. Activated with `-DTARGET_DEVICE=RP2350`.

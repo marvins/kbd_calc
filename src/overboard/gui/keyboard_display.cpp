@@ -124,8 +124,8 @@ void Keyboard_Display::build_keys(lv_obj_t* parent) {
         lv_obj_set_style_border_width(rect, 1, LV_PART_MAIN);
         lv_obj_set_style_radius(rect, 4, LV_PART_MAIN);
         lv_obj_set_style_pad_all(rect, 2, LV_PART_MAIN);
-        lv_obj_set_style_bg_color(rect, lvgl_color(LVGL_COLOR_BORDER_DARK), LV_PART_MAIN | LV_STATE_PRESSED);
-        lv_obj_set_style_border_width(rect, 2, LV_PART_MAIN | LV_STATE_PRESSED);
+        lv_obj_set_style_bg_color(rect, lvgl_color(LVGL_COLOR_BORDER_DARK), static_cast<lv_style_selector_t>(static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_PRESSED)));
+        lv_obj_set_style_border_width(rect, 2, static_cast<lv_style_selector_t>(static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_PRESSED)));
         lv_obj_set_user_data(rect, reinterpret_cast<void*>(static_cast<intptr_t>(i)));
 
         LOG_TRACE("build_keys: Creating label for key " + std::to_string(i));

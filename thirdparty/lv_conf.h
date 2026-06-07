@@ -961,7 +961,9 @@
  *==================*/
 
 /*Use SDL to open window on PC and handle mouse and keyboard*/
+#ifndef LV_USE_SDL
 #define LV_USE_SDL              1
+#endif
 #if LV_USE_SDL
     #define LV_SDL_INCLUDE_PATH     <SDL2/SDL.h>
     #define LV_SDL_RENDER_MODE      LV_DISPLAY_RENDER_MODE_DIRECT   /*LV_DISPLAY_RENDER_MODE_DIRECT is recommended for best performance*/
@@ -1021,7 +1023,9 @@
 #endif
 
 /*Driver for /dev/dri/card*/
+#ifndef LV_USE_LINUX_DRM
 #define LV_USE_LINUX_DRM        0
+#endif
 
 /*Interface for TFT_eSPI*/
 #define LV_USE_TFT_ESPI         0

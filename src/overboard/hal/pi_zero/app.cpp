@@ -8,6 +8,7 @@
 #include <overboard/hal/pi_zero/app.hpp>
 
 // C++ Standard Libraries
+#include <array>
 #include <iostream>
 #include <stdexcept>
 #include <thread>
@@ -29,10 +30,6 @@
 #endif
 
 namespace ovb::hal::pi_zero {
-
-namespace {
-    constexpr int LVGL_BUFFER_SIZE = DISPLAY_WIDTH * DISPLAY_HEIGHT / 4;
-}
 
 /********************************/
 /*          Constructor         */
@@ -76,9 +73,35 @@ std::unique_ptr<PiZero_App> PiZero_App::create(const core::Grid_Layout& layout,
 #endif
     }
 
-    // Build keymap from keyboard config
-    app->m_keymap = core::build_keymap_from_config(keyboard_config);
+    // Convert keyboard_config to Keymap format
+    std::array<core::Layer, core::LAYER_COUNT> layers;
+    layers.fill(core::Layer{});  // Initialize with empty layers
 
+    for (std::size_t i = 0; i < keyboard_config.layers.size() && i < static_cast<std::size_t>(core::LAYER_COUNT); ++i) {
+        const auto& config_layer = keyboard_config.layers[i];
+        layers[i].name = config_layer.name;
+
+        // Convert layer keys from string ID map to vector indexed by key ID
+        for (const auto& [key_id_str, layer_key] : config_layer.keys) {
+            std::size_t key_id = static_cast<std::size_t>(std::stoi(key_id_str));
+            // Convert code string to Action_Code
+            core::Action_Code code = core::string_to_action_code(layer_key.code);
+
+            // Ensure layer.keys and labels vectors are large enough
+            if (layers[i].keys.size() <= key_id) {
+                layers[i].keys.resize(key_id + 1, core::Action_Code::NONE);
+                layers[i].labels.resize(key_id + 1, "");
+            }
+            layers[i].keys[key_id]   = code;
+            layers[i].labels[key_id] = layer_key.label;
+        }
+    }
+
+    app->m_keymap = core::Keymap(layers);
+
+    if (!app->init()) {
+        return nullptr;
+    }
     return app;
 }
 
@@ -99,18 +122,12 @@ bool PiZero_App::init() {
         return false;
     }
 
-    // Create key mapping info panel
-    m_key_mapping_info = std::make_unique<gui::Key_Mapping_Info>(
-        m_display->screen(),
-        m_keymap,
-        m_layers.current_index()
-    );
-
     // Create main application view
     m_view = std::make_unique<gui::App_View>(
         m_display->screen(),
+        m_layout,
         m_engine,
-        *m_key_mapping_info
+        m_layers
     );
 
     // Create input handler (try common keyboard devices)
@@ -124,7 +141,6 @@ bool PiZero_App::init() {
 
     // Set initial layer
     m_layers.set_layer(0);
-    m_key_mapping_info->update_layer(m_layers.current_index());
 
     m_initialized = true;
     LOG_DEBUG("PiZero_App: Initialization complete");
@@ -200,23 +216,28 @@ I_Input& PiZero_App::get_input() {
 /*      Handle key          */
 /****************************/
 void PiZero_App::handle_key(int key_index) {
-    // Map the key index through the current layer
-    core::Action_Code action = m_keymap.get_action(m_layers.current_index(), key_index);
+    // Get the action from the current layer
+    core::Action_Code action = m_layers.action_at(key_index);
 
-    if (action == core::Action_Code::Switch_Base) {
+    // Handle layer switching actions
+    if (action == core::Action_Code::GO_HOME_LAYER) {
         m_layers.set_layer(0);
-        m_key_mapping_info->update_layer(m_layers.current_index());
+        m_view->refresh();
         return;
     }
-    if (action == core::Action_Code::Switch_Numpad) {
-        m_layers.set_layer(1);
-        m_key_mapping_info->update_layer(m_layers.current_index());
+    if (action == core::Action_Code::NEXT_LAYER) {
+        m_layers.next_layer();
+        m_view->refresh();
+        return;
+    }
+    if (action == core::Action_Code::PREV_LAYER) {
+        m_layers.prev_layer();
+        m_view->refresh();
         return;
     }
 
-    // Handle the action in the engine
-    m_engine.handle_action(action);
-    m_view->refresh();
+    // Pass action to the view for handling
+    m_view->handle_input(action);
 }
 
 /****************************/

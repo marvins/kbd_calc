@@ -3,7 +3,7 @@
  * @brief Build-time target selection
  *
  * Includes the appropriate target configuration based on build flags.
- * Use TARGET_SDL or TARGET_KN34 to select the hardware target.
+ * Use TARGET_SDL or TARGET_MF34 to select the hardware target.
  */
 
 #pragma once
@@ -11,10 +11,12 @@
 // Project Libraries
 #ifdef TARGET_SDL
     #include <overboard/hal/config/target_sdl.hpp>
-#elif defined(TARGET_KN34)
-    #include <overboard/hal/config/target_kn34.hpp>
+#elif defined(TARGET_MF34)
+    #include <overboard/hal/config/target_mf34.hpp>
+#elif defined(TARGET_ZERO)
+    #include <overboard/hal/config/target_mf34.hpp>
 #else
-    #error "No target defined. Define TARGET_SDL or TARGET_KN34."
+    #error "No target defined. Define TARGET_SDL, TARGET_MF34, or TARGET_ZERO."
 #endif
 
 namespace ovb::hal::config {

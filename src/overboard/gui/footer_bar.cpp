@@ -59,7 +59,7 @@ Footer_Bar::Footer_Bar(lv_obj_t* parent, int width)
         lv_obj_set_size(slot.btn, slot_w - 2, HEIGHT - 4);
         lv_obj_align(slot.btn, LV_ALIGN_LEFT_MID, i * slot_w + 1, 0);
         lv_obj_set_style_bg_color(slot.btn, lvgl_color(LVGL_COLOR_KBD_BUTTON), LV_PART_MAIN);
-        lv_obj_set_style_bg_color(slot.btn, lvgl_color(LVGL_COLOR_KBD_BUTTON_PRESSED), LV_PART_MAIN | LV_STATE_PRESSED);
+        lv_obj_set_style_bg_color(slot.btn, lvgl_color(LVGL_COLOR_KBD_BUTTON_PRESSED), static_cast<lv_style_selector_t>(static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_PRESSED)));
         lv_obj_set_style_border_color(slot.btn, lvgl_color(LVGL_COLOR_BORDER_DARK), LV_PART_MAIN);
         lv_obj_set_style_border_width(slot.btn, 1, LV_PART_MAIN);
         lv_obj_set_style_radius(slot.btn, 3, LV_PART_MAIN);

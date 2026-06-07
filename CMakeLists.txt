@@ -47,8 +47,10 @@ if(TARGET_DEVICE STREQUAL "SDL")
     set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
 elseif(TARGET_DEVICE STREQUAL "PICOSDL")
     set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
-elseif(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO")
+elseif(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
     set(SHOW_KEYBOARD_UI OFF CACHE BOOL "Show on-screen keyboard UI" FORCE)
+elseif(TARGET_DEVICE STREQUAL "ZERO")
+    set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
 endif()
 
 # ── Shared Dependencies ───────────────────────────────────────────────────────────
@@ -103,7 +105,7 @@ elseif(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
     set(APP_LIBRARIES ${HARDWARE_LIBRARIES} lvgl)
 elseif(TARGET_DEVICE STREQUAL "ZERO")
     set(APP_TARGET calc_app)
-    set(APP_LIBRARIES ${HARDWARE_LIBRARIES} lvgl)
+    set(APP_LIBRARIES lvgl ${HARDWARE_LIBRARIES})
 endif()
 
 #  Build the main executable
@@ -143,6 +145,7 @@ endif()
 if(BUILD_KEYLOGGER)
     set(KEYLOGGER_SOURCES
         src/tools/keylogger.cpp
+        src/overboard/core/input_key.cpp
         src/overboard/log/stdout_logger.cpp
         src/overboard/log/log_level.cpp
     )

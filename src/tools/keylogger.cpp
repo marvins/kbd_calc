@@ -26,6 +26,7 @@
 #endif
 
 // Project Libraries
+#include <overboard/core/input_key.hpp>
 #include <overboard/hal/i_input.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
@@ -105,7 +106,8 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
             if (event.kind == ovb::hal::Key_Event_Kind::Action) {
                 std::string type_str = (event.type == ovb::hal::Key_Event_Type::Press) ? "KEYDOWN" : "KEYUP";
-                msg = type_str + ": key_index=" + std::to_string(event.key_index);
+                auto input_key = static_cast<ovb::core::Input_Key>(event.key_index);
+                msg = type_str + ": " + ovb::core::input_key_to_string(input_key);
             } else {
                 // Text event
                 msg = "TEXT: codepoint=" + std::to_string(event.codepoint);

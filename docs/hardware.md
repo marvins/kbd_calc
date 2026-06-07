@@ -58,9 +58,9 @@ Any standard USB HID macropad with mechanical switches:
 
 **Layout**: 5 columns × 4 rows to match the software grid (`GRID_COLS=5`, `GRID_ROWS=4`)
 
-##### Selected: KISNT KN34 (34-Key Macropad with VIA)
+##### Selected: KISNT MF34 (34-Key Macropad with VIA)
 
-**Product**: KISNT KN34 Mechanical Keypad (VIA-compatible firmware)
+**Product**: KISNT MF34 Mechanical Keypad (VIA-compatible firmware)
 
 | Property           | Value                          |
 |--------------------|--------------------------------|
@@ -140,3 +140,55 @@ block-beta
 - 3D CAD model available via NKK's PartCommunity library (linked on the product page).
 
 **Status**: Reserved for future hardware revision when components are available. Current implementation uses standard mechanical switches with external LCD panel.
+
+---
+
+## Pi Zero Setup
+
+The Raspberry Pi Zero has limited RAM (512MB). To prevent OOM kills during compilation, configure a swap file:
+
+```bash
+# Check current memory
+free -h
+
+# Create a 2GB swap file
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+# Make swap persistent across reboots
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+# Verify
+free -h
+```
+
+### Input Device Permissions
+
+The calculator reads keyboard input directly from Linux input devices (`/dev/input/event*`). These devices require read permissions. Add your user to the `input` group:
+
+```bash
+# Add user to input group
+sudo usermod -a -G input marvin
+
+# Verify group membership (log out and back in first)
+groups
+```
+
+After logging out and back in, verify device access:
+
+```bash
+# Check device permissions
+ls -l /dev/input/event*
+
+# Test with keylogger utility
+./build/keylogger
+```
+
+After crashes, check the kernel log to diagnose the cause:
+```bash
+dmesg | tail -50
+# Or for previous boot logs:
+journalctl -k -b -1
+```

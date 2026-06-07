@@ -2,8 +2,19 @@
 
 set -e
 
+CLEAN_FLAG=""
+VERBOSE_FLAG=""
+
+while getopts ":cv" opt; do
+    case "${opt}" in
+        c) CLEAN_FLAG="-c" ;;
+        v) VERBOSE_FLAG="-t" ;;
+        \?) echo "Invalid option: -${OPTARG}" >&2; exit 1 ;;
+    esac
+done
+
 echo "Building for Pi Zero (DRM/KMS)..."
-./scripts/build.sh -c -j -p ZERO > build.log 2>&1
+./scripts/build.sh ${CLEAN_FLAG} ${VERBOSE_FLAG} -j -p ZERO > build.log 2>&1
 
 if [ $? -eq 0 ]; then
     echo "Build successful."

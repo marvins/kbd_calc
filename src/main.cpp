@@ -38,7 +38,8 @@ int main(int argc, char* argv[]) {
 
     try {
         core::Grid_Layout layout = hal::config::create_layout(
-            config.layout_path()
+            config.layout_path(),
+            config.mapping_path()
         );
 
         // Create platform-specific application via factory

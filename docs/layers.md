@@ -91,7 +91,7 @@ kbd.double-height {
 </style>
 
 Each layer occupies an **8-column × 7-row** asymmetric grid (42 cells, 34 keys with gaps).
-This layout matches the **KISNT KN34** macropad physical arrangement:
+This layout matches the **KISNT MF34** macropad physical arrangement:
 - Split sections with gaps between logical key groups
 - 7 keys in top rows, 6 in middle, 4-3 keys in bottom rows
 - Use **Home** key to return to the Basic layer

@@ -14,12 +14,12 @@ namespace ovb::font {
 /*****************************************************************/
 bool Font_Metrics::scale(float factor) {
     base_px *= factor;
-    ascent = static_cast<int>(ascent * factor);
-    descent = static_cast<int>(descent * factor);
-    em = static_cast<int>(em * factor);
-    ex = static_cast<int>(ex * factor);
+    ascent  = static_cast<int>(static_cast<float>(ascent)  * factor);
+    descent = static_cast<int>(static_cast<float>(descent) * factor);
+    em      = static_cast<int>(static_cast<float>(em)      * factor);
+    ex      = static_cast<int>(static_cast<float>(ex)      * factor);
     for (auto& adv : advances) {
-        adv = static_cast<int>(adv * factor);
+        adv = static_cast<int>(static_cast<float>(adv) * factor);
     }
     return true;
 }
