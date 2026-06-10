@@ -11,12 +11,14 @@
 #pragma once
 
 // C++ Standard Libraries
+#include <array>
 #include <atomic>
 #include <cstdint>
 #include <filesystem>
 #include <memory>
 
 // Project Libraries
+#include <overboard/core/input_key.hpp>
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
@@ -128,6 +130,9 @@ class PiZero_App : public I_App {
 
         /// @brief Linux input handler
         std::unique_ptr<Linux_Input>      m_input;
+
+        /// @brief Maps Input_Key enum value -> layout key index (-1 if unbound)
+        std::array<int, 512>              m_input_key_map {};
 
 };
 

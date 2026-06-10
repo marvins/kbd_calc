@@ -155,6 +155,11 @@ if(BUILD_KEYLOGGER)
 
     # Add target-specific sources and defines
     if(KEYLOGGER_USE_SDL)
+        target_sources(keylogger PRIVATE
+            src/overboard/hal/sdl/input.cpp
+            src/overboard/hal/sdl/input_key_mapping.cpp
+            src/overboard/hal/sdl/keymap.cpp
+        )
         target_include_directories(keylogger SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
         target_link_libraries(keylogger PRIVATE ${SDL2_LIBRARIES})
         target_compile_definitions(keylogger PRIVATE TARGET_SDL=1)

@@ -110,9 +110,9 @@ static ovb::core::Input_Key linux_code_to_input_key(unsigned int code) {
         case 68:  return core::Input_Key::F10;         // KEY_F10
         case 87:  return core::Input_Key::F11;         // KEY_F11
         case 88:  return core::Input_Key::F12;         // KEY_F12
-        case 69:  return core::Input_Key::F13;         // KEY_F13
-        case 70:  return core::Input_Key::F14;         // KEY_F14
-        case 71:  return core::Input_Key::F15;         // KEY_F15
+        case 183: return core::Input_Key::F13;         // KEY_F13
+        case 184: return core::Input_Key::F14;         // KEY_F14
+        case 185: return core::Input_Key::F15;         // KEY_F15
 
         // Digits (top row: 2-10, 11)
         case 11:  return core::Input_Key::KEY_0;
@@ -154,8 +154,7 @@ static ovb::core::Input_Key linux_code_to_input_key(unsigned int code) {
         case 21:  return core::Input_Key::KEY_Y;
         case 44:  return core::Input_Key::KEY_Z;
 
-        // Numpad (79-82, 75-78, 55, 83, 96, 98)
-        // Note: KP7-KP9 (71-73) conflict with F13-F15 on standard Linux input
+        // Numpad
         case 82:  return core::Input_Key::NUMPAD_0;       // KEY_KP0
         case 79:  return core::Input_Key::NUMPAD_1;       // KEY_KP1
         case 80:  return core::Input_Key::NUMPAD_2;       // KEY_KP2
@@ -163,7 +162,9 @@ static ovb::core::Input_Key linux_code_to_input_key(unsigned int code) {
         case 75:  return core::Input_Key::NUMPAD_4;       // KEY_KP4
         case 76:  return core::Input_Key::NUMPAD_5;       // KEY_KP5
         case 77:  return core::Input_Key::NUMPAD_6;       // KEY_KP6
-        // KP7-9 (71-73) skipped - conflicts with F13-F15
+        case 71:  return core::Input_Key::NUMPAD_7;       // KEY_KP7
+        case 72:  return core::Input_Key::NUMPAD_8;       // KEY_KP8
+        case 73:  return core::Input_Key::NUMPAD_9;       // KEY_KP9
         case 78:  return core::Input_Key::NUMPAD_ADD;     // KEY_KPPLUS
         case 74:  return core::Input_Key::NUMPAD_SUBTRACT; // KEY_KPMINUS
         case 55:  return core::Input_Key::NUMPAD_MULTIPLY; // KEY_KPASTERISK

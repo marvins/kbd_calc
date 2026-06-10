@@ -121,6 +121,7 @@ bool Calculator_App::handle_input(core::Action_Code action) {
             return true;
         default:
             m_impl->engine.handle_key(action);
+            refresh();
             return true;
     }
 }

@@ -99,6 +99,19 @@ std::unique_ptr<PiZero_App> PiZero_App::create(const core::Grid_Layout& layout,
 
     app->m_keymap = core::Keymap(layers);
 
+    // Build Input_Key -> layout key index map from keyboard_config.keys
+    app->m_input_key_map.fill(-1);
+    for (const auto& [id_str, key_def] : keyboard_config.keys) {
+        if (key_def.input_key.empty()) continue;
+        auto input_key = core::string_to_input_key(key_def.input_key);
+        if (input_key == core::Input_Key::NONE) continue;
+        int key_idx = std::stoi(id_str);
+        auto slot = static_cast<std::size_t>(input_key);
+        if (slot < app->m_input_key_map.size()) {
+            app->m_input_key_map[slot] = key_idx;
+        }
+    }
+
     if (!app->init()) {
         return nullptr;
     }
@@ -216,8 +229,16 @@ I_Input& PiZero_App::get_input() {
 /*      Handle key          */
 /****************************/
 void PiZero_App::handle_key(int key_index) {
+    // key_index here is actually a raw Input_Key enum value from Linux_Input::poll.
+    // Translate it to the layout key index via m_input_key_map.
+    auto slot = static_cast<std::size_t>(key_index);
+    int layout_idx = (slot < m_input_key_map.size()) ? m_input_key_map[slot] : -1;
+    if (layout_idx < 0) {
+        return;  // Unmapped physical key
+    }
+
     // Get the action from the current layer
-    core::Action_Code action = m_layers.action_at(key_index);
+    core::Action_Code action = m_layers.action_at(layout_idx);
 
     // Handle layer switching actions
     if (action == core::Action_Code::GO_HOME_LAYER) {

@@ -10,14 +10,24 @@ find_package(PNG REQUIRED)
 find_library(DRM_LIBRARY drm REQUIRED)
 find_library(GBM_LIBRARY gbm REQUIRED)
 
-# Find DRM include directory
+# Find DRM include directory (drm/drm.h lives under /usr/include on Debian)
 find_path(DRM_INCLUDE_DIR drm/drm.h
+    PATHS
+        /usr/include
+        /usr/local/include
+)
+# xf86drm.h and xf86drmMode.h live under libdrm/ on Debian/Ubuntu
+find_path(LIBDRM_INCLUDE_DIR xf86drm.h
     PATHS
         /usr/include/libdrm
         /usr/local/include/libdrm
         /usr/include
         /usr/local/include
 )
+if(NOT LIBDRM_INCLUDE_DIR)
+    message(FATAL_ERROR "libdrm headers (xf86drm.h) not found")
+endif()
+message(STATUS "libdrm include dir found: ${LIBDRM_INCLUDE_DIR}")
 if(DRM_INCLUDE_DIR)
     message(STATUS "DRM include dir found: ${DRM_INCLUDE_DIR}")
 else()
@@ -52,6 +62,7 @@ set(HARDWARE_INCLUDE_DIRS
     ${PNG_INCLUDE_DIRS}
     ${DRM_INCLUDE_DIR}
     ${DRM_INCLUDE_DIR}/drm
+    ${LIBDRM_INCLUDE_DIR}
 )
 
 # Display dimensions for Pi Zero (native portrait after 270° rotation)

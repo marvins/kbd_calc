@@ -14,7 +14,7 @@
 #elif defined(TARGET_MF34)
     #include <overboard/hal/config/target_mf34.hpp>
 #elif defined(TARGET_ZERO)
-    #include <overboard/hal/config/target_mf34.hpp>
+    #include <overboard/hal/config/target_pi_zero.hpp>
 #else
     #error "No target defined. Define TARGET_SDL, TARGET_MF34, or TARGET_ZERO."
 #endif

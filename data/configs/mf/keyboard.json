@@ -78,15 +78,15 @@
             "position": {"x": 2, "y": 2.5, "w": 1, "h": 1}
         },
         "17": {
-            "input_key": "KEY_7",
+            "input_key": "NUMPAD_7",
             "position": {"x": 3.25, "y": 2.25, "w": 1, "h": 1}
         },
         "18": {
-            "input_key": "KEY_8",
+            "input_key": "NUMPAD_8",
             "position": {"x": 4.25, "y": 2.25, "w": 1, "h": 1}
         },
         "19": {
-            "input_key": "KEY_9",
+            "input_key": "NUMPAD_9",
             "position": {"x": 5.25, "y": 2.25, "w": 1, "h": 1}
         },
         "20": {
@@ -94,15 +94,15 @@
             "position": {"x": 6.25, "y": 2.25, "w": 1, "h": 2}
         },
         "21": {
-            "input_key": "KEY_4",
+            "input_key": "NUMPAD_4",
             "position": {"x": 3.25, "y": 3.25, "w": 1, "h": 1}
         },
         "22": {
-            "input_key": "KEY_5",
+            "input_key": "NUMPAD_5",
             "position": {"x": 4.25, "y": 3.25, "w": 1, "h": 1}
         },
         "23": {
-            "input_key": "KEY_6",
+            "input_key": "NUMPAD_6",
             "position": {"x": 5.25, "y": 3.25, "w": 1, "h": 1}
         },
         "24": {
@@ -110,19 +110,19 @@
             "position": {"x": 1, "y": 4.25, "w": 1, "h": 1}
         },
         "25": {
-            "input_key": "KEY_1",
+            "input_key": "NUMPAD_1",
             "position": {"x": 3.25, "y": 4.25, "w": 1, "h": 1}
         },
         "26": {
-            "input_key": "KEY_2",
+            "input_key": "NUMPAD_2",
             "position": {"x": 4.25, "y": 4.25, "w": 1, "h": 1}
         },
         "27": {
-            "input_key": "KEY_3",
+            "input_key": "NUMPAD_3",
             "position": {"x": 5.25, "y": 4.25, "w": 1, "h": 1}
         },
         "28": {
-            "input_key": "RETURN",
+            "input_key": "NUMPAD_ENTER",
             "position": {"x": 6.25, "y": 4.25, "w": 1, "h": 2}
         },
         "29": {
@@ -138,11 +138,11 @@
             "position": {"x": 2, "y": 5.25, "w": 1, "h": 1}
         },
         "32": {
-            "input_key": "KEY_0",
+            "input_key": "NUMPAD_0",
             "position": {"x": 3.25, "y": 5.25, "w": 2, "h": 1}
         },
         "33": {
-            "input_key": "PERIOD",
+            "input_key": "NUMPAD_DECIMAL",
             "position": {"x": 5.25, "y": 5.25, "w": 1, "h": 1}
         }
     },
@@ -150,7 +150,7 @@
         {
             "name": "Basic",
             "keys": {
-                "0": {"code": "NONE", "label": ""},
+                "0": {"code": "ESCAPE", "label": "Esc"},
                 "1": {"code": "PAGE_UP", "label": "PgUp"},
                 "2": {"code": "PAGE_DOWN", "label": "PgDn"},
                 "3": {"code": "NONE", "label": ""},

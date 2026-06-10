@@ -2,8 +2,29 @@
 
 set -e
 
+CLEAN_BUILD=0
+
+while getopts "c" opt; do
+    case $opt in
+        c)
+            CLEAN_BUILD=1
+            ;;
+        \?)
+            echo "Usage: $0 [-c]"
+            echo "  -c  Clean build (clear old build)"
+            exit 1
+            ;;
+    esac
+done
+
 echo "Building for SDL (MF macropad)..."
-./scripts/build.sh -c -j -p SDL > build.log 2>&1
+
+BUILD_ARGS="-j -p SDL"
+if [ $CLEAN_BUILD -eq 1 ]; then
+    BUILD_ARGS="-c $BUILD_ARGS"
+fi
+
+./scripts/build.sh $BUILD_ARGS > build.log 2>&1
 
 if [ $? -eq 0 ]; then
     echo "Build successful. Starting simulator..."
