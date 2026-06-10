@@ -70,6 +70,24 @@ class SDL_Input : public ovb::hal::I_Input {
          */
         void set_alt_pressed(bool pressed) { m_alt_pressed = pressed; }
 
+        /**
+         * @brief Suppress the next SDL_TEXTINPUT event
+         *
+         * Called when a SDL_KEYDOWN was consumed as an Action, to prevent
+         * the OS-generated SDL_TEXTINPUT from also firing as a Text event.
+         */
+        void suppress_next_text() { m_suppress_next_text = true; }
+
+        /**
+         * @brief Check and clear the suppress-next-text flag
+         * @return true if the next text event should be suppressed
+         */
+        bool consume_text_suppression() {
+            const bool val = m_suppress_next_text;
+            m_suppress_next_text = false;
+            return val;
+        }
+
         bool poll(Key_Event& out_event) override;
         bool should_quit() const override;
         void pump() override;
@@ -79,6 +97,7 @@ class SDL_Input : public ovb::hal::I_Input {
         bool                    m_shift_pressed = false;
         bool                    m_control_pressed = false;
         bool                    m_alt_pressed = false;
+        bool                    m_suppress_next_text = false;
         std::queue<Key_Event>   m_event_queue;
         SDL_Keymap              m_keymap;
 };

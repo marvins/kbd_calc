@@ -35,8 +35,11 @@ struct App_View::Impl {
     int                               menu_idx       { -1 };
     int                               prev_panel_idx { PANEL_STATUS };
 
-    lv_obj_t* panel_container = nullptr;
-    lv_obj_t* kbd_container   = nullptr;
+    lv_obj_t*              panel_container = nullptr;
+    lv_obj_t*              kbd_container   = nullptr;
+    core::Layer_Manager*   layers          = nullptr;
+    int                    base_layer      { 0 };    ///< Layer index before shift was engaged
+    bool                   shift_active    { false };
 };
 
 /*******************************/
@@ -53,6 +56,7 @@ App_View::App_View( lv_obj_t*                      root,
                     ovb::core::Layer_Manager&      layers )
     : m_impl(std::make_unique<Impl>())
 {
+    m_impl->layers = &layers;
     LOG_TRACE("App_View: Applying baseline screen styling");
     lv_obj_set_style_pad_all(root, 0, 0);
     lv_obj_set_style_border_width(root, 0, 0);
@@ -137,6 +141,45 @@ App_View::App_View( lv_obj_t*                      root,
 /****************************/
 void App_View::handle_input(core::Action_Code action) {
     LOG_DEBUG("App_View::handle_input: action_code=", std::to_string(static_cast<int>(action)), " (", core::action_code_to_display(action), ")");
+
+    // Handle modifier keys globally — switch layer and let display update via callback
+    if (m_impl->layers) {
+        const int layer_count = m_impl->layers->layer_count();
+        switch (action) {
+            case core::Action_Code::LEFT_SHIFT:
+            case core::Action_Code::RIGHT_SHIFT: {
+                if (!m_impl->shift_active) {
+                    // Find a layer named "Shift" (index 1 by convention)
+                    m_impl->base_layer   = m_impl->layers->active_layer();
+                    m_impl->shift_active = true;
+                    const int shift_idx  = (layer_count > 1) ? 1 : 0;
+                    m_impl->layers->set_layer(shift_idx);
+                } else {
+                    m_impl->shift_active = false;
+                    m_impl->layers->set_layer(m_impl->base_layer);
+                }
+                return;
+            }
+            case core::Action_Code::CAPS_LOCK: {
+                // Toggle: if already on Caps layer (index 2), return to base; else go to Caps
+                const int caps_idx = (layer_count > 2) ? 2 : 0;
+                if (m_impl->layers->active_layer() == caps_idx) {
+                    m_impl->layers->set_layer(0);
+                } else {
+                    m_impl->layers->set_layer(caps_idx);
+                }
+                m_impl->shift_active = false;
+                return;
+            }
+            default:
+                break;
+        }
+        // After any non-modifier key press, release shift (momentary behaviour)
+        if (m_impl->shift_active) {
+            m_impl->shift_active = false;
+            m_impl->layers->set_layer(m_impl->base_layer);
+        }
+    }
 
     // Handle function key popups (F1-F5) - only in Calculator panel
     I_Panel* active = m_impl->panels->active_panel();

@@ -10,6 +10,7 @@
 // C++ Standard Libraries
 #include <algorithm>
 #include <functional>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -19,13 +20,9 @@
 
 // Project Libraries
 #include <overboard/gui/lvgl_theme.hpp>
-#include <overboard/log/stdout_logger.hpp>
 #include <overboard/math/layout/box.hpp>
-#include <overboard/math/parser.hpp>
 
 namespace ovb::gui {
-
-static log::Stdout_Logger s_math_logger(log::Log_Level::Debug);
 
 /************************************/
 /*       Draw Math To Canvas        */
@@ -37,21 +34,30 @@ void draw_math_to_canvas( lv_obj_t*                     canvas,
                           const math::ast::Node::ptr_t& ast,
                           const std::string&            result_str )
 {
-    // Clear canvas to light background
-    lv_canvas_fill_bg(canvas, lvgl_color(LVGL_COLOR_BG_CANVAS), LV_OPA_COVER);
-
-    if (!ast) return;
-
     // Create draw layer for canvas
     lv_layer_t layer;
     lv_canvas_init_layer(canvas, &layer);
 
+    // Clear canvas to background through the layer so the clear and glyphs
+    // are in the same draw batch (lv_canvas_fill_bg is synchronous and
+    // races with the async layer flush)
+    lv_draw_rect_dsc_t bg_dsc;
+    lv_draw_rect_dsc_init(&bg_dsc);
+    bg_dsc.bg_color = lvgl_color(LVGL_COLOR_BG_CANVAS);
+    bg_dsc.bg_opa   = LV_OPA_COVER;
+    const lv_area_t bg_area = { 0, 0,
+        static_cast<int32_t>(width  - 1),
+        static_cast<int32_t>(height - 1) };
+    lv_draw_rect(&layer, &bg_dsc, &bg_area);
+
+    if (!ast) {
+        lv_canvas_finish_layer(canvas, &layer);
+        return;
+    }
+
     // Build layout from AST (upper left)
     try {
-        s_math_logger.debug("Rendering AST");
         auto box = layout_engine.build(ast.get());
-        // Use full canvas size for layout
-        s_math_logger.debug("Layout size: " + std::to_string(width) + "x" + std::to_string(height));
         // Measure and position at upper left (0,0) instead of centering
         layout_engine.measure(box);
         layout_engine.layout(box, {0, 0});
@@ -76,7 +82,8 @@ void draw_math_to_canvas( lv_obj_t*                     canvas,
                         static_cast<int32_t>(x + b.size.x),
                         static_cast<int32_t>(y + b.size.y)
                     };
-                    label_dsc.text = b.text.c_str();
+                    label_dsc.text       = b.text.c_str();
+                    label_dsc.text_local = 1;
                     lv_draw_label(&layer, &label_dsc, &coords);
                 } else {
                     // Draw placeholder outline box
@@ -126,7 +133,7 @@ void draw_math_to_canvas( lv_obj_t*                     canvas,
         draw_box(box, 0, 0);
 
     } catch (const std::exception& e) {
-        s_math_logger.error("Math render error: " + std::string(e.what()));
+        std::cerr << "[math_canvas] render error: " << e.what() << "\n";
     }
 
     // Draw result in lower right if present
@@ -149,7 +156,6 @@ void draw_math_to_canvas( lv_obj_t*                     canvas,
     }
 
     lv_canvas_finish_layer(canvas, &layer);
-    s_math_logger.debug("Canvas render complete");
 }
 
 } // namespace ovb::gui

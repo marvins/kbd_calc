@@ -3,15 +3,19 @@
 set -e
 
 CLEAN_BUILD=0
+DEBUG_BUILD=0
+DEBUG_LAYOUT=0
 
-while getopts "c" opt; do
+while getopts "cdx" opt; do
     case $opt in
-        c)
-            CLEAN_BUILD=1
-            ;;
+        c) CLEAN_BUILD=1 ;;
+        d) DEBUG_BUILD=1 ;;
+        x) DEBUG_LAYOUT=1 ;;
         \?)
-            echo "Usage: $0 [-c]"
+            echo "Usage: $0 [-c] [-d] [-x]"
             echo "  -c  Clean build (clear old build)"
+            echo "  -d  Debug build type"
+            echo "  -x  Enable debug layout borders"
             exit 1
             ;;
     esac
@@ -22,6 +26,12 @@ echo "Building for SDL (MF macropad)..."
 BUILD_ARGS="-j -p SDL"
 if [ $CLEAN_BUILD -eq 1 ]; then
     BUILD_ARGS="-c $BUILD_ARGS"
+fi
+if [ $DEBUG_BUILD -eq 1 ]; then
+    BUILD_ARGS="$BUILD_ARGS -d"
+fi
+if [ $DEBUG_LAYOUT -eq 1 ]; then
+    BUILD_ARGS="$BUILD_ARGS -x"
 fi
 
 ./scripts/build.sh $BUILD_ARGS > build.log 2>&1

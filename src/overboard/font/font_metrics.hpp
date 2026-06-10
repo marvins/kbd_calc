@@ -15,6 +15,9 @@
 #include <array>
 #include <string>
 
+// Third-Party Libraries
+#include <lvgl.h>
+
 namespace ovb::font {
 
 /**
@@ -107,6 +110,18 @@ struct Font_Metrics {
      * @return Font_Metrics scaled to the requested size
      */
     static Font_Metrics make_for_size(int font_size);
+
+    /**
+     * @brief Construct metrics by querying an LVGL font directly.
+     *
+     * Populates advance widths, ascent, and descent from the actual
+     * lv_font_t so the layout engine always matches what lv_draw_label
+     * will render — no per-font manual tuning required.
+     *
+     * @param font Pointer to an LVGL font descriptor
+     * @return Font_Metrics populated from the font
+     */
+    static Font_Metrics make_from_lv_font(const lv_font_t* font);
 };
 
 } // namespace ovb::font

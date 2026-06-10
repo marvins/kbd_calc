@@ -25,6 +25,7 @@ flowchart TD
 
 Goal: Get the calculator working end-to-end for basic arithmetic and algebra.
 
+- [ ] **Error handling strategy** — currently `draw_math_to_canvas` silently swallows render exceptions to `std::cerr`. Define a proper policy
 - [ ] Digits, operators (`+`, `-`, `*`, `/`), parentheses all route correctly through `Calculator_App`
 - [ ] `EVAL` key evaluates the expression and displays result
 - [ ] `BACKSPACE` deletes last token

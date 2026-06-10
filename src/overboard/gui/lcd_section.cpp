@@ -25,9 +25,10 @@ namespace ovb::gui {
 /*****************************/
 /*        LCD Section        */
 /*****************************/
-void LCD_Section::build(lv_obj_t* parent) {
+void LCD_Section::build(lv_obj_t* parent, int avail_w, int avail_h) {
+
     bezel = lv_obj_create(parent);
-    lv_obj_set_size(bezel, hal::LCD_WIDTH - 8, hal::LCD_HEIGHT - 8);
+    lv_obj_set_size(bezel, avail_w - 8, avail_h - 8);
     lv_obj_align(bezel, LV_ALIGN_TOP_LEFT, 4, 4);
 
     // Bezel styling
@@ -45,8 +46,8 @@ void LCD_Section::build(lv_obj_t* parent) {
 
     // History table - positioned above current entry
     table = lv_table_create(bezel);
-    int history_height = hal::LCD_HEIGHT - 16 - hal::PREVIEW_MAX_HEIGHT - 8;  // Remaining space above preview
-    lv_obj_set_size(table, hal::LCD_WIDTH - 16, history_height);
+    int history_height = avail_h - 16 - hal::PREVIEW_MAX_HEIGHT - 8;  // Remaining space above preview
+    lv_obj_set_size(table, avail_w - 16, history_height);
     lv_obj_align(table, LV_ALIGN_TOP_MID, 0, 0);
     lv_obj_set_style_bg_color(table, lvgl_color(LVGL_COLOR_BG_TABLE), LV_PART_MAIN);
     lv_obj_set_style_border_width(table, 0, LV_PART_MAIN);
@@ -57,8 +58,8 @@ void LCD_Section::build(lv_obj_t* parent) {
     lv_obj_set_style_pad_right(table, 4, static_cast<uint32_t>(LV_PART_ITEMS));
 
     // Column setup - input on left, result on right
-    lv_table_set_column_width(table, 0, (hal::LCD_WIDTH - 24) * 2 / 3);
-    lv_table_set_column_width(table, 1, (hal::LCD_WIDTH - 24) / 3);
+    lv_table_set_column_width(table, 0, (avail_w - 24) * 2 / 3);
+    lv_table_set_column_width(table, 1, (avail_w - 24) / 3);
     lv_obj_set_scrollbar_mode(table, LV_SCROLLBAR_MODE_AUTO);
     lv_obj_set_scroll_dir(table, LV_DIR_VER);
 
@@ -85,10 +86,32 @@ void LCD_Section::build(lv_obj_t* parent) {
     std::fill(canvas_buf.begin(), canvas_buf.end(), 0xFFF8F8F8);  // Fill with canvas bg color
     lv_canvas_set_buffer(preview_canvas, canvas_buf.data(),
                          hal::PREVIEW_MAX_WIDTH, hal::PREVIEW_MAX_HEIGHT, LV_COLOR_FORMAT_ARGB8888);
+    lv_obj_set_style_radius(preview_canvas, 4, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(preview_canvas, LV_OPA_TRANSP, LV_PART_MAIN);
+
+#ifdef OVB_DEBUG_LAYOUT
+    // Green border = expression canvas region
+    lv_obj_set_style_border_width(preview_canvas, 2, LV_PART_MAIN);
+    lv_obj_set_style_border_color(preview_canvas, lv_color_hex(0x00CC00), LV_PART_MAIN);
+    lv_obj_set_style_border_opa(preview_canvas, LV_OPA_COVER, LV_PART_MAIN);
+
+    // Red box overlay = result region (bottom-right half of canvas)
+    lv_obj_t* result_debug = lv_obj_create(bezel);
+    lv_obj_set_size(result_debug, hal::PREVIEW_MAX_WIDTH / 2, hal::PREVIEW_MAX_HEIGHT / 2);
+    lv_obj_align(result_debug, LV_ALIGN_BOTTOM_RIGHT, -4, -4);
+    lv_obj_set_style_border_width(result_debug, 2, LV_PART_MAIN);
+    lv_obj_set_style_border_color(result_debug, lv_color_hex(0xCC0000), LV_PART_MAIN);
+    lv_obj_set_style_border_opa(result_debug, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(result_debug, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_radius(result_debug, 0, LV_PART_MAIN);
+    lv_obj_clear_flag(result_debug, LV_OBJ_FLAG_SCROLLABLE);
+#else
     lv_obj_set_style_border_width(preview_canvas, 1, LV_PART_MAIN);
     lv_obj_set_style_border_color(preview_canvas, lvgl_color(LVGL_COLOR_BORDER_MEDIUM), LV_PART_MAIN);
-    lv_obj_set_style_radius(preview_canvas, 4, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(preview_canvas, LV_OPA_COVER, LV_PART_MAIN);
+#endif
+
+    // Initialize layout engine here, after LVGL fonts are loaded
+    layout_engine.emplace(font::Font_Metrics::make_from_lv_font(LVGL_FONT_DEFAULT), 1);
 }
 
 /***************************/
@@ -111,9 +134,7 @@ void LCD_Section::refresh() {
     // Draw typeset math with result in lower right (if available)
     int pw = hal::PREVIEW_MAX_WIDTH;
     int ph = hal::PREVIEW_MAX_HEIGHT;
-    LOG_DEBUG("Canvas size: " + std::to_string(pw) + "x" + std::to_string(ph));
-    LOG_DEBUG("Canvas position: x=" + std::to_string(lv_obj_get_x(preview_canvas)) + ", y=" + std::to_string(lv_obj_get_y(preview_canvas)));
-    draw_math_to_canvas(preview_canvas, pw, ph, layout_engine, ast, result_str);
+    draw_math_to_canvas(preview_canvas, pw, ph, *layout_engine, ast, result_str);
 
     lv_obj_invalidate(preview_canvas);
     lv_obj_invalidate(bezel);

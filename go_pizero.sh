@@ -4,17 +4,28 @@ set -e
 
 CLEAN_FLAG=""
 VERBOSE_FLAG=""
+DEBUG_FLAG=""
+DEBUG_LAYOUT_FLAG=""
 
-while getopts ":cv" opt; do
+while getopts ":cvdx" opt; do
     case "${opt}" in
         c) CLEAN_FLAG="-c" ;;
         v) VERBOSE_FLAG="-t" ;;
-        \?) echo "Invalid option: -${OPTARG}" >&2; exit 1 ;;
+        d) DEBUG_FLAG="-d" ;;
+        x) DEBUG_LAYOUT_FLAG="-x" ;;
+        \?)
+            echo "Usage: $0 [-c] [-d] [-v] [-x]"
+            echo "  -c  Clean build"
+            echo "  -d  Debug build type"
+            echo "  -v  Verbose build output"
+            echo "  -x  Enable debug layout borders"
+            exit 1
+            ;;
     esac
 done
 
 echo "Building for Pi Zero (DRM/KMS)..."
-./scripts/build.sh ${CLEAN_FLAG} ${VERBOSE_FLAG} -j -p ZERO > build.log 2>&1
+./scripts/build.sh ${CLEAN_FLAG} ${DEBUG_FLAG} ${VERBOSE_FLAG} ${DEBUG_LAYOUT_FLAG} -j -p ZERO > build.log 2>&1
 
 if [ $? -eq 0 ]; then
     echo "Build successful."

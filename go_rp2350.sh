@@ -2,6 +2,23 @@
 
 set -e
 
+CLEAN_FLAG="-c"
+DEBUG_FLAG=""
+DEBUG_LAYOUT_FLAG=""
+
+while getopts ":dx" opt; do
+    case "${opt}" in
+        d) DEBUG_FLAG="-d" ;;
+        x) DEBUG_LAYOUT_FLAG="-x" ;;
+        \?)
+            echo "Usage: $0 [-d] [-x]"
+            echo "  -d  Debug build type"
+            echo "  -x  Enable debug layout borders"
+            exit 1
+            ;;
+    esac
+done
+
 echo "Building for RP2350..."
 echo "Note: RP2350 requires ARM toolchain (arm-none-eabi-gcc) and Pico SDK"
 echo "PICO_SDK_PATH: ${PICO_SDK_PATH:-NOT SET}"
@@ -12,7 +29,7 @@ export CXX="${ARM_TOOLCHAIN_PATH:-/opt/homebrew/bin}/arm-none-eabi-g++"
 export ASM="${ARM_TOOLCHAIN_PATH:-/opt/homebrew/bin}/arm-none-eabi-gcc"
 
 PICO_TOOLCHAIN="${PICO_SDK_PATH}/cmake/preload/toolchains/pico_arm_cortex_m33_gcc.cmake"
-./scripts/build.sh -c -j -t -p RP2350 -s off -T "${PICO_TOOLCHAIN}" > build.log 2>&1
+./scripts/build.sh ${CLEAN_FLAG} ${DEBUG_FLAG} ${DEBUG_LAYOUT_FLAG} -j -t -p RP2350 -s off -T "${PICO_TOOLCHAIN}" > build.log 2>&1
 
 if [ $? -eq 0 ]; then
     echo "Build successful. RP2350 firmware ready at build/calc_firmware"

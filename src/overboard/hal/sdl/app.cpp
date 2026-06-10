@@ -186,16 +186,17 @@ bool SDL_App::init() {
             on_key_clicked(key_index, this);
         });
 
-        // Create key mapping info panel in main window at bottom (y=LCD_HEIGHT)
-        LOG_TRACE("Creating Key_Mapping_Info panel in main window");
-        // Pass callback to get custom labels from active panel
-        m_key_mapping_info = std::make_unique<gui::Key_Mapping_Info>(
-            m_display->screen(), m_layout, m_layers,
-            hal::FULL_WIDTH, hal::KBD_WIN_HEIGHT,
-            [this](int key_index) { return m_view->get_active_panel_label(key_index); });
-        // Position at bottom of main window (below LCD section)
-        lv_obj_set_pos(m_key_mapping_info->container(), 0, hal::LCD_HEIGHT);
-        LOG_TRACE("Key_Mapping_Info panel created successfully");
+        // Create key mapping info panel only when the main window has space for it
+        // (KBD_HEIGHT > 0 means a keyboard region was reserved below the LCD)
+        if constexpr (hal::KBD_HEIGHT > 0) {
+            LOG_TRACE("Creating Key_Mapping_Info panel in main window");
+            m_key_mapping_info = std::make_unique<gui::Key_Mapping_Info>(
+                m_display->screen(), m_layout, m_layers,
+                hal::FULL_WIDTH, hal::KBD_WIN_HEIGHT,
+                [this](int key_index) { return m_view->get_active_panel_label(key_index); });
+            lv_obj_set_pos(m_key_mapping_info->container(), 0, hal::LCD_HEIGHT);
+            LOG_TRACE("Key_Mapping_Info panel created successfully");
+        }
 
         // Subscribe both displays to layer changes
         m_layers.on_layer_change([this]([[maybe_unused]] int layer_index) {
@@ -281,7 +282,6 @@ void SDL_App::handle_key(int key_index) {
     const core::Action_Code code = m_layers.action_at(key_index);
     LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + ", action_code=" + std::to_string(static_cast<int>(code)) + " (" + core::action_code_to_display(code) + ")");
     m_view->handle_input(code);
-    m_view->refresh();
 }
 
 /*******************************/

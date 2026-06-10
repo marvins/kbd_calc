@@ -7,12 +7,23 @@ REMOTE_HOST="marvin@pizero"
 REMOTE_PATH="Projects/kbd_calc"
 CLEAN_FLAG=""
 VERBOSE_FLAG=""
+DEBUG_FLAG=""
+DEBUG_LAYOUT_FLAG=""
 
-while getopts ":cv" opt; do
+while getopts ":cvdx" opt; do
     case "${opt}" in
         c) CLEAN_FLAG="-c" ;;
         v) VERBOSE_FLAG="-t" ;;
-        \?) echo "Invalid option: -${OPTARG}" >&2; exit 1 ;;
+        d) DEBUG_FLAG="-d" ;;
+        x) DEBUG_LAYOUT_FLAG="-x" ;;
+        \?)
+            echo "Usage: $0 [-c] [-d] [-v] [-x]"
+            echo "  -c  Clean build"
+            echo "  -d  Debug build type"
+            echo "  -v  Verbose build output"
+            echo "  -x  Enable debug layout borders"
+            exit 1
+            ;;
     esac
 done
 
@@ -28,7 +39,7 @@ rsync -avz \
 
 echo ""
 echo "=== Running remote build... ==="
-ssh "${REMOTE_HOST}" "cd ${REMOTE_PATH} && ./scripts/build.sh ${CLEAN_FLAG} ${VERBOSE_FLAG} -j 1 -p ZERO -s off 2>&1 | tee build.log"
+ssh "${REMOTE_HOST}" "cd ${REMOTE_PATH} && ./scripts/build.sh ${CLEAN_FLAG} ${DEBUG_FLAG} ${VERBOSE_FLAG} ${DEBUG_LAYOUT_FLAG} -j 1 -p ZERO -s off 2>&1 | tee build.log"
 
 echo ""
 echo "=== Build complete. Pulling updated logs... ==="

@@ -12,6 +12,7 @@ SIMULATOR=ON
 JOBS="1"
 VERBOSE=false
 TOOLCHAIN_FILE=""
+DEBUG_LAYOUT=OFF
 
 get_cpu_count() {
     # Try multiple methods to get CPU count, in order of preference
@@ -35,6 +36,7 @@ Options:
   -j [jobs]   Parallel jobs (default: 1, or all cores if omitted)
   -t           Trace/verbose build output
   -T <file>   CMake toolchain file (for cross-compilation)
+  -x           Enable debug layout borders (DEBUG_LAYOUT=ON)
 
 Examples:
   $(basename "$0")              # SDL simulator, debug build
@@ -49,7 +51,7 @@ Examples:
 EOF
 }
 
-while getopts ":hcdrp:s:j::tT:" opt; do
+while getopts ":hcdrp:s:j::tT:x" opt; do
     case "${opt}" in
         h) usage; exit 0 ;;
         c) CLEAN=true ;;
@@ -68,6 +70,7 @@ while getopts ":hcdrp:s:j::tT:" opt; do
             ;;
         t) VERBOSE=true ;;
         T) TOOLCHAIN_FILE="${OPTARG}" ;;
+        x) DEBUG_LAYOUT=ON ;;
         :) echo "Error: option -${OPTARG} requires an argument." >&2; usage; exit 1 ;;
         \?) echo "Error: unknown option -${OPTARG}" >&2; usage; exit 1 ;;
     esac
@@ -106,7 +109,7 @@ echo "Project dir   : ${PROJECT_DIR}"
 echo "Build dir     : ${BUILD_DIR}"
 echo ""
 
-CMAKE_ARGS="-S ${PROJECT_DIR} -B ${BUILD_DIR} -DTARGET_DEVICE=${TARGET_DEVICE} -DSIMULATOR=${SIMULATOR} -DCMAKE_BUILD_TYPE=${BUILD_TYPE}"
+CMAKE_ARGS="-S ${PROJECT_DIR} -B ${BUILD_DIR} -DTARGET_DEVICE=${TARGET_DEVICE} -DSIMULATOR=${SIMULATOR} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDEBUG_LAYOUT=${DEBUG_LAYOUT}"
 
 # Disable LVGL SDL drivers for embedded targets
 if [[ "${TARGET_USES_SDL}" == "OFF" ]]; then

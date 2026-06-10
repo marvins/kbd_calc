@@ -73,7 +73,7 @@ void Calculator_App::activate(lv_obj_t* parent) {
     lv_obj_clear_flag(lcd_parent, LV_OBJ_FLAG_SCROLLABLE);
 
     m_impl->lcd = std::make_unique<LCD_Section>(m_impl->engine, m_impl->layers);
-    m_impl->lcd->build(lcd_parent);
+    m_impl->lcd->build(lcd_parent, width, lcd_h);
 
     // Footer bar — decorative only, navigation via ESCAPE
     m_impl->footer = std::make_unique<Footer_Bar>(m_impl->container, width);

@@ -67,4 +67,36 @@ Font_Metrics Font_Metrics::make_for_size(int font_size) {
     return m;
 }
 
+/*****************************************************************/
+/*      Construct metrics from an LVGL font descriptor          */
+/*****************************************************************/
+Font_Metrics Font_Metrics::make_from_lv_font(const lv_font_t* font) {
+    Font_Metrics m;
+    m.base_px  = static_cast<float>(font->line_height);
+    m.ascent   = font->line_height - font->base_line;
+    m.descent  = font->base_line;
+    m.line_gap = 0;
+
+    // Query advance width for every printable ASCII character
+    lv_font_glyph_dsc_t dsc{};
+    for (int c = ASCII_FIRST; c <= ASCII_LAST; ++c) {
+        const size_t idx = static_cast<size_t>(c - ASCII_FIRST);
+        if (lv_font_get_glyph_dsc(font, &dsc, static_cast<uint32_t>(c), 0)) {
+            m.advances[idx] = static_cast<int>(dsc.adv_w);
+        } else {
+            m.advances[idx] = font->line_height / 2;  // fallback
+        }
+    }
+
+    // Derive em and ex from measured glyphs
+    lv_font_glyph_dsc_t em_dsc{};
+    m.em = lv_font_get_glyph_dsc(font, &em_dsc, 'M', 0)
+           ? static_cast<int>(em_dsc.adv_w) : font->line_height;
+    lv_font_glyph_dsc_t ex_dsc{};
+    m.ex = lv_font_get_glyph_dsc(font, &ex_dsc, 'x', 0)
+           ? static_cast<int>(ex_dsc.box_h) : m.ascent * 2 / 3;
+
+    return m;
+}
+
 } // namespace ovb::font

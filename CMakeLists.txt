@@ -30,9 +30,10 @@ set( CMAKE_CXX_STANDARD 23 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 #  Options Configuration
-option( SIMULATOR     "Build simulator target (requires SDL2)"  ON )
-option( BUILD_TESTS   "Build unit tests"                        ON )
-option( SHOW_KEYBOARD_UI "Show on-screen keyboard UI (SDL only)" ON )
+option( SIMULATOR        "Build simulator target (requires SDL2)"    ON )
+option( BUILD_TESTS      "Build unit tests"                          ON )
+option( SHOW_KEYBOARD_UI "Show on-screen keyboard UI (SDL only)"    ON )
+option( DEBUG_LAYOUT     "Draw debug borders around LCD regions"     OFF )
 
 # Target device selection: SDL, PICOSDL, RP2350, PICOCALC, or ZERO
 if(NOT DEFINED TARGET_DEVICE OR TARGET_DEVICE STREQUAL "")
@@ -136,6 +137,10 @@ else()
     target_compile_definitions(${APP_TARGET} PRIVATE ${HARDWARE_COMPILE_DEFINITIONS} SHOW_KEYBOARD_UI=0)
 endif()
 
+if(DEBUG_LAYOUT)
+    target_compile_definitions(${APP_TARGET} PRIVATE OVB_DEBUG_LAYOUT=1)
+endif()
+
 if(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
     pico_add_extra_outputs(${APP_TARGET})
 endif()
@@ -190,7 +195,8 @@ if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
     target_include_directories(test_math_render PRIVATE src)
     target_include_directories(test_math_render PRIVATE thirdparty/stb)
     target_include_directories(test_math_render SYSTEM PRIVATE ${PNG_INCLUDE_DIRS})
-    target_link_libraries(test_math_render PRIVATE PNG::PNG)
+    target_include_directories(test_math_render SYSTEM PRIVATE thirdparty/lvgl)
+    target_link_libraries(test_math_render PRIVATE PNG::PNG lvgl)
     target_compile_options(test_math_render PRIVATE -Wno-old-style-cast -Wno-sign-conversion)
 
     # VIA layout renderer tool
@@ -215,11 +221,13 @@ if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQU
         test/math/ast/test_ast.cpp
         test/math/test_parser.cpp
         test/math/layout/test_render.cpp
+        test/math/layout/test_layout_engine.cpp
         test/math/test_calc_engine.cpp
         test/math/test_expression.cpp
         test/core/test_layout.cpp
         test/core/test_action_code.cpp
         test/core/test_input_key.cpp
+        test/font/test_font_metrics.cpp
         src/overboard/core/keymap.cpp
         src/overboard/core/action_code.cpp
         src/overboard/core/input_key.cpp

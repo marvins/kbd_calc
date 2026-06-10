@@ -82,6 +82,7 @@ static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
         if (key_idx.has_value()) {
             LOG_DEBUG("  -> Mapped to key_index=", std::to_string(key_idx.value()));
             input->push_event({Key_Event_Kind::Action, key_idx.value(), 0, Key_Event_Type::Press});
+            input->suppress_next_text();
             return 0; // Don't pass to LVGL, we handled it
         } else {
             LOG_DEBUG("  -> NOT MAPPED, will emit Text via SDL_TEXTINPUT");
@@ -112,6 +113,9 @@ static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
     else if (event->type == SDL_TEXTINPUT) {
         // SDL_TEXTINPUT gives us Shift-resolved UTF-8 — convert to UTF-32
         // and emit a Text event for unmapped keys.
+        if (input->consume_text_suppression()) {
+            return 0;
+        }
         const char* utf8 = event->text.text;
         if (utf8[0] != '\0') {
             // Decode first codepoint from UTF-8

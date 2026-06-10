@@ -725,7 +725,7 @@
                     "label": "`"
                 },
                 "15": {
-                    "code": "NONE",
+                    "code": "DIVIDE",
                     "label": "/"
                 },
                 "16": {
@@ -733,11 +733,11 @@
                     "label": "\\"
                 },
                 "17": {
-                    "code": "NONE",
+                    "code": "SUBTRACT",
                     "label": "-"
                 },
                 "18": {
-                    "code": "NONE",
+                    "code": "EQUALS",
                     "label": "="
                 },
                 "19": {
@@ -857,7 +857,7 @@
                     "label": ","
                 },
                 "59": {
-                    "code": "NONE",
+                    "code": "DECIMAL",
                     "label": "."
                 },
                 "61": {
@@ -934,7 +934,7 @@
                     "label": "_"
                 },
                 "18": {
-                    "code": "NONE",
+                    "code": "ADD",
                     "label": "+"
                 },
                 "19": {
@@ -962,7 +962,7 @@
                     "label": "$"
                 },
                 "25": {
-                    "code": "NONE",
+                    "code": "PERCENT",
                     "label": "%"
                 },
                 "26": {
@@ -974,15 +974,15 @@
                     "label": "&"
                 },
                 "28": {
-                    "code": "NONE",
+                    "code": "MULTIPLY",
                     "label": "*"
                 },
                 "29": {
-                    "code": "NONE",
+                    "code": "PAREN_OPEN",
                     "label": "("
                 },
                 "30": {
-                    "code": "NONE",
+                    "code": "PAREN_CLOSE",
                     "label": ")"
                 },
                 "31": {
@@ -1373,7 +1373,7 @@
                     "label": ","
                 },
                 "59": {
-                    "code": "NONE",
+                    "code": "DECIMAL",
                     "label": "."
                 },
                 "61": {
