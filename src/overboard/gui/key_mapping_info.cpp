@@ -12,6 +12,7 @@
 
 // Project Libraries
 #include <overboard/core/action_code.hpp>
+#include <overboard/font/font_selector.hpp>
 #include <overboard/gui/lvgl_theme.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
@@ -153,11 +154,8 @@ void Key_Mapping_Info::build_keys(lv_obj_t* parent) {
         LOG_TRACE("Key_Mapping_Info::build_keys: Label text set for key " + std::to_string(i));
         lv_obj_set_style_text_color(lbl, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
 
-        // Use custom superscript font for power buttons and square root
-        if (action_code == core::Action_Code::POWER_2 ||
-            action_code == core::Action_Code::POWER_3 ||
-            action_code == core::Action_Code::POWER_N ||
-            action_code == core::Action_Code::SQRT) {
+        // Use custom font for math symbols
+        if (font::requires_custom_font(action_code)) {
             lv_obj_set_style_text_font(lbl, &lv_font_superscript, LV_PART_MAIN);
         }
 
@@ -187,11 +185,8 @@ void Key_Mapping_Info::update_layer() {
         std::string text = get_key_label(static_cast<int>(i), layer.keys[i]);
         lv_label_set_text(m_key_labels[i], text.c_str());
 
-        // Use custom superscript font for power buttons and square root
-        if (layer.keys[i] == core::Action_Code::POWER_2 ||
-            layer.keys[i] == core::Action_Code::POWER_3 ||
-            layer.keys[i] == core::Action_Code::POWER_N ||
-            layer.keys[i] == core::Action_Code::SQRT) {
+        // Use custom font for math symbols
+        if (font::requires_custom_font(layer.keys[i])) {
             lv_obj_set_style_text_font(m_key_labels[i], &lv_font_superscript, LV_PART_MAIN);
         } else {
             lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_DEFAULT, LV_PART_MAIN);

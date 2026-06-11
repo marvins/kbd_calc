@@ -85,8 +85,8 @@ set(CORE_SOURCES
     src/overboard/display/history_display.cpp
     src/overboard/display/result_display.cpp
     src/overboard/font/font_metrics.cpp
+    src/overboard/font/font_selector.cpp
     src/overboard/io/keyboard_config.cpp
-    src/overboard/io/via_layout.cpp
     src/overboard/math/ast/binary_op_node.cpp
     src/overboard/math/ast/function_node.cpp
     src/overboard/math/ast/number_node.cpp
@@ -199,16 +199,20 @@ if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
     target_link_libraries(test_math_render PRIVATE PNG::PNG lvgl)
     target_compile_options(test_math_render PRIVATE -Wno-old-style-cast -Wno-sign-conversion)
 
-    # VIA layout renderer tool
+    # Keyboard layout renderer tool
     add_executable(render_layout
+        src/overboard/core/action_code.cpp
+        src/overboard/core/input_key.cpp
         src/overboard/core/keyboard_layout.cpp
-        src/overboard/io/via_layout.cpp
+        src/overboard/core/keymap.cpp
+        src/overboard/io/keyboard_config.cpp
         src/overboard/log/log_level.cpp
         src/overboard/log/stdout_logger.cpp
         src/overboard/apps/ovt_layout_util/config.cpp
         src/overboard/apps/ovt_layout_util/main.cpp
     )
     target_include_directories(render_layout PRIVATE src)
+    target_include_directories(render_layout PRIVATE ${CMAKE_BINARY_DIR}/src)
     target_include_directories(render_layout SYSTEM PRIVATE thirdparty/json/include ${PNG_INCLUDE_DIRS})
     target_link_libraries(render_layout PRIVATE nlohmann_json PNG::PNG project_warnings)
 endif()

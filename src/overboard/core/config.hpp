@@ -60,11 +60,6 @@ class Config {
         inline const std::filesystem::path& layout_path() const { return m_layout_path; }
 
         /**
-         * @return Path to mapping file (e.g. mapping.json for VIA targets), or empty if not set
-         */
-        inline const std::filesystem::path& mapping_path() const { return m_mapping_path; }
-
-        /**
          * @return Log severity level
          */
         inline log::Log_Level log_level() const { return m_log_level; }
@@ -91,9 +86,6 @@ class Config {
 
         /// @brief Path to keyboard.json file
         std::filesystem::path m_layout_path;
-
-        /// @brief Path to key mapping file (VIA targets only; empty otherwise)
-        std::filesystem::path m_mapping_path;
 
         /// @brief Log severity level
         log::Log_Level m_log_level;

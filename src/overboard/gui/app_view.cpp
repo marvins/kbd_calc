@@ -204,9 +204,17 @@ void App_View::handle_input(core::Action_Code action) {
 /****************************/
 /*       Handle Text        */
 /****************************/
-void App_View::handle_text(char32_t codepoint) {
+bool App_View::handle_text(char32_t codepoint) {
     LOG_DEBUG("App_View::handle_text: codepoint=", std::to_string(static_cast<uint32_t>(codepoint)));
-    m_impl->panels->handle_text(codepoint);
+    return m_impl->panels->handle_text(codepoint);
+}
+
+/******************************/
+/*     Handle Input Key       */
+/******************************/
+void App_View::handle_input_key(core::Input_Key key) {
+    LOG_DEBUG("App_View::handle_input_key: key=", core::input_key_to_string(key));
+    m_impl->panels->handle_input_key(key);
 }
 
 /****************************/

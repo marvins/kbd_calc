@@ -63,21 +63,27 @@ void Calc_Engine::handle_key( core::Action_Code code ) {
     }
 
     switch (code) {
+        // Digits and decimal
         case core::Action_Code::DIGIT_0:    case core::Action_Code::DIGIT_1:    case core::Action_Code::DIGIT_2:
         case core::Action_Code::DIGIT_3:    case core::Action_Code::DIGIT_4:    case core::Action_Code::DIGIT_5:
         case core::Action_Code::DIGIT_6:    case core::Action_Code::DIGIT_7:    case core::Action_Code::DIGIT_8:
         case core::Action_Code::DIGIT_9:    case core::Action_Code::DECIMAL:
+        // Hex digits
         case core::Action_Code::HEX_A:      case core::Action_Code::HEX_B:      case core::Action_Code::HEX_C:
         case core::Action_Code::HEX_D:      case core::Action_Code::HEX_E:      case core::Action_Code::HEX_F:
+        // Operators
         case core::Action_Code::ADD:        case core::Action_Code::SUBTRACT:   case core::Action_Code::MULTIPLY:
         case core::Action_Code::DIVIDE:     case core::Action_Code::POWER_N:    case core::Action_Code::POWER_2:
         case core::Action_Code::PERCENT:    case core::Action_Code::FACTORIAL:  case core::Action_Code::RECIPROCAL:
         case core::Action_Code::PAREN_OPEN: case core::Action_Code::PAREN_CLOSE:
+        // Functions
         case core::Action_Code::SIN:        case core::Action_Code::COS:        case core::Action_Code::TAN:
         case core::Action_Code::ASIN:       case core::Action_Code::ACOS:       case core::Action_Code::ATAN:
         case core::Action_Code::LOG:        case core::Action_Code::LN:         case core::Action_Code::EXP:
         case core::Action_Code::SQRT:
+        // Constants
         case core::Action_Code::PI:         case core::Action_Code::EULER:      case core::Action_Code::PHI: case core::Action_Code::TAU:
+        // Bitwise
         case core::Action_Code::BIT_AND:    case core::Action_Code::BIT_OR:     case core::Action_Code::BIT_XOR:
         case core::Action_Code::BITSHIFT_LEFT: case core::Action_Code::BITSHIFT_RIGHT:
         case core::Action_Code::APPROX:
@@ -166,14 +172,17 @@ void Calc_Engine::evaluate() {
 
         std::string result_str = result->to_string();
         s_logger.debug("Evaluation result: " + result_str);
-        m_state.display_value = result_str;
-        m_state.last_ast      = std::move(tree);
-        m_result_shown        = true;
-
-        // Push to history
+        
+        // Push to history before clearing
         m_state.history.push_front({expr_str, result_str});
         if (m_state.history.size() > Calc_State::MAX_HISTORY)
             m_state.history.pop_back();
+        
+        // Clear expression and reset state for new entry
+        m_state.expression.clear();
+        m_state.display_value = "";
+        m_state.last_ast      = nullptr;
+        m_result_shown        = false;
     } catch (const std::exception& e) {
         s_logger.error("Evaluation error: " + std::string(e.what()) + " | Expression: " + m_state.expression.eval_string());
         m_state.error         = e.what();

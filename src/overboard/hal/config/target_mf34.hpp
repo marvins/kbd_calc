@@ -13,24 +13,15 @@
 
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
-#include <overboard/io/via_layout.hpp>
+#include <overboard/io/keyboard_config.hpp>
 
 namespace ovb::hal::config {
 
-/// @brief MF34 loads layout from VIA JSON files
-inline core::Grid_Layout create_layout(
-    const std::filesystem::path& layout_path,
-    const std::filesystem::path& mapping_path)
+/// @brief MF34 loads layout from keyboard.json
+inline core::Grid_Layout create_layout(const std::filesystem::path& layout_path)
 {
-    io::Via_Layout via_layout = io::parse_via_layout(layout_path);
-
-    // Apply optional mapping file if it exists
-    if (std::filesystem::exists(mapping_path)) {
-        io::Via_Mapping mapping = io::parse_via_mapping(mapping_path);
-        io::apply_mapping(via_layout, mapping);
-    }
-
-    return io::to_grid_layout(via_layout);
+    io::Keyboard_Config keyboard_config = io::parse_keyboard_config(layout_path);
+    return io::to_grid_layout(keyboard_config);
 }
 
 /// Target identifier

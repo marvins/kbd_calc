@@ -10,6 +10,9 @@
 // C++ Standard Libraries
 #include <cstdint>
 
+// Project Libraries
+#include <overboard/core/input_key.hpp>
+
 namespace ovb::hal {
 
 enum class Key_Event_Type {
@@ -18,15 +21,16 @@ enum class Key_Event_Type {
 };
 
 /**
- * @brief Discriminates between the two event paths.
+ * @brief Discriminates between the three event paths.
  *
- * - Action: a mapped physical key; key_index is valid, codepoint is unused.
+ * - Action: a mapped physical key via keyboard.json; key_index is valid.
+ * - Direct_Action: a standard keyboard key with direct Input_Key->Action_Code mapping; input_key is valid.
  * - Text:   an unmapped key whose resolved character should be forwarded
- *           to the active panel as raw text; codepoint is valid (UTF-32),
- *           key_index is unused.
+ *           to the active panel as raw text; codepoint is valid (UTF-32).
  */
 enum class Key_Event_Kind {
     Action,
+    Direct_Action,
     Text
 };
 
@@ -35,6 +39,7 @@ struct Key_Event {
     int            key_index { -1 };
     char32_t       codepoint { 0 };
     Key_Event_Type type      { Key_Event_Type::Press };
+    core::Input_Key input_key { core::Input_Key::NONE };
 };
 
 class I_Input {

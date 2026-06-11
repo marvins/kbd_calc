@@ -132,6 +132,58 @@ bool App_Menu::handle_input(core::Action_Code action) {
 }
 
 /*******************************/
+/*        Handle Text          */
+/*******************************/
+bool App_Menu::handle_text(char32_t codepoint) {
+    // Hotkeys: 's' for Status, 'c' for Calculator, 'm' for Settings
+    switch (codepoint) {
+        case U's':
+        case U'S':
+            m_impl->selected = PANEL_STATUS;
+            select_current();
+            return true;
+        case U'c':
+        case U'C':
+            m_impl->selected = PANEL_CALCULATOR;
+            select_current();
+            return true;
+        case U'm':
+        case U'M':
+            m_impl->selected = PANEL_SETTINGS;
+            select_current();
+            return true;
+        default:
+            return false;
+    }
+}
+
+/*******************************/
+/*      Handle Input Key       */
+/*******************************/
+bool App_Menu::handle_input_key(core::Input_Key key) {
+    switch (key) {
+        case core::Input_Key::UP:
+            if (m_impl->selected > 0) {
+                m_impl->selected--;
+                update_selection();
+            }
+            return true;
+        case core::Input_Key::DOWN:
+            if (m_impl->selected < MAIN_APP_COUNT - 1) {
+                m_impl->selected++;
+                update_selection();
+            }
+            return true;
+        case core::Input_Key::RETURN:
+            // Enter/Return selects current menu item
+            select_current();
+            return true;
+        default:
+            return false;
+    }
+}
+
+/*******************************/
 /*           Refresh           */
 /*******************************/
 void App_Menu::refresh() {

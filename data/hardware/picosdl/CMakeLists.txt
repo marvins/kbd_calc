@@ -72,7 +72,7 @@ set(HARDWARE_SOURCES
     src/overboard/gui/app_menu.cpp
     src/overboard/gui/calculator_app.cpp
     src/overboard/gui/footer_bar.cpp
-    src/overboard/gui/function_key_popup.cpp
+    src/overboard/gui/function_menu_popup.cpp
     src/overboard/gui/header_bar.cpp
     src/overboard/gui/key_mapping_info.cpp
     src/overboard/gui/keyboard_display.cpp

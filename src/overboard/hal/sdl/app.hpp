@@ -82,10 +82,16 @@ class SDL_App : public I_App {
         I_Display& get_display()  override;
 
         /**
-         * @brief Handle a key press event
+         * @brief Handle a key press event from macropad (via keyboard.json)
          * @param key_index Index of the pressed key
          */
         void handle_key(int key_index);
+
+        /**
+         * @brief Handle input from standard keyboard
+         * @param key Input_Key to pass to GUI for context-dependent handling
+         */
+        void handle_direct_action(core::Input_Key key);
 
     private:
 

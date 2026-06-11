@@ -27,7 +27,7 @@ using namespace ovb;
 /****************************/
 /*       Test Helpers       */
 /****************************/
-static math::layout::Layout_Box parse_and_layout(const std::string& expr, int scale = 2) {
+static math::layout::Layout_Box parse_and_layout(const std::string& expr, float scale = 2.0f) {
     math::Parser parser(expr);
     auto tree = parser.parse();
     math::layout::Layout_Engine engine(font::Font_Metrics::make_default(), scale);

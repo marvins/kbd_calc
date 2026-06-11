@@ -20,6 +20,7 @@
 #include <lvgl.h>
 
 // Project Libraries
+#include <overboard/core/input_key.hpp>
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/header_bar.hpp>
 #include <overboard/gui/i_panel.hpp>
@@ -46,11 +47,19 @@ class App_Menu : public I_Panel {
          */
         explicit App_Menu(Select_Cb on_select, int initial_selection = 0);
 
+        /**
+         * @brief Destructor
+         */
         ~App_Menu() override;
 
+        /**
+         * @bri
+         */
         void        activate(lv_obj_t* parent) override;
         void        deactivate()               override;
         bool        handle_input(core::Action_Code action) override;
+        bool        handle_text(char32_t codepoint) override;
+        bool        handle_input_key(core::Input_Key key) override;
         void        refresh()                  override;
         std::string name()   const             override;
 

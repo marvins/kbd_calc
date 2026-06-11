@@ -23,11 +23,8 @@
 #include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/io/keyboard_config.hpp>
-#include <overboard/io/via_layout.hpp>
 #include <overboard/log/stdout_logger.hpp>
-#ifdef EMBEDDED_JSON
 #include <overboard/resources/embedded_json.hpp>
-#endif
 
 namespace ovb::hal::pi_zero {
 
@@ -52,52 +49,15 @@ std::unique_ptr<PiZero_App> PiZero_App::create(const core::Grid_Layout& layout,
     auto app = std::unique_ptr<PiZero_App>(new PiZero_App(layout));
     app->m_layout_path = layout_path;
 
-    // Load keyboard configuration from keyboard.json
+    // Load keyboard configuration with embedded fallback
     io::Keyboard_Config keyboard_config;
     try {
-        keyboard_config = io::parse_keyboard_config(layout_path.parent_path() / "keyboard.json");
+        keyboard_config = io::load_keyboard_config(layout_path);
+        app->m_keymap = io::config_to_keymap(keyboard_config);
     } catch (const std::exception& e) {
-#ifdef EMBEDDED_JSON
-        LOG_TRACE("Failed to load keyboard.json from disk, using embedded resource");
-        try {
-            keyboard_config = io::parse_keyboard_config_string(
-                std::string(ovb::resources::embedded_json_data, ovb::resources::embedded_json_size)
-            );
-        } catch (const std::exception& e2) {
-            std::cerr << "Failed to load embedded keyboard config: " << e2.what() << "\n";
-            return nullptr;
-        }
-#else
         std::cerr << "Failed to load keyboard config: " << e.what() << "\n";
         return nullptr;
-#endif
     }
-
-    // Convert keyboard_config to Keymap format
-    std::array<core::Layer, core::LAYER_COUNT> layers;
-    layers.fill(core::Layer{});  // Initialize with empty layers
-
-    for (std::size_t i = 0; i < keyboard_config.layers.size() && i < static_cast<std::size_t>(core::LAYER_COUNT); ++i) {
-        const auto& config_layer = keyboard_config.layers[i];
-        layers[i].name = config_layer.name;
-
-        // Convert layer keys from string ID map to vector indexed by key ID
-        for (const auto& [key_id_str, layer_key] : config_layer.keys) {
-            std::size_t key_id = static_cast<std::size_t>(std::stoi(key_id_str));
-            // Convert code string to Action_Code
-            core::Action_Code code = core::string_to_action_code(layer_key.code);
-
-            // Ensure layer.keys and labels vectors are large enough
-            if (layers[i].keys.size() <= key_id) {
-                layers[i].keys.resize(key_id + 1, core::Action_Code::NONE);
-                layers[i].labels.resize(key_id + 1, "");
-            }
-            layers[i].keys[key_id]   = code;
-            layers[i].labels[key_id] = layer_key.label;
-        }
-    }
-
-    app->m_keymap = core::Keymap(layers);
 
     // Build Input_Key -> layout key index map from keyboard_config.keys
     app->m_input_key_map.fill(-1);

@@ -20,6 +20,7 @@
 #include <lvgl.h>
 
 // Project Libraries
+#include <overboard/core/input_key.hpp>
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/gui/panel_manager.hpp>
@@ -62,8 +63,15 @@ class App_View : public hal::I_Display {
         /**
          * @brief Forward a resolved text codepoint to the active panel
          * @param codepoint UTF-32 character from platform text input
+         * @return true if text was consumed and panel refreshed itself
          */
-        void handle_text(char32_t codepoint);
+        bool handle_text(char32_t codepoint);
+
+        /**
+         * @brief Forward an Input_Key to the active panel for context-dependent handling
+         * @param key Input_Key from standard keyboard
+         */
+        void handle_input_key(core::Input_Key key);
 
         /// @brief Refresh the active panel from current state
         void refresh()      override;

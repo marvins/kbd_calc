@@ -17,6 +17,10 @@ target_compile_options(project_warnings INTERFACE
     -Wformat=2
     -Wimplicit-fallthrough
     -Wundef
+    # Explicit float conversion warnings (GCC-specific, more aggressive in GCC 10+)
+    $<$<CXX_COMPILER_ID:GNU>:-Wfloat-conversion>
+    # Clang equivalent
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-Wfloat-conversion>
     # C++-only warnings
     $<$<COMPILE_LANGUAGE:CXX>:-Wnon-virtual-dtor>
     $<$<COMPILE_LANGUAGE:CXX>:-Wold-style-cast>

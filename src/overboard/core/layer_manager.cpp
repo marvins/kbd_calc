@@ -86,4 +86,15 @@ Action_Code Layer_Manager::action_at(int key_index) const {
                                static_cast<std::size_t>(key_index));
 }
 
+/*****************************************/
+/*        Get Label at Key Index         */
+/*****************************************/
+std::string Layer_Manager::label_at(int key_index) const {
+    const Layer& layer = current_layer();
+    if (key_index >= 0 && static_cast<std::size_t>(key_index) < layer.labels.size()) {
+        return layer.labels[static_cast<std::size_t>(key_index)];
+    }
+    return "";
+}
+
 } // namespace ovb::core

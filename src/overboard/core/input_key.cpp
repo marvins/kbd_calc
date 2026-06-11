@@ -57,6 +57,15 @@ Input_Key string_to_input_key(const std::string& str) {
     if (str == "F13")            return Input_Key::F13;
     if (str == "F14")            return Input_Key::F14;
     if (str == "F15")            return Input_Key::F15;
+    if (str == "F16")            return Input_Key::F16;
+    if (str == "F17")            return Input_Key::F17;
+    if (str == "F18")            return Input_Key::F18;
+    if (str == "F19")            return Input_Key::F19;
+    if (str == "F20")            return Input_Key::F20;
+    if (str == "F21")            return Input_Key::F21;
+    if (str == "F22")            return Input_Key::F22;
+    if (str == "F23")            return Input_Key::F23;
+    if (str == "F24")            return Input_Key::F24;
 
     // Digits
     if (str == "KEY_0")          return Input_Key::KEY_0;
@@ -198,6 +207,15 @@ std::string input_key_to_string(Input_Key key) {
         case Input_Key::F13:                return "F13";
         case Input_Key::F14:                return "F14";
         case Input_Key::F15:                return "F15";
+        case Input_Key::F16:                return "F16";
+        case Input_Key::F17:                return "F17";
+        case Input_Key::F18:                return "F18";
+        case Input_Key::F19:                return "F19";
+        case Input_Key::F20:                return "F20";
+        case Input_Key::F21:                return "F21";
+        case Input_Key::F22:                return "F22";
+        case Input_Key::F23:                return "F23";
+        case Input_Key::F24:                return "F24";
         case Input_Key::KEY_0:              return "KEY_0";
         case Input_Key::KEY_1:              return "KEY_1";
         case Input_Key::KEY_2:              return "KEY_2";

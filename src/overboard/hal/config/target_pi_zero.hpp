@@ -20,10 +20,8 @@
 
 namespace ovb::hal::config {
 
-/// @brief Pi Zero loads layout from unified keyboard.json (mapping_path unused)
-inline core::Grid_Layout create_layout(
-    const std::filesystem::path& layout_path,
-    [[maybe_unused]] const std::filesystem::path& mapping_path)
+/// @brief Pi Zero loads layout from unified keyboard.json
+inline core::Grid_Layout create_layout(const std::filesystem::path& layout_path)
 {
     auto config = io::parse_keyboard_config(layout_path);
     return io::to_grid_layout(config);

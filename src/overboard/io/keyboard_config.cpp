@@ -17,6 +17,9 @@
 // Third-Party Libraries
 #include <nlohmann/json.hpp>
 
+// Project Libraries
+#include <overboard/resources/embedded_json.hpp>
+
 namespace ovb::io {
 
 using json = nlohmann::json;
@@ -333,6 +336,74 @@ core::Grid_Layout to_grid_layout(const Keyboard_Config& config) {
     int grid_rows = static_cast<int>(std::ceil(max_row));
 
     return core::Grid_Layout(grid_cols, grid_rows, std::move(positions));
+}
+
+/*******************************/
+/*  Load Keyboard Config       */
+/*******************************/
+Keyboard_Config load_keyboard_config(
+    const std::filesystem::path& layout_path,
+    bool use_embedded_fallback
+) {
+    // Try loading from file
+    std::filesystem::path json_path = layout_path;
+    if (std::filesystem::is_directory(layout_path)) {
+        json_path = layout_path / "keyboard.json";
+    }
+    
+    try {
+        return parse_keyboard_config(json_path);
+    } catch (const std::exception& e) {
+        // If embedded fallback is enabled, try that
+        if (use_embedded_fallback) {
+            try {
+                return parse_keyboard_config_string(
+                    std::string(ovb::resources::embedded_json_data, 
+                               ovb::resources::embedded_json_size)
+                );
+            } catch (const std::exception& e2) {
+                throw std::runtime_error(
+                    "Failed to load keyboard config from file (" + 
+                    std::string(e.what()) + ") and embedded resource (" + 
+                    std::string(e2.what()) + ")"
+                );
+            }
+        }
+        // Re-throw original exception if no fallback
+        throw;
+    }
+}
+
+/*******************************/
+/*  Convert Config to Keymap   */
+/*******************************/
+core::Keymap config_to_keymap(const Keyboard_Config& config) {
+    std::array<core::Layer, core::LAYER_COUNT> layers;
+    layers.fill(core::Layer{});  // Initialize with empty layers
+
+    for (std::size_t i = 0; i < config.layers.size() && i < static_cast<std::size_t>(core::LAYER_COUNT); ++i) {
+        const auto& config_layer = config.layers[i];
+        layers[i].name = config_layer.name;
+
+        // Convert layer keys from string ID map to vector indexed by key ID
+        for (const auto& [key_id_str, layer_key] : config_layer.keys) {
+            std::size_t key_id = static_cast<std::size_t>(std::stoi(key_id_str));
+            
+            // Convert code string to Action_Code
+            core::Action_Code code = core::string_to_action_code(layer_key.code);
+
+            // Ensure layer.keys and labels vectors are large enough
+            if (layers[i].keys.size() <= key_id) {
+                layers[i].keys.resize(key_id + 1, core::Action_Code::NONE);
+                layers[i].labels.resize(key_id + 1, "");
+            }
+            
+            layers[i].keys[key_id]   = code;
+            layers[i].labels[key_id] = layer_key.label;
+        }
+    }
+
+    return core::Keymap(layers);
 }
 
 } // namespace ovb::io

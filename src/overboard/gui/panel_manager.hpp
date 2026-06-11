@@ -21,6 +21,7 @@
 
 // Project Libraries
 #include <overboard/core/action_code.hpp>
+#include <overboard/core/input_key.hpp>
 #include <overboard/gui/i_panel.hpp>
 
 namespace ovb::gui {
@@ -77,6 +78,13 @@ class Panel_Manager {
          * @return true if consumed
          */
         bool handle_text(char32_t codepoint);
+
+        /**
+         * @brief Forward an Input_Key to the active panel for context-dependent handling
+         * @param key Input_Key from standard keyboard
+         * @return true if consumed
+         */
+        bool handle_input_key(core::Input_Key key);
 
         /// @brief Refresh the active panel
         void refresh();

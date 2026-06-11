@@ -21,8 +21,9 @@
 #include <overboard/core/keymap.hpp>
 #include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
-#include <overboard/io/via_layout.hpp>
+#include <overboard/io/keyboard_config.hpp>
 #include <overboard/log/stdout_logger.hpp>
+#include <overboard/resources/embedded_json.hpp>
 
 namespace ovb::hal::picocalc {
 
@@ -48,17 +49,12 @@ std::unique_ptr<PicoCalc_App> PicoCalc_App::create(
 {
     auto app = std::unique_ptr<PicoCalc_App>(new PicoCalc_App(layout));
 
-    // Load layer assignments from legacy VIA format
+    // Load keyboard configuration with embedded fallback
     try {
-        // Parse layout to build matrix position -> visual index map
-        auto via_layout = io::parse_via_layout(layout_path);
-        auto matrix_index_map = io::build_matrix_index_map(via_layout);
-        // Load layers.json from same directory as layout
-        auto layers_path = layout_path.parent_path() / "layers.json";
-        auto layers = core::load_layers_from_json(layers_path.string(), matrix_index_map);
-        app->m_keymap = core::Keymap(layers);
+        io::Keyboard_Config keyboard_config = io::load_keyboard_config(layout_path);
+        app->m_keymap = io::config_to_keymap(keyboard_config);
     } catch (const std::exception& e) {
-        std::cerr << "PicoCalc_App: failed to load layers: " << e.what() << "\n";
+        std::cerr << "PicoCalc_App: failed to load keyboard config: " << e.what() << "\n";
         return nullptr;
     }
 
@@ -86,19 +82,7 @@ bool PicoCalc_App::init() {
 
         // Create the I2C keyboard input driver
         m_input = std::make_unique<PicoCalc_Input>(m_layout);
-
-        // Load input_key → key index bindings from VIA JSON if available
-        if (!m_layout_path.empty() && !m_keymap_path.empty()) {
-            try {
-                auto via_layout = io::parse_via_layout(m_layout_path);
-                io::apply_input_keys_from_json(via_layout, m_keymap_path);
-                // Note: PicoCalc uses native I2C key codes, not Input_Key names
-                // TODO: Add I2C-specific mapping layer for hardware abstraction
-            } catch (const std::exception& e) {
-                std::cerr << "PicoCalc_App: warning: failed to load input_keys: "
-                          << e.what() << "\n";
-            }
-        }
+        // Note: PicoCalc uses native I2C key codes directly from hardware
 
         m_view->render();
         m_initialized = true;

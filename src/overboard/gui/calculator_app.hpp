@@ -20,6 +20,7 @@
 #include <lvgl.h>
 
 // Project Libraries
+#include <overboard/core/input_key.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/header_bar.hpp>
@@ -27,6 +28,21 @@
 #include <overboard/math/calc_engine.hpp>
 
 namespace ovb::gui {
+
+// Number of F-key popup slots (F1-F10)
+inline constexpr int F_KEY_POPUP_COUNT = 10;
+
+/**
+ * @brief Popup menu indices for F-key assignments
+ */
+enum class Popup_Menu : int {
+    Alg      = 0,  // F1: Algebraic operations (reciprocal, square, power, sqrt)
+    Trig     = 1,  // F2: Trigonometric functions (sin, cos, tan, etc.)
+    Calc     = 2,  // F3: Available for future use
+    Memory   = 3,  // F4: Available for future use
+    Advanced = 4,  // F5: Available for future use
+    // F6-F10: Reserved for future menus
+};
 
 /**
  * @brief Calculator application panel
@@ -71,6 +87,20 @@ class Calculator_App : public I_Panel {
          * @return true if action was handled, false otherwise
          */
         bool        handle_input(core::Action_Code action) override;
+
+        /**
+         * @brief Handle context-dependent input keys
+         * @param key Input key (e.g., RETURN means EVAL in calculator)
+         * @return true if action was handled, false otherwise
+         */
+        bool        handle_input_key(core::Input_Key key) override;
+
+        /**
+         * @brief Handle text input (digits, operators from standard keyboard)
+         * @param codepoint UTF-32 character
+         * @return true if action was handled, false otherwise
+         */
+        bool        handle_text(char32_t codepoint) override;
 
         /**
          * @brief Refresh the calculator display

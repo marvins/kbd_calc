@@ -69,6 +69,13 @@ class Status_Page : public I_Panel {
         bool handle_input(core::Action_Code action) override;
 
         /**
+         * @brief Handle input key (standard keyboard)
+         * @param key Input key
+         * @return true if consumed
+         */
+        bool handle_input_key(core::Input_Key key) override;
+
+        /**
          * @brief Refresh the status page
          */
         void refresh() override;

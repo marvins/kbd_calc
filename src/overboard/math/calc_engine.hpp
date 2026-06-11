@@ -12,6 +12,7 @@
 #include <string>
 
 // Project Libraries
+#include <overboard/core/input_key.hpp>
 #include <overboard/core/keymap.hpp>
 #include <overboard/math/ast/node.hpp>
 #include <overboard/math/expression.hpp>

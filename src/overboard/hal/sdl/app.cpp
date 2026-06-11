@@ -27,11 +27,8 @@
 #include <overboard/hal/sdl/keymap.hpp>
 #include <overboard/hal/sdl/input.hpp>
 #include <overboard/io/keyboard_config.hpp>
-#include <overboard/io/via_layout.hpp>
 #include <overboard/log/stdout_logger.hpp>
-#ifdef EMBEDDED_JSON
 #include <overboard/resources/embedded_json.hpp>
-#endif
 
 namespace ovb::hal::sdl {
 
@@ -59,54 +56,15 @@ std::unique_ptr<SDL_App> SDL_App::create( const core::Grid_Layout&     layout,
                                           const std::filesystem::path& layout_path ) {
     auto app = std::unique_ptr<SDL_App>(new SDL_App(layout));
 
-    // Load keyboard configuration from keyboard.json
-    io::Keyboard_Config keyboard_config;
+    // Load keyboard configuration with embedded fallback
     try {
-        keyboard_config = io::parse_keyboard_config(layout_path.parent_path() / "keyboard.json");
+        io::Keyboard_Config keyboard_config = io::load_keyboard_config(layout_path);
+        app->m_keymap = io::config_to_keymap(keyboard_config);
+        app->m_layout_path = layout_path;
     } catch (const std::exception& e) {
-#ifdef EMBEDDED_JSON
-        // Fall back to embedded resource
-        LOG_TRACE("Failed to load keyboard.json from disk, using embedded resource");
-        try {
-            keyboard_config = io::parse_keyboard_config_string(
-                std::string(ovb::resources::embedded_json_data, ovb::resources::embedded_json_size)
-            );
-        } catch (const std::exception& e2) {
-            std::cerr << "Failed to load embedded keyboard config: " << e2.what() << "\n";
-            return nullptr;
-        }
-#else
         std::cerr << "Failed to load keyboard config: " << e.what() << "\n";
         return nullptr;
-#endif
     }
-
-    // Convert keyboard_config to Keymap format
-    std::array<core::Layer, core::LAYER_COUNT> layers;
-    layers.fill(core::Layer{});  // Initialize with empty layers
-
-    for (std::size_t i = 0; i < keyboard_config.layers.size() && i < static_cast<std::size_t>(core::LAYER_COUNT); ++i) {
-        const auto& config_layer = keyboard_config.layers[i];
-        layers[i].name = config_layer.name;
-
-        // Convert layer keys from string ID map to vector indexed by key ID
-        for (const auto& [key_id_str, layer_key] : config_layer.keys) {
-            std::size_t key_id = static_cast<std::size_t>(std::stoi(key_id_str));
-            // Convert code string to Action_Code
-            core::Action_Code code = core::string_to_action_code(layer_key.code);
-
-            // Ensure layer.keys and labels vectors are large enough
-            if (layers[i].keys.size() <= key_id) {
-                layers[i].keys.resize(key_id + 1, core::Action_Code::NONE);
-                layers[i].labels.resize(key_id + 1, "");
-            }
-            layers[i].keys[key_id]   = code;
-            layers[i].labels[key_id] = layer_key.label;
-        }
-    }
-
-    app->m_keymap = core::Keymap(layers);
-    app->m_layout_path  = layout_path;
 
     if (!app->init()) {
         return nullptr;
@@ -146,7 +104,7 @@ bool SDL_App::init() {
         // Build input_key -> key_index mapping from keyboard.json
         LOG_TRACE("Building input_key mapping from keyboard.json");
         try {
-            auto keyboard_config = io::parse_keyboard_config(m_layout_path.parent_path() / "keyboard.json");
+            auto keyboard_config = io::load_keyboard_config(m_layout_path);
             int bindings_count = 0;
             for (const auto& [key_id_str, key_def] : keyboard_config.keys) {
                 int key_id = std::stoi(key_id_str);
@@ -244,10 +202,16 @@ void SDL_App::run() {
         while (m_input->poll(key_event)) {
             if (key_event.type == hal::Key_Event_Type::Press) {
                 if (key_event.kind == hal::Key_Event_Kind::Action) {
+                    // Macropad: key_index -> action via layers
                     handle_key(key_event.key_index);
+                } else if (key_event.kind == hal::Key_Event_Kind::Direct_Action) {
+                    // Standard keyboard: Input_Key -> Action_Code directly
+                    handle_direct_action(key_event.input_key);
                 } else {
-                    m_view->handle_text(key_event.codepoint);
-                    m_view->refresh();
+                    // Text input - panel handles refresh if consumed
+                    if (!m_view->handle_text(key_event.codepoint)) {
+                        m_view->refresh();
+                    }
                 }
             }
         }
@@ -279,9 +243,30 @@ void SDL_App::on_key_clicked(int key_index, void* user_data) {
 /*        Handle Keypress        */
 /*********************************/
 void SDL_App::handle_key(int key_index) {
+    // Virtual keyboard buttons: emit text from label if printable, else action
+    const std::string label = m_layers.label_at(key_index);
+    
+    // Check if label is a single printable character
+    if (label.length() == 1) {
+        char32_t text_char = static_cast<char32_t>(label[0]);
+        LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + ", label='" + label + "' -> text");
+        m_view->handle_text(text_char);
+        return;
+    }
+    
+    // Not printable text - handle as action
     const core::Action_Code code = m_layers.action_at(key_index);
     LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + ", action_code=" + std::to_string(static_cast<int>(code)) + " (" + core::action_code_to_display(code) + ")");
     m_view->handle_input(code);
+}
+
+/****************************************/
+/*   Handle Direct Action (standard kbd) */
+/****************************************/
+void SDL_App::handle_direct_action(core::Input_Key key) {
+    LOG_DEBUG("Standard keyboard: input_key=" + core::input_key_to_string(key));
+    // Pass Input_Key directly to GUI - panels decide what it means
+    m_view->handle_input_key(key);
 }
 
 /*******************************/

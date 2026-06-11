@@ -115,10 +115,29 @@ void LCD_Section::build(lv_obj_t* parent, int avail_w, int avail_h) {
 }
 
 /***************************/
+/*     Update History      */
+/***************************/
+static void update_history_table(lv_obj_t* table, const std::deque<math::History_Entry>& history) {
+    // Set row count: header row (1) + history entries
+    uint32_t new_row_count = 1 + static_cast<uint32_t>(history.size());
+    lv_table_set_row_count(table, new_row_count);
+    
+    // Update history entries (newest at top, row 1 is first entry after header)
+    for (size_t i = 0; i < history.size(); ++i) {
+        uint32_t row = static_cast<uint32_t>(i + 1);  // Row 0 is header
+        lv_table_set_cell_value(table, row, 0, history[i].input.c_str());
+        lv_table_set_cell_value(table, row, 1, history[i].result.c_str());
+    }
+}
+
+/***************************/
 /*        LCD Refresh        */
 /***************************/
 void LCD_Section::refresh() {
     LOG_DEBUG("LCD_Section::refresh() called");
+
+    // Update history table
+    update_history_table(table, engine.state().history);
 
     // Get AST from expression
     const auto& ast = engine.state().expression.ast_root();

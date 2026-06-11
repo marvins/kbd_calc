@@ -20,6 +20,7 @@
 
 // Project Libraries
 #include <overboard/core/action_code.hpp>
+#include <overboard/core/input_key.hpp>
 
 namespace ovb::gui {
 
@@ -59,6 +60,18 @@ class I_Panel {
          * @return true if consumed
          */
         virtual bool handle_text([[maybe_unused]] char32_t codepoint) { return false; }
+
+        /**
+         * @brief Handle context-dependent Input_Key
+         *
+         * Called for keys that have no direct Action_Code mapping (like RETURN, TAB).
+         * Panels can decide how to interpret these keys based on their context.
+         * The default implementation returns false (key not handled).
+         *
+         * @param key Input key to handle
+         * @return true if consumed
+         */
+        virtual bool handle_input_key([[maybe_unused]] core::Input_Key key) { return false; }
 
         /// @brief Refresh display contents from current state
         virtual void refresh() = 0;

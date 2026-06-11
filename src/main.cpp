@@ -37,10 +37,7 @@ int main(int argc, char* argv[]) {
     logger.info("kbd_calc v", PROJECT_VERSION, "\n  build: ", BUILD_DATE, "\n  git: ", GIT_HASH, GIT_DIRTY ? " (dirty)" : "");
 
     try {
-        core::Grid_Layout layout = hal::config::create_layout(
-            config.layout_path(),
-            config.mapping_path()
-        );
+        auto layout = hal::config::create_layout(config.layout_path());
 
         // Create platform-specific application via factory
         auto app = hal::App_Factory::create( layout,

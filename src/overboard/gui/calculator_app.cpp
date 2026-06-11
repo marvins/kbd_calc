@@ -7,7 +7,11 @@
  */
 #include <overboard/gui/calculator_app.hpp>
 
+// C++ Standard Libraries
+#include <array>
+
 // Project Libraries
+#include <overboard/gui/function_menu_popup.hpp>
 #include <overboard/gui/lcd_section.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
@@ -17,14 +21,40 @@ namespace ovb::gui {
 /*            Impl             */
 /*******************************/
 struct Calculator_App::Impl {
-    math::Calc_Engine&           engine;
-    core::Layer_Manager&         layers;
-    Back_Cb                      on_back;
-    std::unique_ptr<LCD_Section> lcd;
-    std::unique_ptr<Header_Bar>  header;
-    std::unique_ptr<Footer_Bar>  footer;
-    lv_obj_t*                    container = nullptr;
 
+    /// @brief Calculator engine
+    math::Calc_Engine&                      engine;
+
+    /// @brief Layer manager
+    core::Layer_Manager&                    layers;
+
+    /// @brief Back callback
+    Back_Cb                                 on_back;
+
+    /// @brief LCD section
+    std::unique_ptr<LCD_Section>            lcd;
+
+    /// @brief Header bar
+    std::unique_ptr<Header_Bar>             header;
+
+    /// @brief Footer bar
+    std::unique_ptr<Footer_Bar>             footer;
+
+    /// @brief F-key popups
+    std::array<std::unique_ptr<Function_Menu_Popup>, F_KEY_POPUP_COUNT> f_key_popups;
+
+    /// @brief Currently visible popup
+    Function_Menu_Popup*                    active_popup = nullptr;
+
+    /// @brief Container object
+    lv_obj_t*                               container = nullptr;
+
+    /**
+     * @brief Constructor
+     * @param e Calculator engine
+     * @param l Layer manager
+     * @param cb Back callback
+     */
     Impl(math::Calc_Engine& e, core::Layer_Manager& l, Back_Cb cb)
         : engine(e), layers(l), on_back(std::move(cb)) {}
 };
@@ -77,6 +107,41 @@ void Calculator_App::activate(lv_obj_t* parent) {
 
     // Footer bar — decorative only, navigation via ESCAPE
     m_impl->footer = std::make_unique<Footer_Bar>(m_impl->container, width);
+
+    // Callback for all function menu selections
+    auto menu_callback = [this](core::Action_Code action) {
+        m_impl->active_popup = nullptr;  // Clear active popup
+        m_impl->engine.handle_key(action);
+        refresh();
+    };
+
+    // F1: Alg menu - using UTF-8 encoded math symbols
+    std::vector<Menu_Item> alg_items = {
+        {"1/x",                        core::Action_Code::RECIPROCAL},   // Reciprocal (renders as fraction)
+        {"x\xC2\xB2",                  core::Action_Code::POWER_2},      // x² (superscript 2)
+        {"x^y",                        core::Action_Code::POWER_N},      // Power (superscript y)
+        {"\xE2\x88\x9A""x",            core::Action_Code::SQRT},         // √x (square root symbol)
+        {"\xE2\x81\xBF\xE2\x88\x9A""x", core::Action_Code::NONE}         // ⁿ√x (nth root - TODO)
+    };
+    m_impl->f_key_popups[static_cast<int>(Popup_Menu::Alg)] =
+        std::make_unique<Function_Menu_Popup>(m_impl->container, "Alg", alg_items, menu_callback);
+
+    // F2: Trig menu
+    std::vector<Menu_Item> trig_items = {
+        {"Sin",    core::Action_Code::SIN},
+        {"Cos",    core::Action_Code::COS},
+        {"Tan",    core::Action_Code::TAN},
+        {"Atan2",  core::Action_Code::NONE},  // TODO: Implement ATAN2
+        {"ASin",   core::Action_Code::ASIN},
+        {"ACos",   core::Action_Code::ACOS},
+        {"ATan",   core::Action_Code::ATAN},
+        {"Sec",    core::Action_Code::NONE},  // TODO: Implement SEC
+        {"Cosec",  core::Action_Code::NONE}   // TODO: IMPLEMENT COSEC
+    };
+    m_impl->f_key_popups[static_cast<int>(Popup_Menu::Trig)] =
+        std::make_unique<Function_Menu_Popup>(m_impl->container, "Trig", trig_items, menu_callback);
+
+    // F3-F10: Available for future menus
 }
 
 /*******************************/
@@ -84,6 +149,10 @@ void Calculator_App::activate(lv_obj_t* parent) {
 /*******************************/
 void Calculator_App::deactivate() {
     LOG_DEBUG("Calculator_App: deactivating");
+    m_impl->active_popup = nullptr;
+    for (auto& popup : m_impl->f_key_popups) {
+        popup.reset();
+    }
     m_impl->footer.reset();
     m_impl->header.reset();
     m_impl->lcd.reset();
@@ -127,6 +196,116 @@ bool Calculator_App::handle_input(core::Action_Code action) {
 }
 
 /*******************************/
+/*      Handle Input Key       */
+/*******************************/
+bool Calculator_App::handle_input_key(core::Input_Key key) {
+    // If a popup is active, route input to it first
+    if (m_impl->active_popup) {
+        bool handled = m_impl->active_popup->handle_input(key);
+        // Clear active popup if ESC was pressed
+        if (key == core::Input_Key::ESCAPE) {
+            m_impl->active_popup = nullptr;
+        }
+        if (handled) return true;
+    }
+
+    switch (key) {
+        case core::Input_Key::ESCAPE:
+            // Back/navigate out of calculator
+            if (m_impl->on_back) { m_impl->on_back(); }
+            return true;
+
+        case core::Input_Key::RETURN:
+        case core::Input_Key::NUMPAD_ENTER:
+            // In calculator context, Enter/Return evaluates the expression
+            m_impl->engine.handle_key(core::Action_Code::EVAL);
+            refresh();
+            return true;
+
+        case core::Input_Key::F1:
+        case core::Input_Key::F2:
+        case core::Input_Key::F3:
+        case core::Input_Key::F4:
+        case core::Input_Key::F5:
+        case core::Input_Key::F6:
+        case core::Input_Key::F7:
+        case core::Input_Key::F8:
+        case core::Input_Key::F9:
+        case core::Input_Key::F10: {
+            // Map F-key to array index (F1=0, F2=1, ...)
+            int popup_index = static_cast<int>(key) - static_cast<int>(core::Input_Key::F1);
+            if (popup_index >= 0 && popup_index < F_KEY_POPUP_COUNT) {
+                auto idx = static_cast<size_t>(popup_index);
+                if (auto& popup = m_impl->f_key_popups[idx]) {
+                    m_impl->active_popup = popup.get();
+                    popup->show();
+                    return true;
+                }
+            }
+            // F-key without assigned popup - ignore
+            LOG_DEBUG("Calculator_App: F-key without popup (F", std::to_string(popup_index + 1), ")");
+            return true;
+        }
+
+        default:
+            return false;
+    }
+}
+
+/*******************************/
+/*        Handle Text          */
+/*******************************/
+bool Calculator_App::handle_text(char32_t codepoint) {
+    // Handle digit and operator input from standard keyboard
+    LOG_DEBUG("Calculator received text: " + std::to_string(static_cast<uint32_t>(codepoint)));
+
+    core::Action_Code action = core::Action_Code::NONE;
+
+    // Map text input to action codes
+    switch (codepoint) {
+        // Digits
+        case U'0': action = core::Action_Code::DIGIT_0; break;
+        case U'1': action = core::Action_Code::DIGIT_1; break;
+        case U'2': action = core::Action_Code::DIGIT_2; break;
+        case U'3': action = core::Action_Code::DIGIT_3; break;
+        case U'4': action = core::Action_Code::DIGIT_4; break;
+        case U'5': action = core::Action_Code::DIGIT_5; break;
+        case U'6': action = core::Action_Code::DIGIT_6; break;
+        case U'7': action = core::Action_Code::DIGIT_7; break;
+        case U'8': action = core::Action_Code::DIGIT_8; break;
+        case U'9': action = core::Action_Code::DIGIT_9; break;
+
+        // Decimal point
+        case U'.': action = core::Action_Code::DECIMAL; break;
+
+        // Operators
+        case U'+': action = core::Action_Code::ADD; break;
+        case U'-': action = core::Action_Code::SUBTRACT; break;
+        case U'*': action = core::Action_Code::MULTIPLY; break;
+        case U'/': action = core::Action_Code::DIVIDE; break;
+        case U'^': action = core::Action_Code::POWER_N; break;
+
+        // Parentheses
+        case U'(': action = core::Action_Code::PAREN_OPEN; break;
+        case U')': action = core::Action_Code::PAREN_CLOSE; break;
+
+        // Enter/Equals
+        case U'=': action = core::Action_Code::EVAL; break;
+
+        default:
+            return false; // Unhandled text
+    }
+
+    if (action != core::Action_Code::NONE) {
+        m_impl->engine.handle_key(action);
+        refresh();
+        return true;
+    }
+
+    return false;
+}
+
+/*******************************/
 /*           Refresh           */
 /*******************************/
 void Calculator_App::refresh() {
@@ -146,10 +325,10 @@ std::string Calculator_App::name() const {
 /*      Get Custom Label       */
 /*******************************/
 std::string Calculator_App::get_custom_label(int key_index) const {
-    // In calculator context, keys 3-6 act as F1-F4 function keys
+    // In calculator context, keys 3-6 act as function menu keys
     switch (key_index) {
-        case 3: return "F1";
-        case 4: return "F2";
+        case 3: return "Alg";
+        case 4: return "Trig";
         case 5: return "F3";
         case 6: return "F4";
         default: return ""; // Use default from keyboard.json

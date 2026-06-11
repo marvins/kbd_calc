@@ -611,6 +611,15 @@
                 "w": 1.25,
                 "h": 1.0
             }
+        },
+        "67": {
+            "input_key": "NUMPAD_ENTER",
+            "position": {
+                "x": 11,
+                "y": 5,
+                "w": 1.0,
+                "h": 1.0
+            }
         }
     },
     "layers": [
@@ -701,23 +710,23 @@
                     "code": "SPACE"
                 },
                 "4": {
-                    "code": "NONE",
+                    "code": "FUNC_1",
                     "label": "F1"
                 },
                 "5": {
-                    "code": "NONE",
+                    "code": "FUNC_2",
                     "label": "F2"
                 },
                 "6": {
-                    "code": "NONE",
+                    "code": "FUNC_3",
                     "label": "F3"
                 },
                 "7": {
-                    "code": "NONE",
+                    "code": "FUNC_4",
                     "label": "F4"
                 },
                 "8": {
-                    "code": "NONE",
+                    "code": "FUNC_5",
                     "label": "F5"
                 },
                 "14": {
@@ -879,6 +888,10 @@
                 "66": {
                     "code": "RIGHT_SHIFT",
                     "label": "Shift"
+                },
+                "67": {
+                    "code": "EVAL",
+                    "label": "Enter"
                 }
             }
         },

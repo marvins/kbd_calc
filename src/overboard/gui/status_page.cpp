@@ -110,6 +110,22 @@ bool Status_Page::handle_input(core::Action_Code action) {
 }
 
 /*******************************/
+/*       Handle Input Key      */
+/*******************************/
+bool Status_Page::handle_input_key(core::Input_Key key) {
+    // ESCAPE from standard keyboard should also dismiss the status page
+    if (key == core::Input_Key::ESCAPE
+        && !m_impl->dismissed
+        && m_impl->on_dismiss)
+    {
+        m_impl->dismissed = true;
+        m_impl->on_dismiss();
+        return true;
+    }
+    return false;
+}
+
+/*******************************/
 /*           Refresh           */
 /*******************************/
 void Status_Page::refresh() {

@@ -41,17 +41,46 @@ void setup_signal_handlers() {
     }
 }
 
-// SDL event filter to intercept keyboard events
+/****************************************************************/
+/*          SDL Event Filter for Keyboard Input Routing         */
+/****************************************************************/
+/**
+ * @brief SDL event filter callback that intercepts and routes keyboard events
+ * 
+ * This filter implements a unified text-first input architecture:
+ * - Macropad keys (defined in keyboard.json) generate Action events
+ * - Standard keyboard printable keys generate TEXTINPUT + Direct_Action events
+ * - Non-printable keys (arrows, F-keys, etc.) generate only Direct_Action events
+ * 
+ * Event Flow:
+ * 1. KEYDOWN: Convert scancode → Input_Key
+ *    a) Check keyboard.json mapping → Action event (block SDL)
+ *    b) Printable keys → Direct_Action + allow TEXTINPUT (pass to SDL)
+ *    c) Non-printable keys → Direct_Action (block SDL)
+ * 
+ * 2. TEXTINPUT: UTF-8 → UTF-32 conversion → Text event (always blocked)
+ * 
+ * 3. KEYUP: Release events for keymap-mapped keys only
+ * 
+ * 4. SDL_QUIT / platform shortcuts (Cmd-Q, Ctrl-C): Set quit flag
+ * 
+ * @param userdata Pointer to SDL_Input instance
+ * @param event SDL event to process
+ * @return 0 to block event from LVGL, 1 to pass through to LVGL
+ */
 static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
+
     auto* input = static_cast<SDL_Input*>(userdata);
 
+    // SDL_QUIT Event
     if (event->type == SDL_QUIT) {
         input->set_quit(true);
-        return 0; // Don't pass to LVGL
+        return 0; // Block: we've handled quit signal
     }
 
-    // Handle keyboard events
+    // KEYDOWN Event: Route based on key type and mapping
     if (event->type == SDL_KEYDOWN && event->key.repeat == 0) {
+
         auto input_key = scancode_to_input_key(event->key.keysym.scancode);
         LOG_DEBUG("KEYDOWN: scancode=", std::to_string(event->key.keysym.scancode),
                   ", input_key=", input_key_to_string(input_key));
@@ -78,20 +107,35 @@ static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
             return 0;
         }
 #endif
+
+        // Path 1: Macropad keys defined in keyboard.json
+        // These keys have explicit layer mappings and generate Action events
         auto key_idx = input->keymap().get_key_index(input_key);
         if (key_idx.has_value()) {
             LOG_DEBUG("  -> Mapped to key_index=", std::to_string(key_idx.value()));
             input->push_event({Key_Event_Kind::Action, key_idx.value(), 0, Key_Event_Type::Press});
-            input->suppress_next_text();
-            return 0; // Don't pass to LVGL, we handled it
-        } else {
-            LOG_DEBUG("  -> NOT MAPPED, will emit Text via SDL_TEXTINPUT");
-            return 1; // Let SDL_TEXTINPUT fire for unmapped keys
+            return 0; // Block: macropad key fully handled, no TEXTINPUT needed
         }
+
+        // Path 2: Standard keyboard (not in keyboard.json)
+        // Determine if this key should generate TEXTINPUT (text-first architecture)
+        bool is_printable = (input_key >= core::Input_Key::KEY_0 && input_key <= core::Input_Key::KEY_9) ||
+                           (input_key >= core::Input_Key::KEY_A && input_key <= core::Input_Key::KEY_Z) ||
+                           (input_key >= core::Input_Key::NUMPAD_0 && input_key <= core::Input_Key::NUMPAD_ENTER) ||
+                           (input_key >= core::Input_Key::PLUS && input_key <= core::Input_Key::UNDERSCORE);
+
+        // Send Direct_Action for apps that need raw key events (e.g., navigation)
+        LOG_DEBUG("  -> Standard keyboard, passing Input_Key directly to GUI");
+        input->push_event({Key_Event_Kind::Direct_Action, 0, 0, Key_Event_Type::Press, input_key});
+        
+        // Path 2a: Printable keys → Pass to SDL for TEXTINPUT generation
+        // Path 2b: Non-printable keys (arrows, F-keys) → Block (already handled)
+        return is_printable ? 1 : 0;
+    // === KEYUP Event: Release tracking for mapped keys ===
     } else if (event->type == SDL_KEYUP) {
         auto input_key = scancode_to_input_key(event->key.keysym.scancode);
 
-        // Track modifier state
+        // Update modifier state for next keypress
         if (input_key == core::Input_Key::SHIFT) {
             input->set_shift_pressed(false);
         } else if (input_key == core::Input_Key::CONTROL) {
@@ -100,22 +144,19 @@ static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
             input->set_alt_pressed(false);
         }
 
+        // Only generate Release events for macropad keys
         auto key_idx = input->keymap().get_key_index(input_key);
         if (key_idx.has_value()) {
             input->push_event({Key_Event_Kind::Action, key_idx.value(), 0, Key_Event_Type::Release});
-            return 0; // Don't pass to LVGL, we handled it
+            return 0; // Block: we've handled the release
         }
-        return 1; // Pass to LVGL
+        return 1; // Pass: let LVGL handle standard key releases
 
     }
 
-    // Text
+    // === TEXTINPUT Event: Convert UTF-8 to UTF-32 for text input ===
     else if (event->type == SDL_TEXTINPUT) {
-        // SDL_TEXTINPUT gives us Shift-resolved UTF-8 — convert to UTF-32
-        // and emit a Text event for unmapped keys.
-        if (input->consume_text_suppression()) {
-            return 0;
-        }
+        // SDL provides Shift-resolved, OS-localized UTF-8 text
         const char* utf8 = event->text.text;
         if (utf8[0] != '\0') {
             // Decode first codepoint from UTF-8
@@ -139,10 +180,11 @@ static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
             LOG_DEBUG("SDL_TEXTINPUT: codepoint=", std::to_string(static_cast<uint32_t>(cp)));
             input->push_event({Key_Event_Kind::Text, -1, cp, Key_Event_Type::Press});
         }
-        return 0;
+        return 0; // Block: we've converted and queued the text event
     }
 
-    // Pass all other events (mouse, window, etc.) to LVGL
+    // === All Other Events: Pass to LVGL ===
+    // Mouse clicks, window events, etc. are handled by LVGL's event system
     return 1;
 }
 

@@ -87,6 +87,14 @@ bool Panel_Manager::handle_text(char32_t codepoint) {
 }
 
 /*******************************/
+/*      Handle Input Key       */
+/*******************************/
+bool Panel_Manager::handle_input_key(core::Input_Key key) {
+    if (m_stack.empty()) return false;
+    return m_panels[static_cast<std::size_t>(m_stack.back())]->handle_input_key(key);
+}
+
+/*******************************/
 /*          Refresh            */
 /*******************************/
 void Panel_Manager::refresh() {

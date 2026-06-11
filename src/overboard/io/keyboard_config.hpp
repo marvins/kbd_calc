@@ -18,6 +18,7 @@
 
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
+#include <overboard/core/keymap.hpp>
 
 namespace ovb::io {
 
@@ -120,5 +121,24 @@ std::string get_key_action_code(const Key_Definition& key_def, const Layer_Key* 
  * @return Grid layout for use in display/input systems
  */
 core::Grid_Layout to_grid_layout(const Keyboard_Config& config);
+
+/**
+ * @brief Load keyboard config with embedded fallback
+ * @param layout_path Path to keyboard.json (or parent directory containing it)
+ * @param use_embedded_fallback Whether to try embedded resource on file load failure (default: true)
+ * @return Loaded keyboard configuration
+ * @throws std::runtime_error if loading fails
+ */
+Keyboard_Config load_keyboard_config(
+    const std::filesystem::path& layout_path,
+    bool use_embedded_fallback = true
+);
+
+/**
+ * @brief Convert Keyboard_Config layers to core::Keymap
+ * @param config Keyboard configuration with layer definitions
+ * @return Initialized Keymap with all layers converted
+ */
+core::Keymap config_to_keymap(const Keyboard_Config& config);
 
 } // namespace ovb::io

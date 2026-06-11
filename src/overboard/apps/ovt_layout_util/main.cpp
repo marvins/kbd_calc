@@ -3,7 +3,7 @@
  * @author  Marvin Smith
  * @date    2026-05-22
  *
- * @brief   Command-line tool to render VIA keyboard layout as PNG
+ * @brief   Command-line tool to render keyboard layout as PNG
  */
 
 // C++ Standard Libraries
@@ -13,7 +13,7 @@
 
 // Project Libraries
 #include <overboard/apps/ovt_layout_util/config.hpp>
-#include <overboard/io/via_layout.hpp>
+#include <overboard/io/keyboard_config.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
 // Third-Party Libraries
@@ -22,27 +22,45 @@
 using namespace ovb;
 
 /**
+ * @brief Calculate layout bounds
+ */
+struct Bounds {
+    double x, y;
+};
+
+Bounds calculate_bounds(const io::Keyboard_Config& config) {
+    double max_x = 0.0, max_y = 0.0;
+    for (const auto& [id, key_def] : config.keys) {
+        double right = key_def.position.x + key_def.position.w;
+        double bottom = key_def.position.y + key_def.position.h;
+        if (right > max_x) max_x = right;
+        if (bottom > max_y) max_y = bottom;
+    }
+    return {max_x, max_y};
+}
+
+/**
  * @brief Render layout to PNG
  */
-void render_to_png(const io::Via_Layout& layout, const std::string& output_path, log::I_Logger& logger) {
+void render_to_png(const io::Keyboard_Config& config, const std::string& output_path, log::I_Logger& logger) {
     constexpr int KEY_SIZE = 60;  // pixels per key unit
     constexpr int PADDING = 6;     // pixels between keys
     constexpr int MARGIN = 20;     // pixels around the layout
 
-    // Calculate bounds from VIA coordinates
-    auto bounds = io::calculate_bounds(layout);
+    // Calculate bounds from key coordinates
+    auto bounds = calculate_bounds(config);
     int img_w = static_cast<int>(bounds.x) * KEY_SIZE + MARGIN * 2;
     int img_h = static_cast<int>(bounds.y) * KEY_SIZE + MARGIN * 2;
 
     // Create image buffer (RGB)
     std::vector<uint8_t> img(static_cast<size_t>(img_w) * static_cast<size_t>(img_h) * 3, 240); // Light gray background
 
-    // Draw keys using VIA coordinates directly
-    for (const auto& key : layout.keys) {
-        int x = static_cast<int>(key.x) * KEY_SIZE + MARGIN;
-        int y = static_cast<int>(key.y) * KEY_SIZE + MARGIN;
-        int w = static_cast<int>(key.w) * KEY_SIZE - PADDING;
-        int h = static_cast<int>(key.h) * KEY_SIZE - PADDING;
+    // Draw keys
+    for (const auto& [id, key_def] : config.keys) {
+        int x = static_cast<int>(key_def.position.x) * KEY_SIZE + MARGIN;
+        int y = static_cast<int>(key_def.position.y) * KEY_SIZE + MARGIN;
+        int w = static_cast<int>(key_def.position.w) * KEY_SIZE - PADDING;
+        int h = static_cast<int>(key_def.position.h) * KEY_SIZE - PADDING;
 
         // Log first few rectangles for debugging
         static int key_count = 0;
@@ -152,17 +170,17 @@ int main(int argc, char* argv[]) {
     }
 
     try {
-        // Build path to main.json
-        std::filesystem::path input_path = config.config_folder() / "main.json";
+        // Build path to keyboard.json
+        std::filesystem::path input_path = config.config_folder() / "keyboard.json";
 
         logger.info("Parsing: " + input_path.string());
-        io::Via_Layout via_layout = io::parse_via_layout(input_path);
+        io::Keyboard_Config keyboard_config = io::parse_keyboard_config(input_path);
 
-        logger.info("Keyboard: " + via_layout.name + "\n" +
-                    "Matrix: " + std::to_string(via_layout.matrix_rows) + "x" + std::to_string(via_layout.matrix_cols) + "\n" +
-                    "Keys: " + std::to_string(via_layout.keys.size()));
+        logger.info("Keyboard: " + keyboard_config.name + "\n" +
+                    "Keys: " + std::to_string(keyboard_config.keys.size()) + "\n" +
+                    "Layers: " + std::to_string(keyboard_config.layers.size()));
 
-        render_to_png(via_layout, config.output_path().string(), logger);
+        render_to_png(keyboard_config, config.output_path().string(), logger);
 
         logger.info("Rendered to: " + config.output_path().string());
         return 0;

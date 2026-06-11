@@ -21,11 +21,21 @@
 #include <lvgl.h>
 
 // Project Libraries
+#include <overboard/core/action_code.hpp>
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/hal/display_config.hpp>
 
 namespace ovb::gui {
+
+/**
+ * @brief Overlay key for popup hotkey display
+ */
+struct Overlay_Key {
+    int key_index;                  ///< Physical key position
+    std::string label;              ///< Display text (math notation)
+    core::Action_Code action;       ///< What it does
+};
 
 /**
  * @brief Simple keyboard layout display
@@ -74,6 +84,22 @@ class Keyboard_Display {
          * @brief Update display to match current layer
          */
         void update_layer();
+        
+        /**
+         * @brief Enable overlay mode (popup hotkeys)
+         * @param keys Overlay keys to display
+         */
+        void set_overlay_mode(const std::vector<Overlay_Key>& keys);
+        
+        /**
+         * @brief Clear overlay mode and return to normal layer
+         */
+        void clear_overlay_mode();
+        
+        /**
+         * @brief Check if overlay mode is active
+         */
+        bool is_overlay_active() const;
 
     private:
 
@@ -103,6 +129,12 @@ class Keyboard_Display {
 
         /// @brief Click callback (null if not interactive)
         Click_Callback m_click_cb;
+        
+        /// @brief Overlay mode state
+        bool m_overlay_active = false;
+        
+        /// @brief Overlay keys (popup hotkeys)
+        std::vector<Overlay_Key> m_overlay_keys;
 
         /// @brief LVGL event handler forwarded to m_click_cb
         static void on_btn_clicked(lv_event_t* e);

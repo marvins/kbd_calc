@@ -1,33 +1,12 @@
 # Project Tasks
 
-## Architecture
-
-```mermaid
-flowchart TD
-    Input["Input Layer\n(SDL keyboard / on-screen buttons)"]
-    Expr["Expression\n(AST)"]
-    Calc["Calc_Engine"]
-    Display["Display Module\n(LCD_Section / Math_Canvas)"]
-    KbdUI["Keyboard_Display\n(SDL only)"]
-    LayerMgr["Layer_Manager"]
-
-    Input --> Expr
-    Expr --> Calc
-    Calc --> Display
-    LayerMgr --> KbdUI
-    Input --> LayerMgr
-```
-
----
-
-
-## Phase 2: Calculator — Basic Algebra  ← **NEXT**
+## Phase 1: Calculator — Basic Algebra  ← **NEXT**
 
 Goal: Get the calculator working end-to-end for basic arithmetic and algebra.
 
 - [ ] **Error handling strategy** — currently `draw_math_to_canvas` silently swallows render exceptions to `std::cerr`. Define a proper policy
 - [ ] Digits, operators (`+`, `-`, `*`, `/`), parentheses all route correctly through `Calculator_App`
-- [ ] `EVAL` key evaluates the expression and displays result
+- [x] `EVAL` key evaluates the expression and displays result
 - [ ] `BACKSPACE` deletes last token
 - [ ] Cursor keys (`←`, `→`, `↑`, `↓`) move through expression
 - [ ] Negate (`+/-`) works on the current token
@@ -38,25 +17,7 @@ Goal: Get the calculator working end-to-end for basic arithmetic and algebra.
 
 ---
 
-## Phase 3: Panel System Completion
-
-Goal: Finish the panel-based navigation so the app is navigable.
-
-- [x] `I_Panel` interface defined
-- [x] `Panel_Manager` implemented
-- [x] `Status_Page` (boot screen)
-- [x] `Calculator_App` panel
-- [x] `Header_Bar` / `Footer_Bar` implemented
-- [x] `App_Menu` panel — lists available panels, allows switching
-- [x] Wire panel switching: `App_Menu` selects → `Panel_Manager` pushes new panel
-- [x] App menu accessible via designated key (F13/F14/F15 or footer slot)
-- [x] Header bar updates when active panel changes
-- [x] Footer bar labels update per active panel context
-- [x] Add unit tests for `Panel_Manager` (push/pop/route)
-
----
-
-## Phase 4: Function-Key Popup System
+## Phase 2: Function-Key Popup System
 
 Goal: F1–F5 on PicoCalc shows a popup anchored to the footer slot.
 
@@ -69,7 +30,7 @@ Goal: F1–F5 on PicoCalc shows a popup anchored to the footer slot.
 
 ---
 
-## Phase 5: PicoCalc Migration to keyboard.json
+## Phase 3: PicoCalc Migration to keyboard.json
 
 Goal: Migrate picocalc config from legacy VIA format to unified `keyboard.json`.
 
@@ -83,10 +44,34 @@ Goal: Migrate picocalc config from legacy VIA format to unified `keyboard.json`.
 
 ## Future / Backlog
 
+### Core Features
+
+- [ ] **Calculation history** — record each evaluated expression and its result in a scrollable history list on the LCD
+- [ ] **Export history** — button to export the session history as a Python script (each entry as a commented expression + assignment) or a LaTeX document (formatted as an `align` environment)
+- [ ] **Symbol layer** — dedicated layer for inserting named symbols: Greek alphabet (α β γ δ … ω), uppercase variants, and Latin letter variables (a–z)
+
+### Math Rendering
+
+- [ ] **Math-view rendering** — typeset display of evaluated expressions using the AST, shown after `=` is pressed (TI-Nspire style)
+  - [ ] `Math_Box` layout model — width, height, baseline offset per node; layout pass separate from paint pass
+  - [ ] Phase 1: numbers, binary `+`/`−`, fractions (`/` → stacked numerator/denominator with rule)
+  - [ ] Phase 2: `^` superscript (recursive scale parameter), `sqrt` with dynamic vinculum
+  - [ ] Phase 3: functions (`sin`, `cos`, etc.) with parenthesised arguments
+  - [ ] Hook `Math_Renderer` into `Display_Controller::render_lcd()` post-equals, using `last_ast`
+
+### Symbolic Math (CAS)
+
+- [ ] **Exact / approximate mode** — NSpire-style: all evaluation is symbolic (`simplify()`); pressing `≈` wraps the expression in `approx(…)` which force-evaluates to a decimal; `Node::simplify()` / `Node::clone()` scaffolding in place
+  - [ ] `Rational` type for exact integer arithmetic (`1/3 + 1/6 = 1/2`)
+  - [ ] Symbolic radicals — keep `sqrt(2)` unevaluated unless inside `approx()`
+  - [ ] Variable binding — symbol table in `Calc_State`, variable tokens via the symbol layer
+  - [ ] Differentiation — recursive AST transform `Node::differentiate(var)`
+
+### System Improvements
+
 - **Remove exceptions for embedded builds** — ARM toolchain disables exceptions by default; replace all `throw` statements with error codes, assertions, or std::optional returns throughout codebase
   - **Establish error handling policy** — define how to handle unrecoverable errors (e.g., placeholder_node::eval(), division by zero) without exceptions: assertions for programming errors, error codes for I/O failures, special return values (NaN) for math errors
 - **AST display refactor** — render expressions using layout engine (fractions, superscripts, etc.)
 - **ATAN2** action code for two-argument arctangent
 - **Animation** — smooth cursor transitions in LVGL
 - **Themes** — customisable colours and fonts
-- **CAS** — symbolic simplification/differentiation

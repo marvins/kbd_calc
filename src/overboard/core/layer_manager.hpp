@@ -75,6 +75,13 @@ class Layer_Manager {
          */
         Action_Code action_at(int key_index) const;
 
+        /**
+         * @brief Get display label at index from current layer
+         * @param key_index Key position in the layout grid
+         * @return Label string for the specified key
+         */
+        std::string label_at(int key_index) const;
+
     private:
 
         void notify_layer_change();
