@@ -69,6 +69,13 @@ class Calc_Engine {
         const Calc_State& state() const;
 
         /**
+         * @brief Get the current calculation state (mutable)
+         *
+         * @return Calc_State& Current calculation state
+         */
+        Calc_State& state();
+
+        /**
          * @brief Check if a result is currently displayed
          *
          * @return true if result is shown, false if expression is being edited

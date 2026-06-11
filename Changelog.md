@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.5.0] - 2026-06-10
+
+### Added
+- `I_System_Info` HAL interface for board statistics (CPU temp, battery, storage, USB/BT)
+- SDL implementation of system info (Linux thermal zones, `statvfs` for storage)
+- Stub implementations for PicoCalc (no battery, RP2350 temp sensor) and Pi Zero
+- Cursor navigation in expression editor (`cursor_left`, `cursor_right`, `backspace`, `delete_right`)
+- `Group_Node` AST node for parenthesized expressions with proper rendering
+- `Expression::set_number()` for continuing calculations from previous result
+- Post-evaluation continuation - result becomes starting point for next operation
+
+### Fixed
+- Exponent layout bounds fixed.  Adding an exponent will shift the equation if it's near an edge.
+- Operator insertion after grouped expressions now works correctly
+- Parenthesis handling in evaluation and AST navigation
+
+### Changed
+- HAL structure now organized by platform (sdl/, pico/, picocalc/, pi_zero/)
+
+
 ## [0.4.0] - 2026-06-10
 
 ### Added

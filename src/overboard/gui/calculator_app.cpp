@@ -222,6 +222,30 @@ bool Calculator_App::handle_input_key(core::Input_Key key) {
             refresh();
             return true;
 
+        case core::Input_Key::LEFT:
+            // Move cursor left in the expression
+            m_impl->engine.state().expression.cursor_left();
+            refresh();
+            return true;
+
+        case core::Input_Key::RIGHT:
+            // Move cursor right in the expression
+            m_impl->engine.state().expression.cursor_right();
+            refresh();
+            return true;
+
+        case core::Input_Key::BACKSPACE:
+            // Delete node to the left of cursor
+            m_impl->engine.state().expression.backspace();
+            refresh();
+            return true;
+
+        case core::Input_Key::DELETE:
+            // Delete node to the right of cursor
+            m_impl->engine.state().expression.delete_right();
+            refresh();
+            return true;
+
         case core::Input_Key::F1:
         case core::Input_Key::F2:
         case core::Input_Key::F3:

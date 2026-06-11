@@ -18,6 +18,7 @@
 #include <overboard/math/ast/number_node.hpp>
 #include <overboard/math/ast/binary_op_node.hpp>
 #include <overboard/math/ast/function_node.hpp>
+#include <overboard/math/ast/group_node.hpp>
 #include <overboard/math/operators/function_operators.hpp>
 #include <overboard/math/operators/unary_operators.hpp>
 
@@ -103,12 +104,23 @@ void Expression::insert(core::Action_Code code) {
         case AC::RECIPROCAL:  insert_function(operators::Reciprocal()); break;
         case AC::POWER_2:     insert_function(operators::Power_2()); break;
 
-        // Parentheses - in AST, grouping is implicit in tree structure
-        case AC::PAREN_OPEN:  break; // No-op, tree structure represents grouping
-        case AC::PAREN_CLOSE: break; // No-op, tree structure represents grouping
+        // Parentheses - open/close grouping mode
+        case AC::PAREN_OPEN:  insert_group(true);  break;
+        case AC::PAREN_CLOSE: insert_group(false); break;
 
         // Approx function
         case AC::APPROX:      insert_function(operators::Approx()); break;
+
+        // Layer navigation handled in Calc_Engine, not here
+        case AC::NEXT_LAYER:
+        case AC::PREV_LAYER:
+        case AC::GO_HOME_LAYER:
+        case AC::GO_CONST_LAYER:
+        case AC::GO_ALG_LAYER:
+        case AC::GO_TRIG_LAYER:
+        case AC::GO_VAR_LAYER:
+        case AC::TOGGLE_MATH_LAYOUT:
+            break;
 
         default:
             // Unknown key code - throw exception for definitive feedback
@@ -253,6 +265,17 @@ void Expression::clear() {
     m_ast_root = std::make_unique<ast::Placeholder_Node>();
     m_cursor_path = ast::Cursor_Path_Runtime();
     m_decimal_position = 0;
+    m_group_depth = 0;
+}
+
+/********************************************/
+/*            Set Number                    */
+/********************************************/
+void Expression::set_number(double value) {
+    m_ast_root = std::make_unique<ast::Number_Node>(value);
+    m_cursor_path = ast::Cursor_Path_Runtime();  // Cursor at root (the number)
+    m_decimal_position = 0;
+    m_group_depth = 0;
 }
 
 /********************************/
@@ -291,6 +314,57 @@ void Expression::remove_trailing_placeholder() {
     // Tree-based removal of trailing placeholder
     // For now, this is a no-op since the tree doesn't have a concept of "trailing"
     // This will be handled properly when we implement full tree manipulation
+}
+
+/*********************************/
+/*         Delete Right          */
+/*********************************/
+void Expression::delete_right() {
+    // Find the node to the right of cursor and replace with placeholder
+    ast::Cursor_Path_Runtime right_path = ast::cursor_right(m_ast_root.get(), m_cursor_path);
+    if (right_path == m_cursor_path) {
+        // Can't move right, nothing to delete
+        return;
+    }
+
+    // Get the node at the right position without moving cursor
+    ast::Node* node_to_delete = ast::get_node_at_path(m_ast_root.get(), right_path);
+    if (!node_to_delete) {
+        return;
+    }
+
+    // We need to replace this node with a placeholder
+    // This is tricky because we need to find its parent and replace it
+    if (right_path.empty()) {
+        // It's the root - replace root
+        m_ast_root = std::make_unique<ast::Placeholder_Node>();
+    } else {
+        // Find parent and replace the appropriate child
+        ast::Cursor_Path_Runtime parent_path = right_path.parent_path();
+        ast::Node* parent = ast::get_node_at_path(m_ast_root.get(), parent_path);
+        if (!parent) {
+            return;
+        }
+
+        size_t child_index = right_path[right_path.depth() - 1];
+
+        // Handle different parent types
+        if (auto* bin_op = dynamic_cast<ast::Binary_Op_Node*>(parent)) {
+            if (child_index == 0) {
+                bin_op->set_left(std::make_unique<ast::Placeholder_Node>());
+            } else {
+                bin_op->set_right(std::make_unique<ast::Placeholder_Node>());
+            }
+        } else if (auto* func = dynamic_cast<ast::Function_Node*>(parent)) {
+            func->set_child(child_index, std::make_unique<ast::Placeholder_Node>());
+        } else if (auto* group = dynamic_cast<ast::Group_Node*>(parent)) {
+            group->set_child(std::make_unique<ast::Placeholder_Node>());
+        } else if (auto* unary = dynamic_cast<ast::Unary_Op_Node*>(parent)) {
+            unary->set_operand(std::make_unique<ast::Placeholder_Node>());
+        } else if (auto* fact = dynamic_cast<ast::Factorial_Node*>(parent)) {
+            fact->set_operand(std::make_unique<ast::Placeholder_Node>());
+        }
+    }
 }
 
 /*********************************/
@@ -357,6 +431,21 @@ std::string Expression::eval_string() const {
             case ast::Node_Kind::FACTORIAL: {
                 const auto* fact = static_cast<const ast::Factorial_Node*>(node);
                 return to_eval_string(fact->child_at(0)) + "!";
+            }
+            case ast::Node_Kind::UNARY_OP: {
+                const auto* unary = static_cast<const ast::Unary_Op_Node*>(node);
+                std::string operand = to_eval_string(unary->operand().get());
+                std::string op_str;
+                switch (unary->op()) {
+                    case ast::Unary_Op::NEGATE:  op_str = "-"; break;
+                    case ast::Unary_Op::BIT_NOT: op_str = "~"; break;
+                    case ast::Unary_Op::PERCENT: op_str = "%"; break;
+                }
+                return op_str + operand;
+            }
+            case ast::Node_Kind::GROUP: {
+                const auto* group = static_cast<const ast::Group_Node*>(node);
+                return "(" + to_eval_string(group->child().get()) + ")";
             }
             case ast::Node_Kind::CONSTANT: {
                 const auto* const_node = static_cast<const ast::Constant_Node*>(node);
@@ -430,6 +519,21 @@ std::string Expression::render_string() const {
             case ast::Node_Kind::FACTORIAL: {
                 const auto* fact = static_cast<const ast::Factorial_Node*>(node);
                 return to_render_string(fact->child_at(0)) + "!";
+            }
+            case ast::Node_Kind::UNARY_OP: {
+                const auto* unary = static_cast<const ast::Unary_Op_Node*>(node);
+                std::string operand = to_render_string(unary->operand().get());
+                std::string op_str;
+                switch (unary->op()) {
+                    case ast::Unary_Op::NEGATE:  op_str = "-"; break;
+                    case ast::Unary_Op::BIT_NOT: op_str = "~"; break;
+                    case ast::Unary_Op::PERCENT: op_str = "%"; break;
+                }
+                return op_str + operand;
+            }
+            case ast::Node_Kind::GROUP: {
+                const auto* group = static_cast<const ast::Group_Node*>(node);
+                return "(" + to_render_string(group->child().get()) + ")";
             }
             case ast::Node_Kind::CONSTANT: {
                 const auto* const_node = static_cast<const ast::Constant_Node*>(node);
@@ -589,6 +693,19 @@ void Expression::replace_node_at_cursor( ast::Node::ptr_t new_node ) {
     } else if (parent->kind() == ast::Node_Kind::FUNCTION) {
         auto* func_node = static_cast<ast::Function_Node*>(parent);
         func_node->set_child(child_index, std::move(new_node));
+    } else if (parent->kind() == ast::Node_Kind::GROUP) {
+        auto* group_node = static_cast<ast::Group_Node*>(parent);
+        if (child_index == 0) {
+            group_node->set_child(std::move(new_node));
+        }
+    } else if (parent->kind() == ast::Node_Kind::UNARY_OP) {
+        auto* unary_node = static_cast<ast::Unary_Op_Node*>(parent);
+        if (child_index == 0) {
+            unary_node->set_operand(std::move(new_node));
+        }
+    } else if (parent->kind() == ast::Node_Kind::FACTORIAL) {
+        auto* fact_node = static_cast<ast::Factorial_Node*>(parent);
+        fact_node->set_operand(std::move(new_node));
     }
 }
 
@@ -760,6 +877,14 @@ void Expression::insert_operator( ast::Binary_Op op ) {
         replace_node_at_cursor(std::move(new_node));
         m_cursor_path.push(1);
     }
+    // If cursor is on a group, make the group the left operand
+    else if (cursor_node->kind() == ast::Node_Kind::GROUP) {
+        auto left = cursor_node->clone();
+        auto right = std::make_unique<ast::Placeholder_Node>();
+        auto new_node = std::make_unique<ast::Binary_Op_Node>(op, std::move(left), std::move(right));
+        replace_node_at_cursor(std::move(new_node));
+        m_cursor_path.push(1);
+    }
 }
 
 /********************************************/
@@ -798,6 +923,115 @@ void Expression::insert_function( const operators::I_Operator& func ) {
         auto new_node = func.create_node(std::move(args));
         replace_node_at_cursor(std::move(new_node));
         m_cursor_path.push(0); // Move cursor to argument
+    }
+}
+
+/********************************************/
+/*           Insert Group (Parens)            */
+/********************************************/
+void Expression::insert_group( bool open ) {
+
+    ast::Node* cursor_node = get_cursor_node();
+
+    if (cursor_node == nullptr) {
+        return;
+    }
+
+    // Reset decimal position when entering/exiting group
+    m_decimal_position = 0;
+
+    if (open) {
+        // Opening a group: wrap current node in a Group_Node
+        // If cursor is on a placeholder, wrap it
+        // If cursor is on an existing expression, wrap the whole expression
+
+        ast::Node::ptr_t child_to_wrap;
+
+        if (m_cursor_path.empty()) {
+            // At root - wrap the entire expression
+            child_to_wrap = std::move(m_ast_root);
+        } else {
+            // Inside a node - need to get parent and replace child
+            ast::Cursor_Path_Runtime parent_path = m_cursor_path.parent_path();
+            ast::Node* parent = ast::get_node_at_path(m_ast_root.get(), parent_path);
+
+            if (parent == nullptr) {
+                return;
+            }
+
+            // Get current index
+            size_t child_index = m_cursor_path[m_cursor_path.depth() - 1];
+
+            // Get the child to wrap
+            if (auto* bin_op = dynamic_cast<ast::Binary_Op_Node*>(parent)) {
+                if (child_index == 0) {
+                    child_to_wrap = bin_op->release_left();
+                } else {
+                    child_to_wrap = bin_op->release_right();
+                }
+            } else if (auto* func = dynamic_cast<ast::Function_Node*>(parent)) {
+                child_to_wrap = func->release_child(child_index);
+            } else if (auto* group = dynamic_cast<ast::Group_Node*>(parent)) {
+                child_to_wrap = group->release_child();
+            } else if (auto* unary = dynamic_cast<ast::Unary_Op_Node*>(parent)) {
+                child_to_wrap = unary->release_operand();
+            } else if (auto* fact = dynamic_cast<ast::Factorial_Node*>(parent)) {
+                child_to_wrap = fact->release_operand();
+            } else {
+                // Unknown parent type, can't wrap
+                return;
+            }
+        }
+
+        // Create the group node with the child
+        auto group_node = std::make_unique<ast::Group_Node>(std::move(child_to_wrap));
+
+        // Place the group node
+        if (m_cursor_path.empty()) {
+            m_ast_root = std::move(group_node);
+        } else {
+            // Replace the child with the group node at cursor path
+            // We need to navigate to parent and replace
+            ast::Cursor_Path_Runtime parent_path = m_cursor_path.parent_path();
+            ast::Node* parent = ast::get_node_at_path(m_ast_root.get(), parent_path);
+
+            if (parent != nullptr) {
+                size_t child_index = m_cursor_path[m_cursor_path.depth() - 1];
+
+                if (auto* bin_op = dynamic_cast<ast::Binary_Op_Node*>(parent)) {
+                    if (child_index == 0) {
+                        bin_op->set_left(std::move(group_node));
+                    } else {
+                        bin_op->set_right(std::move(group_node));
+                    }
+                } else if (auto* func = dynamic_cast<ast::Function_Node*>(parent)) {
+                    func->set_child(child_index, std::move(group_node));
+                } else if (auto* group = dynamic_cast<ast::Group_Node*>(parent)) {
+                    group->set_child(std::move(group_node));
+                } else if (auto* unary = dynamic_cast<ast::Unary_Op_Node*>(parent)) {
+                    unary->set_operand(std::move(group_node));
+                } else if (auto* fact = dynamic_cast<ast::Factorial_Node*>(parent)) {
+                    fact->set_operand(std::move(group_node));
+                }
+            }
+        }
+
+        // Move cursor into the group (to the child)
+        m_cursor_path.push(0);
+        m_group_depth++;
+
+    } else {
+        // Closing a group: move cursor up and out of the group
+        if (m_group_depth > 0) {
+            // Check if we're inside a group by looking at the path
+            // Navigate up to find the group node
+            if (!m_cursor_path.empty()) {
+                // Pop to parent level
+                m_cursor_path.pop();
+                m_group_depth--;
+            }
+        }
+        // If not in a group, ignore the close paren
     }
 }
 

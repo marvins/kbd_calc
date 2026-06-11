@@ -19,6 +19,7 @@
 #include <overboard/font/font_metrics.hpp>
 #include <overboard/math/ast/binary_op_node.hpp>
 #include <overboard/math/ast/function_node.hpp>
+#include <overboard/math/ast/group_node.hpp>
 #include <overboard/math/ast/node.hpp>
 #include <overboard/math/ast/unary_op_node.hpp>
 #include <overboard/math/layout/box.hpp>

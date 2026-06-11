@@ -5,7 +5,7 @@
 Goal: Get the calculator working end-to-end for basic arithmetic and algebra.
 
 - [ ] **Error handling strategy** — currently `draw_math_to_canvas` silently swallows render exceptions to `std::cerr`. Define a proper policy
-- [ ] Digits, operators (`+`, `-`, `*`, `/`), parentheses all route correctly through `Calculator_App`
+- [x] Digits, operators (`+`, `-`, `*`, `/`), parentheses all route correctly through `Calculator_App`
 - [x] `EVAL` key evaluates the expression and displays result
 - [ ] `BACKSPACE` deletes last token
 - [ ] Cursor keys (`←`, `→`, `↑`, `↓`) move through expression
@@ -17,7 +17,41 @@ Goal: Get the calculator working end-to-end for basic arithmetic and algebra.
 
 ---
 
-## Phase 2: Function-Key Popup System
+## Phase 2: Status Panel Update
+
+Goal: Refresh the status panel with a clock widget and About popup.
+
+- [ ] Update F1 footer label to "About"
+- [ ] Create About popup with build info (version, build date, git commit)
+- [ ] Update F2 footer label to "Board"
+- [ ] Create Board Stats popup with system info:
+  - [x] Define `I_System_Info` HAL interface
+- [x] SDL implementation:
+  - [x] CPU temperature (Linux `/sys/class/thermal`, macOS mock)
+  - [x] Battery (mock - no standard API on dev machines)
+  - [x] Storage stats (`statvfs`)
+  - [x] USB/BT (mock)
+  - [ ] Verify on macOS (current)
+  - [ ] Verify on Linux
+- [ ] CPU temperature:
+  - [ ] PicoCalc: RP2350 internal temperature sensor (ADC)
+  - [ ] Pi Zero: `/sys/class/thermal/thermal_zone0/temp` (implemented, needs verify)
+- [ ] Battery voltage:
+  - [ ] PicoCalc: MAX17048 via I2C
+  - [ ] Pi Zero: LiPo HAT via power_supply sysfs
+- [ ] Storage stats:
+  - [ ] PicoCalc: SD card FAT32
+  - [ ] Pi Zero: SD card (implemented, needs verify)
+- [ ] USB/BT status:
+  - [ ] PicoCalc: TinyUSB + optional BT module
+  - [ ] Pi Zero: USB gadget mode, hciconfig for BT
+- [ ] Build clock widget showing current time
+- [ ] Clock widget takes configurable width (default: half of status panel)
+- [ ] Design layout for remaining space (other half for future content)
+
+---
+
+## Phase 3: Function-Key Popup System
 
 Goal: F1–F5 on PicoCalc shows a popup anchored to the footer slot.
 
@@ -30,7 +64,7 @@ Goal: F1–F5 on PicoCalc shows a popup anchored to the footer slot.
 
 ---
 
-## Phase 3: PicoCalc Migration to keyboard.json
+## Phase 4: PicoCalc Migration to keyboard.json
 
 Goal: Migrate picocalc config from legacy VIA format to unified `keyboard.json`.
 

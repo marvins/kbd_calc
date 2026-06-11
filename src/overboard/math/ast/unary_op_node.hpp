@@ -126,6 +126,20 @@ class Unary_Op_Node : public Node {
             return nullptr;
         }
 
+        /**
+         * @brief Release the operand (for tree restructuring)
+         *
+         * @return Node::ptr_t Released operand
+         */
+        Node::ptr_t release_operand() { return std::move(m_operand); }
+
+        /**
+         * @brief Set the operand (for tree restructuring)
+         *
+         * @param node New operand
+         */
+        void set_operand( Node::ptr_t node ) { m_operand = std::move(node); }
+
     private:
 
         /// @brief The unary operation to perform

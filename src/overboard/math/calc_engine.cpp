@@ -16,6 +16,7 @@
 
 // Project Libraries
 #include <overboard/log/stdout_logger.hpp>
+#include <overboard/math/ast/number_node.hpp>
 #include <overboard/math/parser.hpp>
 
 namespace ovb::math {
@@ -30,6 +31,9 @@ Calc_Engine::Calc_Engine() {
     reset();
 }
 
+/****************************/
+/*     Reset Calculator     */
+/****************************/
 void Calc_Engine::reset() {
     m_state.expression.clear();
     m_state.display_value = "0";
@@ -37,7 +41,17 @@ void Calc_Engine::reset() {
     m_result_shown        = false;
 }
 
+/****************************/
+/*     Get Calculator State */
+/****************************/
 const Calc_State& Calc_Engine::state() const {
+    return m_state;
+}
+
+/*****************************************/
+/*     Get Calculator State (Mutable)    */
+/*****************************************/
+Calc_State& Calc_Engine::state() {
     return m_state;
 }
 
@@ -172,17 +186,22 @@ void Calc_Engine::evaluate() {
 
         std::string result_str = result->to_string();
         s_logger.debug("Evaluation result: " + result_str);
-        
-        // Push to history before clearing
+
+        // Push to history before setting result
         m_state.history.push_front({expr_str, result_str});
         if (m_state.history.size() > Calc_State::MAX_HISTORY)
             m_state.history.pop_back();
-        
-        // Clear expression and reset state for new entry
-        m_state.expression.clear();
-        m_state.display_value = "";
+
+        // Set expression to the result value so user can continue calculating
+        if (auto* num_node = dynamic_cast<ast::Number_Node*>(result.get())) {
+            m_state.expression.set_number(num_node->value());
+        } else {
+            // For non-numeric results, clear the expression
+            m_state.expression.clear();
+        }
+        m_state.display_value = result_str;
         m_state.last_ast      = nullptr;
-        m_result_shown        = false;
+        m_result_shown        = true;
     } catch (const std::exception& e) {
         s_logger.error("Evaluation error: " + std::string(e.what()) + " | Expression: " + m_state.expression.eval_string());
         m_state.error         = e.what();

@@ -13,6 +13,12 @@
 // C++ Standard Libraries
 #include <algorithm>
 
+namespace {
+    // Fraction of base height to raise superscript (must match in measure and layout)
+    inline constexpr int SUPERSCRIPT_RAISE_NUMERATOR   { 4 };
+    inline constexpr int SUPERSCRIPT_RAISE_DENOMINATOR { 5 };
+}
+
 namespace ovb::math::layout {
 
 /****************************/
@@ -122,6 +128,16 @@ Layout_Box Layout_Engine::build( const ast::Node* node, float scale ) {
 
         case ast::Node_Kind::FACTORIAL:
             return Layout_Box::atom(node->to_string(), scale);
+
+        case ast::Node_Kind::GROUP: {
+            // Group renders its child with parentheses
+            auto* group = static_cast<const ast::Group_Node*>(node);
+            std::vector<Layout_Box> boxes;
+            boxes.push_back(Layout_Box::atom("(", scale));
+            boxes.push_back(build(group->child().get(), scale));
+            boxes.push_back(Layout_Box::atom(")", scale));
+            return Layout_Box::sequence(std::move(boxes), scale);
+        }
     }
 
     return Layout_Box::atom("?", scale);
@@ -280,8 +296,8 @@ void Layout_Engine::measure(Layout_Box& box) {
             measure(base);
             measure(exp);
 
-            // Exponent sits top-right, raised by ~60% of base height
-            int raise = base.size.y * 3 / 5;
+            // Exponent sits top-right, raised above baseline
+            int raise = base.size.y * SUPERSCRIPT_RAISE_NUMERATOR / SUPERSCRIPT_RAISE_DENOMINATOR;
             box.size.x = base.size.x + exp.size.x;
             box.size.y = std::max(base.size.y, raise + exp.size.y);
             box.baseline = base.baseline;
@@ -364,7 +380,7 @@ void Layout_Engine::layout(Layout_Box& box, core::Point<int> pos) {
             layout(base, core::Point<int>(pos.x, base_y));
 
             // Exponent raised above baseline and to the right
-            int raise = base.size.y * 4 / 5;  // 80% raise for higher superscript
+            int raise = base.size.y * SUPERSCRIPT_RAISE_NUMERATOR / SUPERSCRIPT_RAISE_DENOMINATOR;
             int exp_y = pos.y + box.baseline - exp.baseline - raise;
             layout(exp, core::Point<int>(pos.x + base.size.x, exp_y));
             break;

@@ -62,6 +62,12 @@ class Expression {
         void clear();
 
         /**
+         * @brief Set the expression to a numeric value
+         * @param value The numeric value to set
+         */
+        void set_number(double value);
+
+        /**
          * @brief Get the evaluation string
          * @return The evaluation string
          */
@@ -78,6 +84,11 @@ class Expression {
          * @return The cursor glyph position
          */
         std::size_t cursor_glyph_pos() const;
+
+        /**
+         * @brief Delete node to the right of cursor (delete key)
+         */
+        void delete_right();
 
         /**
          * @brief Returns true if the expression is empty
@@ -123,6 +134,12 @@ class Expression {
         void insert_function( const operators::I_Operator& func );
 
         /**
+         * @brief Insert a group (parenthesis) at the current cursor position
+         * @param open If true, open new group; if false, close current group
+         */
+        void insert_group( bool open );
+
+        /**
          * @brief Get the node at the current cursor position
          * @return Pointer to the node at the cursor, or nullptr if invalid
          */
@@ -143,6 +160,9 @@ class Expression {
 
         /// @brief Decimal position for number editing (0 = integer mode, >0 = decimal places)
         int m_decimal_position { 0 };
+
+        /// @brief Group nesting depth (0 = not in a group)
+        int m_group_depth { 0 };
 };
 
 } // namespace ovb::math

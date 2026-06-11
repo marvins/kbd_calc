@@ -25,6 +25,7 @@ enum class Node_Kind {
     UNARY_OP,     // op operand
     FUNCTION,     // named function, one or more args
     FACTORIAL,    // n!
+    GROUP,        // parenthesis grouping — (child)
 };
 
 // Binary operations
