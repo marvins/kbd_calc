@@ -97,6 +97,28 @@ set(CORE_SOURCES
     src/overboard/math/parser.cpp
 )
 
+# ── GUI Sources ───────────────────────────────────────────────────────────────────
+set(GUI_SOURCES
+    src/overboard/gui/app_menu.cpp
+    src/overboard/gui/app_view.cpp
+    src/overboard/gui/footer_bar.cpp
+    src/overboard/gui/function_menu_popup.cpp
+    src/overboard/gui/header_bar.cpp
+    src/overboard/gui/key_mapping_info.cpp
+    src/overboard/gui/keyboard_display.cpp
+    src/overboard/gui/lcd_section.cpp
+    src/overboard/gui/lv_font_superscript.c
+    src/overboard/gui/math_canvas.cpp
+    src/overboard/gui/panel_manager.cpp
+)
+
+# ── App Sources ────────────────────────────────────────────────────────────────────
+set(APP_SOURCES
+    src/overboard/apps/calculator/calculator_app.cpp
+    src/overboard/apps/settings/settings_page.cpp
+    src/overboard/apps/status/status_page.cpp
+)
+
 # ── Build Main Application ─────────────────────────────────────────────────────────
 if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
     set(APP_TARGET calc_sim)
@@ -117,14 +139,20 @@ add_executable(${APP_TARGET}
     src/overboard/log/stdout_logger.cpp
     src/overboard/log/log_level.cpp
     ${CORE_SOURCES}
+    ${GUI_SOURCES}
+    ${APP_SOURCES}
 )
 
+#   Setup Include Paths
 target_include_directories( ${APP_TARGET} PRIVATE src )
 target_include_directories( ${APP_TARGET} PRIVATE ${CMAKE_BINARY_DIR}/src )
 target_include_directories( ${APP_TARGET} SYSTEM PRIVATE thirdparty/lvgl )
 target_include_directories( ${APP_TARGET} SYSTEM PRIVATE thirdparty/json/include )
 target_include_directories( ${APP_TARGET} SYSTEM PRIVATE ${HARDWARE_INCLUDE_DIRS} )
 
+#-------------------------------#
+#-       Link Dependencies     -#
+#-------------------------------#
 target_link_libraries(${APP_TARGET} PRIVATE
     ${APP_LIBRARIES}
     project_warnings

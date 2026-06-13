@@ -76,20 +76,6 @@ set(HARDWARE_SOURCES
     src/overboard/hal/sdl/input_key_mapping.cpp
     src/overboard/hal/sdl/keymap.cpp
     src/overboard/hal/sdl/keyboard_window.cpp
-    src/overboard/gui/app_view.cpp
-    src/overboard/gui/app_menu.cpp
-    src/overboard/gui/calculator_app.cpp
-    src/overboard/gui/footer_bar.cpp
-    src/overboard/gui/function_menu_popup.cpp
-    src/overboard/gui/header_bar.cpp
-    src/overboard/gui/key_mapping_info.cpp
-    src/overboard/gui/keyboard_display.cpp
-    src/overboard/gui/lcd_section.cpp
-    src/overboard/gui/math_canvas.cpp
-    src/overboard/gui/lv_font_superscript.c
-    src/overboard/gui/panel_manager.cpp
-    src/overboard/gui/settings_page.cpp
-    src/overboard/gui/status_page.cpp
 )
 
 # Enable keylogger for SDL (uses SDL input)
