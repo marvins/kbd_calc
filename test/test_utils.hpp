@@ -5,6 +5,7 @@
 #pragma once
 
 // C++ Standard Libraries
+#include <format>
 #include <iostream>
 #include <string>
 
@@ -29,29 +30,29 @@ inline void print_box( const math::layout::Layout_Box& box,
     std::string prefix(static_cast<std::size_t>(indent) * 2, ' ');
     switch (box.kind) {
         case Box_Kind::ATOM:
-            logger.trace("{}ATOM: \"{}\" scale={} w={} h={}", prefix, box.text, box.scale, box.size.x, box.size.y);
+            logger.trace(std::format("{}ATOM: \"{}\" scale={} w={} h={}", prefix, box.text, box.scale, box.size.x, box.size.y));
             break;
         case Box_Kind::FRACTION:
-            logger.trace("{}FRACTION w={} h={}", prefix, box.size.x, box.size.y);
+            logger.trace(std::format("{}FRACTION w={} h={}", prefix, box.size.x, box.size.y));
             print_box(box.children[0], logger, indent + 1);
             print_box(box.children[1], logger, indent + 1);
             break;
         case Box_Kind::POWER:
-            logger.trace("{}POWER w={} h={}", prefix, box.size.x, box.size.y);
+            logger.trace(std::format("{}POWER w={} h={}", prefix, box.size.x, box.size.y));
             print_box(box.children[0], logger, indent + 1);
             print_box(box.children[1], logger, indent + 1);
             break;
         case Box_Kind::SEQUENCE:
-            logger.trace("{}SEQUENCE w={} h={} children={}", prefix, box.size.x, box.size.y, box.children.size());
+            logger.trace(std::format("{}SEQUENCE w={} h={} children={}", prefix, box.size.x, box.size.y, box.children.size()));
             for (const auto& child : box.children) {
                 print_box(child, logger, indent + 1);
             }
             break;
         case Box_Kind::SUPERSCRIPT:
-            logger.trace("{}SUPERSCRIPT", prefix);
+            logger.trace(std::format("{}SUPERSCRIPT", prefix));
             break;
         case Box_Kind::SQRT:
-            logger.trace("{}SQRT w={} h={}", prefix, box.size.x, box.size.y);
+            logger.trace(std::format("{}SQRT w={} h={}", prefix, box.size.x, box.size.y));
             print_box(box.children[0], logger, indent + 1);
             break;
     }

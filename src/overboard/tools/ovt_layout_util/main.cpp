@@ -12,7 +12,7 @@
 #include <string_view>
 
 // Project Libraries
-#include <overboard/apps/ovt_layout_util/config.hpp>
+#include <overboard/tools/ovt_layout_util/config.hpp>
 #include <overboard/io/keyboard_config.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
@@ -147,7 +147,7 @@ void render_to_png(const io::Keyboard_Config& config, const std::string& output_
 int main(int argc, char* argv[]) {
 
     // Parse the command line
-    auto config_opt = ovb::apps::lutil::Config::parse(argc, argv);
+    auto config_opt = ovb::tools::lutil::Config::parse(argc, argv);
 
     if (!config_opt) {
         return 1;
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     const auto& config = *config_opt;
 
     if (config.help_requested()) {
-        ovb::apps::lutil::Config::print_usage(argv[0]);
+        ovb::tools::lutil::Config::print_usage(argv[0]);
         return 0;
     }
 
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
 
     if (config.config_folder().empty() || config.output_path().empty()) {
         logger.error("Missing required arguments");
-        ovb::apps::lutil::Config::print_usage(argv[0]);
+        ovb::tools::lutil::Config::print_usage(argv[0]);
         return 1;
     }
 

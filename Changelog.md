@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.6.0] - 2026-06-13
+
+### Added
+- `Settings_Tree` property tree API for hierarchical settings (`get<T>("display.brightness")`, `set<T>("calculator.angle_mode")`)
+- `I_Settings_Store` HAL interface for persistent settings storage
+- SDL/Pi Zero implementation using host filesystem TOML storage
+- Stub implementations for Pico (LittleFS) and PicoCalc (SD/FAT32)
+
+### Changed
+- **Project reorganization**: `apps/` renamed to `tools/`, new `apps/` created for user-facing applications
+  - Tools: `ovt_layout_util`, `test_math_render` (development utilities)
+  - Apps: `calculator/`, `status/`, `settings/` (user-facing applications)
+
+
 ## [0.5.0] - 2026-06-10
 
 ### Added

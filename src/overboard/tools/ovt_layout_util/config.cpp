@@ -5,13 +5,13 @@
  *
  * @brief   Configuration implementation for ovt_layout_util application
  */
-#include <overboard/apps/ovt_layout_util/config.hpp>
+#include <overboard/tools/ovt_layout_util/config.hpp>
 
 // C++ Standard Libraries
 #include <iostream>
 #include <string_view>
 
-namespace ovb::apps::lutil {
+namespace ovb::tools::lutil {
 
 /*********************************/
 /*          Print Usage          */
@@ -50,4 +50,4 @@ std::optional<Config> Config::parse(int argc, char* argv[]) {
     return config;
 }
 
-} // namespace ovb::apps::lutil
+} // namespace ovb::tools::lutil

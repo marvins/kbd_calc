@@ -149,10 +149,10 @@ endif()
 # Enabled per-target via hardware-specific CMakeLists.txt
 if(BUILD_KEYLOGGER)
     set(KEYLOGGER_SOURCES
-        src/tools/keylogger.cpp
         src/overboard/core/input_key.cpp
-        src/overboard/log/stdout_logger.cpp
         src/overboard/log/log_level.cpp
+        src/overboard/log/stdout_logger.cpp
+        src/overboard/tools/keylogger.cpp
     )
 
     add_executable(keylogger ${KEYLOGGER_SOURCES})
@@ -180,8 +180,8 @@ endif()
 # ── Test Math Rendering Tool (SDL-only) ───────────────────────────────────────────────
 if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
     add_executable(test_math_render
-        src/overboard/apps/test_math_render/test_math_render.cpp
-        src/overboard/apps/test_math_render/config.cpp
+        src/overboard/tools/test_math_render/test_math_render.cpp
+        src/overboard/tools/test_math_render/config.cpp
         src/overboard/font/font_metrics.cpp
         src/overboard/math/ast/binary_op_node.cpp
         src/overboard/math/ast/function_node.cpp
@@ -208,8 +208,8 @@ if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
         src/overboard/io/keyboard_config.cpp
         src/overboard/log/log_level.cpp
         src/overboard/log/stdout_logger.cpp
-        src/overboard/apps/ovt_layout_util/config.cpp
-        src/overboard/apps/ovt_layout_util/main.cpp
+        src/overboard/tools/ovt_layout_util/config.cpp
+        src/overboard/tools/ovt_layout_util/main.cpp
     )
     target_include_directories(render_layout PRIVATE src)
     target_include_directories(render_layout PRIVATE ${CMAKE_BINARY_DIR}/src)
@@ -232,7 +232,9 @@ if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQU
         test/core/test_action_code.cpp
         test/core/test_input_key.cpp
         test/font/test_font_metrics.cpp
+        test/hal/test_settings_tree.cpp
         src/overboard/core/keymap.cpp
+        src/overboard/hal/settings_tree.cpp
         src/overboard/core/action_code.cpp
         src/overboard/core/input_key.cpp
         src/overboard/core/layer_manager.cpp

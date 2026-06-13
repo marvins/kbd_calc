@@ -15,7 +15,7 @@
 // Project Libraries
 #include <overboard/log/i_logger.hpp>
 
-namespace ovb::apps::lutil {
+namespace ovb::tools::lutil {
 
 /**
  * @brief Application configuration
@@ -78,4 +78,4 @@ class Config {
         bool m_help_requested = false;
 };
 
-} // namespace ovb::apps::lutil
+} // namespace ovb::tools::lutil

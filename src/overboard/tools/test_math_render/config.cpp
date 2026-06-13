@@ -5,7 +5,7 @@
  *
  * @brief Configuration for the test_math_render application
  */
-#include <overboard/apps/test_math_render/config.hpp>
+#include <overboard/tools/test_math_render/config.hpp>
 
 // C++ Standard Library
 #include <deque>

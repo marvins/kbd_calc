@@ -17,7 +17,7 @@
 #include <vector>
 
 // Project Libraries
-#include <overboard/apps/test_math_render/config.hpp>
+#include <overboard/tools/test_math_render/config.hpp>
 #include <overboard/hal/font_5x7.hpp>
 #include <overboard/log/stdout_logger.hpp>
 #include <overboard/math/layout/engine.hpp>

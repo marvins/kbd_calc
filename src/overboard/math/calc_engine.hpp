@@ -12,6 +12,7 @@
 #include <string>
 
 // Project Libraries
+#include <overboard/core/enums.hpp>
 #include <overboard/core/input_key.hpp>
 #include <overboard/core/keymap.hpp>
 #include <overboard/math/ast/node.hpp>
@@ -28,6 +29,20 @@ struct History_Entry {
 };
 
 /**
+ * @brief Calculator settings
+ */
+struct Calc_Settings {
+    // Angle mode for trigonometric functions
+    core::Angle_Mode angle_mode = core::Angle_Mode::Degrees;
+
+    // Number format for display
+    core::Number_Format number_format = core::Number_Format::Auto;
+
+    // Decimal places when using fixed format (0-15)
+    int decimal_places = 6;
+};
+
+/**
  * @brief Calculation state for the calculator
  */
 struct Calc_State {
@@ -37,6 +52,9 @@ struct Calc_State {
     double        memory     = 0.0;
     ast::Node::ptr_t last_ast;          // populated after each successful evaluate()
     bool          use_math_layout = true; // display mode: true = math layout, false = single-line
+
+    // Calculator settings
+    Calc_Settings settings;
 
     std::deque<History_Entry> history;    // newest entries at front
     static constexpr size_t MAX_HISTORY = 20;
