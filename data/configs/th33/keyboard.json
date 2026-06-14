@@ -1,0 +1,263 @@
+{
+    "name": "TH33",
+    "description": "EpoMaker TH33 33-key numpad with arrow keys and knob",
+    "layout": {
+        "key_width": 40,
+        "key_height": 40,
+        "key_spacing": 2,
+        "origin_x": 8,
+        "origin_y": 6
+    },
+    "keys": {
+        "0": {
+            "label": "Knob",
+            "input_key": "NONE",
+            "position": {"x": 0, "y": 0, "w": 1, "h": 1}
+        },
+        "1": {
+            "label": "Esc",
+            "input_key": "ESCAPE",
+            "position": {"x": 1, "y": 0, "w": 1, "h": 1}
+        },
+        "2": {
+            "label": "Tab",
+            "input_key": "TAB",
+            "position": {"x": 2, "y": 0, "w": 1, "h": 1}
+        },
+        "3": {
+            "label": "Back",
+            "input_key": "BACKSPACE",
+            "position": {"x": 3, "y": 0, "w": 1, "h": 1}
+        },
+        "4": {
+            "label": "F1",
+            "input_key": "F1",
+            "position": {"x": 4.5, "y": 0, "w": 1, "h": 1}
+        },
+        "5": {
+            "label": "F2",
+            "input_key": "F2",
+            "position": {"x": 5.5, "y": 0, "w": 1, "h": 1}
+        },
+        "6": {
+            "label": "F3",
+            "input_key": "F3",
+            "position": {"x": 6.5, "y": 0, "w": 1, "h": 1}
+        },
+        "7": {
+            "label": "Num",
+            "input_key": "NUM_LOCK",
+            "position": {"x": 0, "y": 1.25, "w": 1, "h": 1}
+        },
+        "8": {
+            "label": "/",
+            "input_key": "NUMPAD_DIVIDE",
+            "position": {"x": 1, "y": 1.25, "w": 1, "h": 1}
+        },
+        "9": {
+            "label": "*",
+            "input_key": "NUMPAD_MULTIPLY",
+            "position": {"x": 2, "y": 1.25, "w": 1, "h": 1}
+        },
+        "10": {
+            "label": "-",
+            "input_key": "NUMPAD_SUBTRACT",
+            "position": {"x": 3, "y": 1.25, "w": 1, "h": 1}
+        },
+        "11": {
+            "label": "Ins",
+            "input_key": "INSERT",
+            "position": {"x": 4.5, "y": 1.25, "w": 1, "h": 1}
+        },
+        "12": {
+            "label": "Home",
+            "input_key": "HOME",
+            "position": {"x": 5.5, "y": 1.25, "w": 1, "h": 1}
+        },
+        "13": {
+            "label": "PgUp",
+            "input_key": "PAGE_UP",
+            "position": {"x": 6.5, "y": 1.25, "w": 1, "h": 1}
+        },
+        "14": {
+            "label": "7",
+            "input_key": "NUMPAD_7",
+            "position": {"x": 0, "y": 2.25, "w": 1, "h": 1}
+        },
+        "15": {
+            "label": "8",
+            "input_key": "NUMPAD_8",
+            "position": {"x": 1, "y": 2.25, "w": 1, "h": 1}
+        },
+        "16": {
+            "label": "9",
+            "input_key": "NUMPAD_9",
+            "position": {"x": 2, "y": 2.25, "w": 1, "h": 1}
+        },
+        "17": {
+            "label": "+",
+            "input_key": "NUMPAD_ADD",
+            "position": {"x": 3, "y": 2.25, "w": 1, "h": 2}
+        },
+        "18": {
+            "label": "Del",
+            "input_key": "DELETE",
+            "position": {"x": 4.5, "y": 2.25, "w": 1, "h": 1}
+        },
+        "19": {
+            "label": "End",
+            "input_key": "END",
+            "position": {"x": 5.5, "y": 2.25, "w": 1, "h": 1}
+        },
+        "20": {
+            "label": "PgDn",
+            "input_key": "PAGE_DOWN",
+            "position": {"x": 6.5, "y": 2.25, "w": 1, "h": 1}
+        },
+        "21": {
+            "label": "4",
+            "input_key": "NUMPAD_4",
+            "position": {"x": 0, "y": 3.25, "w": 1, "h": 1}
+        },
+        "22": {
+            "label": "5",
+            "input_key": "NUMPAD_5",
+            "position": {"x": 1, "y": 3.25, "w": 1, "h": 1}
+        },
+        "23": {
+            "label": "6",
+            "input_key": "NUMPAD_6",
+            "position": {"x": 2, "y": 3.25, "w": 1, "h": 1}
+        },
+        "24": {
+            "label": "1",
+            "input_key": "NUMPAD_1",
+            "position": {"x": 0, "y": 4.25, "w": 1, "h": 1}
+        },
+        "25": {
+            "label": "2",
+            "input_key": "NUMPAD_2",
+            "position": {"x": 1, "y": 4.25, "w": 1, "h": 1}
+        },
+        "26": {
+            "label": "3",
+            "input_key": "NUMPAD_3",
+            "position": {"x": 2, "y": 4.25, "w": 1, "h": 1}
+        },
+        "27": {
+            "label": "Enter",
+            "input_key": "NUMPAD_ENTER",
+            "position": {"x": 3, "y": 4.25, "w": 1, "h": 2}
+        },
+        "28": {
+            "label": "0",
+            "input_key": "NUMPAD_0",
+            "position": {"x": 0, "y": 5.25, "w": 2, "h": 1}
+        },
+        "29": {
+            "label": ".",
+            "input_key": "NUMPAD_DECIMAL",
+            "position": {"x": 2, "y": 5.25, "w": 1, "h": 1}
+        },
+        "30": {
+            "label": "Up",
+            "input_key": "UP",
+            "position": {"x": 5.5, "y": 3.25, "w": 1, "h": 1}
+        },
+        "31": {
+            "label": "Left",
+            "input_key": "LEFT",
+            "position": {"x": 4.5, "y": 4.25, "w": 1, "h": 1}
+        },
+        "32": {
+            "label": "Down",
+            "input_key": "DOWN",
+            "position": {"x": 5.5, "y": 4.25, "w": 1, "h": 1}
+        },
+        "33": {
+            "label": "Right",
+            "input_key": "RIGHT",
+            "position": {"x": 6.5, "y": 4.25, "w": 1, "h": 1}
+        }
+    },
+    "layers": [
+        {
+            "name": "Default",
+            "keys": {
+                "0": {"code": "NONE", "label": ""},
+                "1": {"code": "ESCAPE", "label": "Esc"},
+                "2": {"code": "TAB", "label": "Tab"},
+                "3": {"code": "BACKSPACE", "label": "Bsp"},
+                "4": {"code": "NONE", "label": "F1"},
+                "5": {"code": "NONE", "label": "F2"},
+                "6": {"code": "NONE", "label": "F3"},
+                "7": {"code": "NUM_LOCK", "label": "Num"},
+                "8": {"code": "DIVIDE", "label": "/"},
+                "9": {"code": "MULTIPLY"},
+                "10": {"code": "SUBTRACT", "label": "-"},
+                "11": {"code": "INSERT", "label": "Ins"},
+                "12": {"code": "HOME", "label": "Home"},
+                "13": {"code": "PAGE_UP", "label": "PgUp"},
+                "14": {"code": "DIGIT_7", "label": "7"},
+                "15": {"code": "DIGIT_8", "label": "8"},
+                "16": {"code": "DIGIT_9", "label": "9"},
+                "17": {"code": "ADD", "label": "+"},
+                "18": {"code": "DELETE", "label": "Del"},
+                "19": {"code": "END", "label": "End"},
+                "20": {"code": "PAGE_DOWN", "label": "PgDn"},
+                "21": {"code": "DIGIT_4", "label": "4"},
+                "22": {"code": "DIGIT_5", "label": "5"},
+                "23": {"code": "DIGIT_6", "label": "6"},
+                "24": {"code": "DIGIT_1", "label": "1"},
+                "25": {"code": "DIGIT_2", "label": "2"},
+                "26": {"code": "DIGIT_3", "label": "3"},
+                "27": {"code": "EVAL", "label": "="},
+                "28": {"code": "DIGIT_0", "label": "0"},
+                "29": {"code": "DECIMAL", "label": "."},
+                "30": {"code": "CURSOR_UP"},
+                "31": {"code": "CURSOR_LEFT"},
+                "32": {"code": "CURSOR_DOWN"},
+                "33": {"code": "CURSOR_RIGHT"}
+            }
+        },
+        {
+            "name": "Layer 2",
+            "keys": {
+                "0": {"code": "NONE", "label": ""},
+                "1": {"code": "ESCAPE", "label": "Esc"},
+                "2": {"code": "TAB", "label": "Tab"},
+                "3": {"code": "BACKSPACE", "label": "Bsp"},
+                "4": {"code": "NONE", "label": "F4"},
+                "5": {"code": "NONE", "label": "F5"},
+                "6": {"code": "NONE", "label": "F6"},
+                "7": {"code": "NUM_LOCK", "label": "Num"},
+                "8": {"code": "DIVIDE", "label": "/"},
+                "9": {"code": "MULTIPLY"},
+                "10": {"code": "SUBTRACT", "label": "-"},
+                "11": {"code": "INSERT", "label": "Ins"},
+                "12": {"code": "HOME", "label": "Home"},
+                "13": {"code": "PAGE_UP", "label": "PgUp"},
+                "14": {"code": "DIGIT_7", "label": "7"},
+                "15": {"code": "DIGIT_8", "label": "8"},
+                "16": {"code": "DIGIT_9", "label": "9"},
+                "17": {"code": "ADD", "label": "+"},
+                "18": {"code": "DELETE", "label": "Del"},
+                "19": {"code": "END", "label": "End"},
+                "20": {"code": "PAGE_DOWN", "label": "PgDn"},
+                "21": {"code": "DIGIT_4", "label": "4"},
+                "22": {"code": "DIGIT_5", "label": "5"},
+                "23": {"code": "DIGIT_6", "label": "6"},
+                "24": {"code": "DIGIT_1", "label": "1"},
+                "25": {"code": "DIGIT_2", "label": "2"},
+                "26": {"code": "DIGIT_3", "label": "3"},
+                "27": {"code": "EVAL", "label": "="},
+                "28": {"code": "DIGIT_0", "label": "0"},
+                "29": {"code": "DECIMAL", "label": "."},
+                "30": {"code": "CURSOR_UP"},
+                "31": {"code": "CURSOR_LEFT"},
+                "32": {"code": "CURSOR_DOWN"},
+                "33": {"code": "CURSOR_RIGHT"}
+            }
+        }
+    ]
+}

@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.7.1] - 2026-06-14
+
+### Changed
+- TH33 keyboard config cleaned up.
+
+### Fixed
+- Pi Zero: keys with `NONE` action code now route as raw `Input_Key` to `handle_input_key`, enabling F-key popups on hardware
+- Calculator: switching between F-key popups now correctly closes the previous popup before opening the new one
+
+
+## [0.7.0] - 2026-06-13
+
+### Added
+- TH33 keyboard configuration for EpoMaker 33-key numpad with knob and arrow keys
+- `TARGET_TH33` build target for TH33 keyboard support
+
+### Changed
+- Default keyboard configuration changed from MF34 to TH33 for SDL, Pi Zero, and RP2350 targets
+- App menu now uses key 27 as "Sel" (Enter key on TH33 layout)
+
+### Fixed
+- SDL virtual keyboard routing now prioritizes actions over text, ensuring EVAL/Enter works correctly in menus
+- Key display labels use icons instead of text for cursor arrows and multiply operator
+
+
 ## [0.6.0] - 2026-06-13
 
 ### Added

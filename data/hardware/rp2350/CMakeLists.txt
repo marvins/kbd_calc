@@ -17,7 +17,7 @@ set(PICO_SDK_PATH $ENV{PICO_SDK_PATH} CACHE PATH "Path to Raspberry Pi Pico SDK"
 # Bare RP2350 compile definitions
 set(HARDWARE_COMPILE_DEFINITIONS
     TARGET_RP2350=1
-    DEFAULT_CONFIG_PATH="data/configs/mf/"
+    DEFAULT_CONFIG_PATH="data/configs/th33/"
 )
 
 # RP2350 libraries (from Pico SDK)

@@ -41,7 +41,7 @@ message(STATUS "GBM library found: ${GBM_LIBRARY}")
 set(HARDWARE_COMPILE_DEFINITIONS
     TARGET_ZERO=1
     SIMULATOR=0
-    DEFAULT_CONFIG_PATH="data/configs/mf/"
+    DEFAULT_CONFIG_PATH="data/configs/th33/"
     EMBEDDED_JSON=1
     LV_USE_SDL=0
     LV_USE_LINUX_DRM=1
@@ -88,7 +88,7 @@ configure_file(
 )
 
 # Embed keyboard.json as C++ resource
-file(READ ${CMAKE_SOURCE_DIR}/data/configs/mf/keyboard.json JSON_CONTENT)
+file(READ ${CMAKE_SOURCE_DIR}/data/configs/th33/keyboard.json JSON_CONTENT)
 configure_file(
     ${CMAKE_SOURCE_DIR}/templates/embedded_json.hpp.in
     ${CMAKE_BINARY_DIR}/src/overboard/resources/embedded_json.hpp

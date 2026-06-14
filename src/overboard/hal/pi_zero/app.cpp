@@ -217,6 +217,13 @@ void PiZero_App::handle_key(int key_index) {
         return;
     }
 
+    // If action is NONE, pass through as raw Input_Key (for F-keys, etc.)
+    if (action == core::Action_Code::NONE) {
+        auto input_key = static_cast<core::Input_Key>(key_index);
+        m_view->handle_input_key(input_key);
+        return;
+    }
+
     // Pass action to the view for handling
     m_view->handle_input(action);
 }

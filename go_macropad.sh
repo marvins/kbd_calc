@@ -24,7 +24,7 @@ while getopts "cdxl" opt; do
     esac
 done
 
-echo "Building for SDL (MF macropad)..."
+echo "Building for SDL (TH33 macropad)..."
 
 BUILD_ARGS="-j 4 -p SDL"
 if [ $CLEAN_BUILD -eq 1 ]; then
@@ -42,9 +42,9 @@ fi
 if [ $? -eq 0 ]; then
     echo "Build successful. Starting simulator..."
     if [ $RUN_LLDB -eq 1 ]; then
-        lldb -- ./build/calc_sim --layout ./data/configs/mf -v trace
+        lldb -- ./build/calc_sim --layout ./data/configs/th33 -v trace
     else
-        ./build/calc_sim --layout ./data/configs/mf -v trace
+        ./build/calc_sim --layout ./data/configs/th33 -v trace
     fi
 else
     echo "Build failed. Check build.log for details."

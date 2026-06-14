@@ -247,10 +247,21 @@ void SDL_App::on_key_clicked(int key_index, void* user_data) {
 /*        Handle Keypress        */
 /*********************************/
 void SDL_App::handle_key(int key_index) {
-    // Virtual keyboard buttons: emit text from label if printable, else action
-    const std::string label = m_layers.label_at(key_index);
+    // Get action code first - if there's an action, route as action
+    const core::Action_Code code = m_layers.action_at(key_index);
 
-    // Check if label is a single printable character
+    // If there's a valid action (not NONE), always route as action
+    // This ensures EVAL, CURSOR_UP, etc. work correctly in menus
+    if (code != core::Action_Code::NONE) {
+        LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) +
+                  ", action_code=" + std::to_string(static_cast<int>(code)) +
+                  " (" + core::action_code_to_display(code) + ")");
+        m_view->handle_input(code);
+        return;
+    }
+
+    // No action mapped - fall back to text from label
+    const std::string label = m_layers.label_at(key_index);
     if (label.length() == 1) {
         char32_t text_char = static_cast<char32_t>(label[0]);
         LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + ", label='" + label + "' -> text");
@@ -258,10 +269,8 @@ void SDL_App::handle_key(int key_index) {
         return;
     }
 
-    // Not printable text - handle as action
-    const core::Action_Code code = m_layers.action_at(key_index);
-    LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + ", action_code=" + std::to_string(static_cast<int>(code)) + " (" + core::action_code_to_display(code) + ")");
-    m_view->handle_input(code);
+    // No action and no printable text - log and ignore
+    LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + ", no action, label='" + label + "' -> ignored");
 }
 
 /****************************************/

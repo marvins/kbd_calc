@@ -170,23 +170,6 @@ void App_View::handle_input(core::Action_Code action) {
         }
     }
 
-    // Handle function key popups (F1-F5) - only in Calculator panel
-    I_Panel* active = m_impl->panels->active_panel();
-    if (active && active->name() == "Calculator") {
-        switch (action) {
-            case core::Action_Code::FUNC_1:
-            case core::Action_Code::FUNC_2:
-            case core::Action_Code::FUNC_3:
-            case core::Action_Code::FUNC_4:
-            case core::Action_Code::FUNC_5:
-                // TODO: Show function key popup (implement popup management)
-                LOG_DEBUG("Function key pressed - popup not yet implemented");
-                return; // Don't forward to panel
-            default:
-                break;
-        }
-    }
-
     m_impl->panels->handle_input(action);
 }
 

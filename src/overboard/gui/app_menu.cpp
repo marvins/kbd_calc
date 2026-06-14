@@ -178,6 +178,7 @@ bool App_Menu::handle_input_key(core::Input_Key key) {
             }
             return true;
         case core::Input_Key::RETURN:
+        case core::Input_Key::NUMPAD_ENTER:
             // Enter/Return selects current menu item
             select_current();
             return true;
@@ -247,8 +248,8 @@ void App_Menu::select_current() {
 /*      Get Custom Label       */
 /*******************************/
 std::string App_Menu::get_custom_label(int key_index) const {
-    // In menu context, key 28 (Enter/Eval key) acts as "Select"
-    if (key_index == 28) {
+    // In menu context, key 27 (TH33 Enter/Eval key) acts as "Select"
+    if (key_index == 27) {
         return "Sel";
     }
     return ""; // Use default from keyboard.json

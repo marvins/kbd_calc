@@ -350,7 +350,7 @@ Keyboard_Config load_keyboard_config(
     if (std::filesystem::is_directory(layout_path)) {
         json_path = layout_path / "keyboard.json";
     }
-    
+
     try {
         return parse_keyboard_config(json_path);
     } catch (const std::exception& e) {
@@ -358,13 +358,13 @@ Keyboard_Config load_keyboard_config(
         if (use_embedded_fallback) {
             try {
                 return parse_keyboard_config_string(
-                    std::string(ovb::resources::embedded_json_data, 
+                    std::string(ovb::resources::embedded_json_data,
                                ovb::resources::embedded_json_size)
                 );
             } catch (const std::exception& e2) {
                 throw std::runtime_error(
-                    "Failed to load keyboard config from file (" + 
-                    std::string(e.what()) + ") and embedded resource (" + 
+                    "Failed to load keyboard config from file (" +
+                    std::string(e.what()) + ") and embedded resource (" +
                     std::string(e2.what()) + ")"
                 );
             }
@@ -388,7 +388,7 @@ core::Keymap config_to_keymap(const Keyboard_Config& config) {
         // Convert layer keys from string ID map to vector indexed by key ID
         for (const auto& [key_id_str, layer_key] : config_layer.keys) {
             std::size_t key_id = static_cast<std::size_t>(std::stoi(key_id_str));
-            
+
             // Convert code string to Action_Code
             core::Action_Code code = core::string_to_action_code(layer_key.code);
 
@@ -397,7 +397,7 @@ core::Keymap config_to_keymap(const Keyboard_Config& config) {
                 layers[i].keys.resize(key_id + 1, core::Action_Code::NONE);
                 layers[i].labels.resize(key_id + 1, "");
             }
-            
+
             layers[i].keys[key_id]   = code;
             layers[i].labels[key_id] = layer_key.label;
         }

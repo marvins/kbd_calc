@@ -268,6 +268,12 @@ bool Calculator_App::handle_input_key(core::Input_Key key) {
         case core::Input_Key::F8:
         case core::Input_Key::F9:
         case core::Input_Key::F10: {
+            // Hide any currently active popup
+            if (m_impl->active_popup) {
+                m_impl->active_popup->hide();
+                m_impl->active_popup = nullptr;
+            }
+
             // Map F-key to array index (F1=0, F2=1, ...)
             int popup_index = static_cast<int>(key) - static_cast<int>(core::Input_Key::F1);
             if (popup_index >= 0 && popup_index < F_KEY_POPUP_COUNT) {

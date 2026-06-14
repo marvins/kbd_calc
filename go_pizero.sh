@@ -34,7 +34,7 @@ if [ $? -eq 0 ]; then
     echo "To run on Pi Zero:"
     echo "  1. Copy build/calc_app to the Pi Zero"
     echo "  2. Ensure keyboard.json is in the same directory"
-    echo "  3. Run: ./calc_app --layout ./data/configs/mf -v trace"
+    echo "  3. Run: ./calc_app --layout ./data/configs/th33 -v trace"
 else
     echo "Build failed. Check build.log for details."
     tail -20 build.log

@@ -1032,7 +1032,7 @@ class KeyMapperWindow(QMainWindow):
 
 
 def main():
-    DEFAULT_CONFIG_PATH = "data/configs/mf/keyboard.json"
+    DEFAULT_CONFIG_PATH = "data/configs/th33/keyboard.json"
 
     keyboard_path = DEFAULT_CONFIG_PATH
 
