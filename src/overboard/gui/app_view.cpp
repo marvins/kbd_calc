@@ -11,17 +11,21 @@
 #include <lvgl.h>
 
 // Project Libraries
+#include <overboard/apps/app_registration.hpp>
 #include <overboard/gui/app_menu.hpp>
 #include <overboard/gui/app_registry.hpp>
-#include <overboard/gui/calculator_app.hpp>
 #include <overboard/gui/keyboard_display.hpp>
 #include <overboard/gui/lvgl_theme.hpp>
-#include <overboard/gui/settings_page.hpp>
-#include <overboard/gui/status_page.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
 namespace ovb::gui {
+
+// Use panel indices from app registration
+using ovb::apps::PANEL_STATUS;
+using ovb::apps::PANEL_CALCULATOR;
+using ovb::apps::PANEL_SETTINGS;
+using ovb::apps::PANEL_MENU;
 
 /*******************************/
 /*            Impl             */
@@ -29,9 +33,6 @@ namespace ovb::gui {
 struct App_View::Impl {
     std::unique_ptr<Panel_Manager>    panels;
     std::unique_ptr<Keyboard_Display> keyboard_display;
-    int                               calc_panel_idx { -1 };
-    int                               status_idx     { -1 };
-    int                               settings_idx   { -1 };
     int                               menu_idx       { -1 };
     int                               prev_panel_idx { PANEL_STATUS };
 
@@ -75,42 +76,30 @@ App_View::App_View( lv_obj_t*                      root,
     LOG_TRACE("App_View: Setting up Panel_Manager");
     m_impl->panels = std::make_unique<Panel_Manager>(m_impl->panel_container);
 
-    // Register all panels
-    // Calculator: ESCAPE returns to menu (pop)
-    auto calc = std::make_unique<Calculator_App>(engine, layers, [this]() {
-        m_impl->prev_panel_idx = PANEL_CALCULATOR;
-        m_impl->panels->pop();
-    });
-    m_impl->calc_panel_idx = m_impl->panels->register_panel(std::move(calc));
+    // Create app registry and register all apps
+    App_Registry registry;
+    apps::register_all_apps(
+        registry,
+        engine,
+        layers,
+        *m_impl->panels);
 
-    // Settings: ESCAPE returns to menu (pop)
-    auto settings = std::make_unique<Settings_Page>([this]() {
-        m_impl->prev_panel_idx = PANEL_SETTINGS;
-        m_impl->panels->pop();
-    });
-    m_impl->settings_idx = m_impl->panels->register_panel(std::move(settings));
+    // Get apps and menu items from registry
+    auto apps = registry.create_apps();
+    auto menu_items = registry.get_menu_items();
+    LOG_DEBUG("App_View: Created ", std::to_string(apps.size()), " apps, ", std::to_string(menu_items.size()), " menu items");
 
-    // App_Menu: selection pushes the selected panel
-    auto menu = std::make_unique<App_Menu>([this](const std::string& panel_name) {
-        if (panel_name == "Calculator") {
-            m_impl->panels->push(m_impl->calc_panel_idx);
-        } else if (panel_name == "Settings") {
-            m_impl->panels->push(m_impl->settings_idx);
-        } else if (panel_name == "Status") {
-            m_impl->panels->push(m_impl->status_idx);
-        }
-    }, m_impl->prev_panel_idx);
-    m_impl->menu_idx = m_impl->panels->register_panel(std::move(menu));
+    // App_Menu owns apps, registers them with Panel_Manager, and handles selection
+    auto menu = std::make_shared<App_Menu>(std::move(apps), *m_impl->panels, std::move(menu_items),
+        [this](int panel_index) {
+            m_impl->panels->push(panel_index);
+        }, 0);
+    m_impl->menu_idx = m_impl->panels->register_panel(menu);
+    LOG_DEBUG("App_View: Registered menu panel at index ", std::to_string(m_impl->menu_idx));
 
-    // Status: ESCAPE goes to menu (push menu panel)
-    auto status = std::make_unique<Status_Page>(layers, [this]() {
-        m_impl->prev_panel_idx = PANEL_STATUS;
-        m_impl->panels->push(m_impl->menu_idx);
-    });
-    m_impl->status_idx = m_impl->panels->register_panel(std::move(status));
-
-    // Boot to Status (menu accessible via ESCAPE from other panels)
-    m_impl->panels->push(m_impl->status_idx);
+    // Boot to menu (first item is Status)
+    m_impl->panels->push(m_impl->menu_idx);
+    LOG_DEBUG("App_View: Pushed menu panel");
 
 // Only create keyboard in main window if KBD_HEIGHT > 0 AND no separate keyboard window
 // (when KBD_WIN_HEIGHT > 0, SDL_App creates a separate Keyboard_Window instead)

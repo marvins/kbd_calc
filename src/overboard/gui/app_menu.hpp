@@ -21,11 +21,16 @@
 
 // Project Libraries
 #include <overboard/core/input_key.hpp>
+#include <overboard/gui/app_registry.hpp>
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/header_bar.hpp>
+#include <overboard/gui/i_app.hpp>
 #include <overboard/gui/i_panel.hpp>
 
 namespace ovb::gui {
+
+// Forward declaration
+class Panel_Manager;
 
 /**
  * @brief Application menu panel
@@ -38,14 +43,22 @@ class App_Menu : public I_Panel {
 
     public:
 
-        using Select_Cb = std::function<void(const std::string& panel_name)>;
+        /// @brief Callback when user selects an app
+        using Select_Cb = std::function<void(int panel_index)>;
 
         /**
          * @brief Construct the menu panel
-         * @param on_select Callback fired when user selects a panel
-         * @param initial_selection Index of panel to pre-select (0=Status, 1=Calculator, 2=Settings)
+         * @param apps Apps to own and register with Panel_Manager
+         * @param panels Panel_Manager to register apps with
+         * @param items List of menu items from App_Registry
+         * @param on_select Callback fired when user selects an app (passes panel_index)
+         * @param initial_selection Index of item to pre-select
          */
-        explicit App_Menu(Select_Cb on_select, int initial_selection = 0);
+        App_Menu( std::vector<std::shared_ptr<I_App>> apps,
+                  Panel_Manager& panels,
+                  std::vector<Menu_Item> items,
+                  Select_Cb on_select,
+                  int initial_selection = 0 );
 
         /**
          * @brief Destructor
@@ -53,14 +66,46 @@ class App_Menu : public I_Panel {
         ~App_Menu() override;
 
         /**
-         * @bri
+         * @brief Activate the menu panel
+         * @param parent Parent LVGL object
          */
         void        activate(lv_obj_t* parent) override;
+
+        /**
+         * @brief Deactivate the menu panel
+         */
         void        deactivate()               override;
+
+        /**
+         * @brief Handle input actions
+         * @param action The input action
+         * @return true if handled, false otherwise
+         */
         bool        handle_input(core::Action_Code action) override;
+
+        /**
+         * @brief Handle text input
+         * @param codepoint The Unicode codepoint
+         * @return true if handled, false otherwise
+         */
         bool        handle_text(char32_t codepoint) override;
+
+        /**
+         * @brief Handle input keys
+         * @param key The input key
+         * @return true if handled, false otherwise
+         */
         bool        handle_input_key(core::Input_Key key) override;
+
+        /**
+         * @brief Refresh the menu display
+         */
         void        refresh()                  override;
+
+        /**
+         * @brief Get the menu name
+         * @return "Menu"
+         */
         std::string name()   const             override;
 
         /**
@@ -75,8 +120,35 @@ class App_Menu : public I_Panel {
         void update_selection();
         void select_current();
 
-        struct Impl;
-        std::unique_ptr<Impl> m_impl;
+        /// @brief Owned apps
+        std::vector<std::shared_ptr<I_App>> apps;
+
+        /// @brief Panel indices from Panel_Manager
+        std::vector<int>                   panel_indices;
+
+        /// @brief Menu items
+        std::vector<Menu_Item>             menu_items;
+
+        /// @brief Select callback
+        Select_Cb                          on_select;
+
+        /// @brief Initial selection index
+        int                                initial_selection;
+
+        /// @brief Container object
+        lv_obj_t*                          container  = nullptr;
+
+        /// @brief Header bar
+        std::unique_ptr<Header_Bar>        header;
+
+        /// @brief Footer bar
+        std::unique_ptr<Footer_Bar>        footer;
+
+        /// @brief List object
+        lv_obj_t*                          list       = nullptr;
+
+        /// @brief Selected index
+        int                                selected   = 0;
 };
 
 } // namespace ovb::gui

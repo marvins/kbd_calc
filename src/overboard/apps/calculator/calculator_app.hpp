@@ -24,7 +24,7 @@
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/header_bar.hpp>
-#include <overboard/gui/i_panel.hpp>
+#include <overboard/gui/i_app.hpp>
 #include <overboard/math/calc_engine.hpp>
 
 namespace ovb::gui {
@@ -50,7 +50,7 @@ enum class Popup_Menu : int {
  * Owns an LCD_Section and routes Action_Code inputs to the Calc_Engine.
  * Layer-switch actions are handled by updating the shared Layer_Manager.
  */
-class Calculator_App : public I_Panel {
+class Calculator_App : public I_App {
     public:
 
         using Back_Cb = std::function<void()>;
@@ -111,7 +111,25 @@ class Calculator_App : public I_Panel {
          * @brief Get the panel name
          * @return Panel name as string
          */
-        std::string name()   const             override;
+        std::string name() const override { return "Calculator"; }
+
+        /**
+         * @brief Get LVGL menu icon symbol
+         * @return LVGL symbol constant
+         */
+        const char* menu_icon() const override { return LV_SYMBOL_KEYBOARD; }
+
+        /**
+         * @brief Get menu display priority
+         * @return Priority value (1 = second in menu after Status)
+         */
+        int menu_priority() const override { return 1; }
+
+        /**
+         * @brief Get menu mnemonic hotkey
+         * @return 'c' for Calculator
+         */
+        char menu_hotkey() const override { return 'c'; }
 
         /**
          * @brief Get custom label for keys in calculator context

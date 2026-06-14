@@ -5,10 +5,11 @@
  *
  * @brief   Settings page panel implementation
  */
-#include <overboard/gui/settings_page.hpp>
+#include <overboard/apps/settings/settings_page.hpp>
 
 // Project Libraries
 #include <overboard/gui/lvgl_theme.hpp>
+#include <overboard/hal/display_config.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
 namespace ovb::gui {
@@ -50,7 +51,8 @@ void Settings_Page::activate(lv_obj_t* parent) {
     lv_obj_set_style_pad_all(m_impl->container, 0, LV_PART_MAIN);
     lv_obj_clear_flag(m_impl->container, LV_OBJ_FLAG_SCROLLABLE);
 
-    const int width = lv_obj_get_width(parent);
+    // Use explicit dimensions - parent may not be laid out yet
+    const int width = hal::LCD_WIDTH;
 
     // Header bar
     m_impl->header = std::make_unique<Header_Bar>(m_impl->container, width);
@@ -95,13 +97,6 @@ bool Settings_Page::handle_input(core::Action_Code action) {
 /*******************************/
 void Settings_Page::refresh() {
     // Static page — nothing to update
-}
-
-/*******************************/
-/*            Name             */
-/*******************************/
-std::string Settings_Page::name() const {
-    return "Settings";
 }
 
 } // namespace ovb::gui

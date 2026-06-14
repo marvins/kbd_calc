@@ -22,7 +22,7 @@
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/header_bar.hpp>
-#include <overboard/gui/i_panel.hpp>
+#include <overboard/gui/i_app.hpp>
 
 namespace ovb::gui {
 
@@ -33,7 +33,7 @@ namespace ovb::gui {
  * callback when the user presses any key, allowing Panel_Manager
  * to switch to the next panel.
  */
-class Status_Page : public I_Panel {
+class Status_Page : public I_App {
     public:
 
         using Dismiss_Cb = std::function<void()>;
@@ -84,7 +84,25 @@ class Status_Page : public I_Panel {
          * @brief Get the name of the status page
          * @return Name string
          */
-        std::string name() const override;
+        std::string name() const override { return "Status"; }
+
+        /**
+         * @brief Get LVGL menu icon symbol
+         * @return LVGL symbol constant
+         */
+        const char* menu_icon() const override { return LV_SYMBOL_FILE; }
+
+        /**
+         * @brief Get menu display priority
+         * @return Priority value (0 = first in menu)
+         */
+        int menu_priority() const override { return 0; }
+
+        /**
+         * @brief Get menu mnemonic hotkey
+         * @return 's' for Status
+         */
+        char menu_hotkey() const override { return 's'; }
 
     private:
 

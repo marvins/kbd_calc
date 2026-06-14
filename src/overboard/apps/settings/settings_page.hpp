@@ -20,7 +20,7 @@
 // Project Libraries
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/header_bar.hpp>
-#include <overboard/gui/i_panel.hpp>
+#include <overboard/gui/i_app.hpp>
 
 namespace ovb::gui {
 
@@ -29,7 +29,7 @@ namespace ovb::gui {
  *
  * Stub panel for application settings. ESCAPE returns to menu.
  */
-class Settings_Page : public I_Panel {
+class Settings_Page : public I_App {
 
     public:
 
@@ -74,7 +74,25 @@ class Settings_Page : public I_Panel {
          * @brief Get the name of the settings page
          * @return Name of the settings page
          */
-        std::string name()   const             override;
+        std::string name() const override { return "Settings"; }
+
+        /**
+         * @brief Get LVGL menu icon symbol
+         * @return LVGL symbol constant
+         */
+        const char* menu_icon() const override { return LV_SYMBOL_SETTINGS; }
+
+        /**
+         * @brief Get menu display priority
+         * @return Priority value (2 = third in menu)
+         */
+        int menu_priority() const override { return 2; }
+
+        /**
+         * @brief Get menu mnemonic hotkey
+         * @return 'g' for Settings (g for configuration)
+         */
+        char menu_hotkey() const override { return 'g'; }
 
     private:
 

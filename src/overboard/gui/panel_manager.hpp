@@ -44,14 +44,17 @@ class Panel_Manager {
          */
         explicit Panel_Manager(lv_obj_t* parent);
 
+        /**
+         * @brief Destructor
+         */
         ~Panel_Manager() = default;
 
         /**
          * @brief Register a panel and return its assigned index
-         * @param panel Owning pointer to the panel
+         * @param panel Shared pointer to the panel
          * @return Index that can be passed to push()
          */
-        int register_panel(std::unique_ptr<I_Panel> panel);
+        int register_panel(std::shared_ptr<I_Panel> panel);
 
         /**
          * @brief Push a panel onto the stack and activate it
@@ -109,7 +112,7 @@ class Panel_Manager {
         lv_obj_t*                              m_parent;
 
         /// @brief Registered panels by index
-        std::vector<std::unique_ptr<I_Panel>>  m_panels;
+        std::vector<std::shared_ptr<I_Panel>>  m_panels;
 
         /// @brief Stack of active panel indices
         std::vector<int>                       m_stack;

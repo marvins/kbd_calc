@@ -116,6 +116,71 @@ graph TB
     style theme fill:#e1ffe1
 ```
 
+## GUI Module Breakout
+
+```mermaid
+graph TB
+    subgraph "GUI Layer"
+        subgraph "App Management"
+            app_view[App_View]
+            panel_mgr[Panel_Manager]
+            app_registry[App_Registry]
+            app_reg[app_registration.hpp]
+        end
+
+        subgraph "Panels"
+            app_menu[App_Menu]
+            calc_app[Calculator_App]
+            status_page[Status_Page]
+            settings_page[Settings_Page]
+            keymap_info[Key_Mapping_Info]
+        end
+
+        subgraph "Display Components"
+            lcd_section[LCD_Section]
+            kbd_display[Keyboard_Display]
+            header_bar[Header_Bar]
+            footer_bar[Footer_Bar]
+        end
+    end
+
+    app_view --> panel_mgr
+    app_view --> app_registry
+    app_view --> lcd_section
+    app_view --> kbd_display
+
+    app_registry --> app_reg
+    app_registry --> app_menu
+
+    app_menu --> panel_mgr
+    app_menu --> calc_app
+    app_menu --> status_page
+    app_menu --> settings_page
+
+    panel_mgr --> calc_app
+    panel_mgr --> status_page
+    panel_mgr --> settings_page
+    panel_mgr --> app_menu
+    panel_mgr --> keymap_info
+
+    lcd_section --> header_bar
+    lcd_section --> footer_bar
+
+    style app_view fill:#e1f5ff
+    style panel_mgr fill:#ffe1f5
+    style app_registry fill:#fff4e1
+    style app_reg fill:#e1ffe1
+    style app_menu fill:#ffe1f5
+    style calc_app fill:#e1ffe1
+    style status_page fill:#e1ffe1
+    style settings_page fill:#e1ffe1
+    style keymap_info fill:#e1ffe1
+    style lcd_section fill:#fff4e1
+    style kbd_display fill:#fff4e1
+    style header_bar fill:#ffe1f5
+    style footer_bar fill:#ffe1f5
+```
+
 ## SDL Simulator Class Diagram
 
 ```mermaid

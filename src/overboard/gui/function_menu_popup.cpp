@@ -28,7 +28,7 @@ struct Function_Menu_Popup::Impl {
     lv_obj_t*              container;
     lv_obj_t*              list;
     std::string            title;
-    std::vector<Menu_Item> items;
+    std::vector<Function_Menu_Item> items;
     std::vector<lv_obj_t*> item_labels;  // Track menu item labels for scrolling
     Select_Cb              on_select;
     int                    selected_index;
@@ -36,7 +36,7 @@ struct Function_Menu_Popup::Impl {
 
     Impl(lv_obj_t*                     p,
          const std::string&            t,
-         const std::vector<Menu_Item>& itms,
+         const std::vector<Function_Menu_Item>& itms,
          Select_Cb                     cb)
         : parent(p)
         , container(nullptr)
@@ -46,7 +46,9 @@ struct Function_Menu_Popup::Impl {
         , on_select(std::move(cb))
         , selected_index(0)
         , visible(false)
-    {}
+    {
+        LOG_DEBUG("Function_Menu_Popup::Impl: constructor, itms.size()=" + std::to_string(itms.size()) + ", items.size()=" + std::to_string(items.size()));
+    }
 };
 
 /****************************/
@@ -54,10 +56,11 @@ struct Function_Menu_Popup::Impl {
 /****************************/
 Function_Menu_Popup::Function_Menu_Popup(lv_obj_t*                     parent,
                                          const std::string&            title,
-                                         const std::vector<Menu_Item>& items,
+                                         const std::vector<Function_Menu_Item>& items,
                                          Select_Cb                     on_select)
     : m_impl(std::make_unique<Impl>(parent, title, items, std::move(on_select)))
 {
+    LOG_DEBUG("Function_Menu_Popup: constructor complete, items.size()=" + std::to_string(m_impl->items.size()));
 }
 
 /****************************/
@@ -107,16 +110,16 @@ void Function_Menu_Popup::show() {
     for (size_t i = 0; i < m_impl->items.size(); ++i) {
         lv_obj_t* item = lv_label_create(m_impl->list);
         lv_label_set_text(item, m_impl->items[i].label.c_str());
-        
+
         // Use custom font for math symbols
         if (font::requires_custom_font(m_impl->items[i].label)) {
             lv_obj_set_style_text_font(item, &lv_font_superscript, LV_PART_MAIN);
         } else {
             lv_obj_set_style_text_font(item, LVGL_FONT_DEFAULT, LV_PART_MAIN);
         }
-        
+
         lv_obj_set_style_pad_all(item, 8, LV_PART_MAIN);
-        
+
         // Highlight selected item
         if (i == static_cast<size_t>(m_impl->selected_index)) {
             lv_obj_set_style_bg_color(item, lvgl_color(LVGL_COLOR_ACCENT_BLUE), LV_PART_MAIN);
@@ -125,10 +128,10 @@ void Function_Menu_Popup::show() {
         } else {
             lv_obj_set_style_text_color(item, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
         }
-        
+
         m_impl->item_labels.push_back(item);
     }
-    
+
     // Scroll to selected item
     if (m_impl->selected_index >= 0 && m_impl->selected_index < static_cast<int>(m_impl->item_labels.size())) {
         lv_obj_scroll_to_view(m_impl->item_labels[static_cast<size_t>(m_impl->selected_index)], LV_ANIM_OFF);
@@ -212,16 +215,16 @@ void Function_Menu_Popup::render() {
     for (size_t i = 0; i < m_impl->items.size(); ++i) {
         lv_obj_t* item = lv_label_create(m_impl->list);
         lv_label_set_text(item, m_impl->items[i].label.c_str());
-        
+
         // Use custom font for math symbols
         if (font::requires_custom_font(m_impl->items[i].label)) {
             lv_obj_set_style_text_font(item, &lv_font_superscript, LV_PART_MAIN);
         } else {
             lv_obj_set_style_text_font(item, LVGL_FONT_DEFAULT, LV_PART_MAIN);
         }
-        
+
         lv_obj_set_style_pad_all(item, 8, LV_PART_MAIN);
-        
+
         // Highlight selected item
         if (i == static_cast<size_t>(m_impl->selected_index)) {
             lv_obj_set_style_bg_color(item, lvgl_color(LVGL_COLOR_ACCENT_BLUE), LV_PART_MAIN);
@@ -230,10 +233,10 @@ void Function_Menu_Popup::render() {
         } else {
             lv_obj_set_style_text_color(item, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
         }
-        
+
         m_impl->item_labels.push_back(item);
     }
-    
+
     // Scroll to selected item with animation
     if (m_impl->selected_index >= 0 && m_impl->selected_index < static_cast<int>(m_impl->item_labels.size())) {
         lv_obj_scroll_to_view(m_impl->item_labels[static_cast<size_t>(m_impl->selected_index)], LV_ANIM_ON);
@@ -243,7 +246,7 @@ void Function_Menu_Popup::render() {
 /****************************/
 /*         Items            */
 /****************************/
-const std::vector<Menu_Item>& Function_Menu_Popup::items() const {
+const std::vector<Function_Menu_Item>& Function_Menu_Popup::items() const {
     return m_impl->items;
 }
 

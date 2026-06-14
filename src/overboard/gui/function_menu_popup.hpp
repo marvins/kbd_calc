@@ -27,18 +27,20 @@ namespace ovb::gui {
 /**
  * @brief Menu item for function popup
  */
-struct Menu_Item {
+struct Function_Menu_Item {
     std::string         label;        ///< Display label
     core::Action_Code   action;       ///< Action to execute
     int                 key_index;    ///< Optional hotkey (keyboard display overlay), -1 = none
-    
+
     /**
      * @brief Construct a menu item
      * @param lbl Display label
      * @param act Action to execute
      * @param key_idx Optional hotkey (keyboard display overlay), -1 = none
      */
-    Menu_Item(std::string lbl, core::Action_Code act, int key_idx = -1)
+    Function_Menu_Item( std::string lbl,
+                        core::Action_Code act,
+                        int key_idx = -1 )
         : label(std::move(lbl)), action(act), key_index(key_idx) {}
 };
 
@@ -64,10 +66,10 @@ class Function_Menu_Popup : public I_Popup {
          * @param items List of menu items
          * @param on_select Callback when item is selected
          */
-        Function_Menu_Popup(lv_obj_t*                   parent,
-                           const std::string&           title,
-                           const std::vector<Menu_Item>& items,
-                           Select_Cb                    on_select);
+        Function_Menu_Popup( lv_obj_t*                              parent,
+                             const std::string&                     title,
+                             const std::vector<Function_Menu_Item>& items,
+                             Select_Cb                              on_select );
 
         /**
          * @brief Destructor
@@ -83,21 +85,21 @@ class Function_Menu_Popup : public I_Popup {
          * @brief Hide the popup
          */
         void hide() override;
-        
+
         /**
          * @brief Handle input key
          */
         bool handle_input(core::Input_Key key) override;
-        
+
         /**
          * @brief Render the popup
          */
         void render() override;
-        
+
         /**
          * @brief Get menu items (for hotkey overlay)
          */
-        const std::vector<Menu_Item>& items() const;
+        const std::vector<Function_Menu_Item>& items() const;
 
     private:
 

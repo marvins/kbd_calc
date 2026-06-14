@@ -5,7 +5,7 @@
  *
  * @brief   Calculator application panel implementation
  */
-#include <overboard/gui/calculator_app.hpp>
+#include <overboard/apps/calculator/calculator_app.hpp>
 
 // C++ Standard Libraries
 #include <array>
@@ -70,7 +70,9 @@ Calculator_App::Calculator_App(math::Calc_Engine& engine,
 /*******************************/
 /*          Destructor         */
 /*******************************/
-Calculator_App::~Calculator_App() = default;
+Calculator_App::~Calculator_App() {
+    LOG_DEBUG("Calculator_App: destructor");
+}
 
 /*******************************/
 /*           Activate          */
@@ -102,8 +104,11 @@ void Calculator_App::activate(lv_obj_t* parent) {
     lv_obj_set_style_radius(lcd_parent, 0, LV_PART_MAIN);
     lv_obj_clear_flag(lcd_parent, LV_OBJ_FLAG_SCROLLABLE);
 
+    LOG_DEBUG("Calculator_App: creating LCD_Section");
     m_impl->lcd = std::make_unique<LCD_Section>(m_impl->engine, m_impl->layers);
+    LOG_DEBUG("Calculator_App: building LCD_Section");
     m_impl->lcd->build(lcd_parent, width, lcd_h);
+    LOG_DEBUG("Calculator_App: LCD_Section built");
 
     // Footer bar — decorative only, navigation via ESCAPE
     m_impl->footer = std::make_unique<Footer_Bar>(m_impl->container, width);
@@ -115,33 +120,40 @@ void Calculator_App::activate(lv_obj_t* parent) {
         refresh();
     };
 
-    // F1: Alg menu - using UTF-8 encoded math symbols
-    std::vector<Menu_Item> alg_items = {
-        {"1/x",                        core::Action_Code::RECIPROCAL},   // Reciprocal (renders as fraction)
-        {"x\xC2\xB2",                  core::Action_Code::POWER_2},      // x² (superscript 2)
-        {"x^y",                        core::Action_Code::POWER_N},      // Power (superscript y)
-        {"\xE2\x88\x9A""x",            core::Action_Code::SQRT},         // √x (square root symbol)
-        {"\xE2\x81\xBF\xE2\x88\x9A""x", core::Action_Code::NONE}         // ⁿ√x (nth root - TODO)
+    // F1: Alg menu
+    std::vector<Function_Menu_Item> alg_items = {
+        {"1/x",   core::Action_Code::RECIPROCAL},
+        {"x^2",   core::Action_Code::POWER_2},
+        {"x^y",   core::Action_Code::POWER_N},
+        {"sqrt",  core::Action_Code::SQRT},
+        {"nroot", core::Action_Code::NONE}
     };
+    LOG_DEBUG("Calculator_App: alg_items.size()=" + std::to_string(alg_items.size()) + " before creating popup");
+    LOG_DEBUG("Calculator_App: creating Alg popup");
     m_impl->f_key_popups[static_cast<int>(Popup_Menu::Alg)] =
         std::make_unique<Function_Menu_Popup>(m_impl->container, "Alg", alg_items, menu_callback);
+    LOG_DEBUG("Calculator_App: Alg popup created");
 
     // F2: Trig menu
-    std::vector<Menu_Item> trig_items = {
-        {"Sin",    core::Action_Code::SIN},
-        {"Cos",    core::Action_Code::COS},
-        {"Tan",    core::Action_Code::TAN},
-        {"Atan2",  core::Action_Code::NONE},  // TODO: Implement ATAN2
-        {"ASin",   core::Action_Code::ASIN},
-        {"ACos",   core::Action_Code::ACOS},
-        {"ATan",   core::Action_Code::ATAN},
-        {"Sec",    core::Action_Code::NONE},  // TODO: Implement SEC
-        {"Cosec",  core::Action_Code::NONE}   // TODO: IMPLEMENT COSEC
+    std::vector<Function_Menu_Item> trig_items = {
+        {"Sin",   core::Action_Code::SIN},
+        {"Cos",   core::Action_Code::COS},
+        {"Tan",   core::Action_Code::TAN},
+        {"Atan2", core::Action_Code::NONE},
+        {"ASin",  core::Action_Code::ASIN},
+        {"ACos",  core::Action_Code::ACOS},
+        {"ATan",  core::Action_Code::ATAN},
+        {"Sec",   core::Action_Code::NONE},
+        {"Cosec", core::Action_Code::NONE}
     };
+    LOG_DEBUG("Calculator_App: trig_items.size()=" + std::to_string(trig_items.size()) + " before creating popup");
+    LOG_DEBUG("Calculator_App: creating Trig popup");
     m_impl->f_key_popups[static_cast<int>(Popup_Menu::Trig)] =
         std::make_unique<Function_Menu_Popup>(m_impl->container, "Trig", trig_items, menu_callback);
+    LOG_DEBUG("Calculator_App: Trig popup created");
 
     // F3-F10: Available for future menus
+    LOG_DEBUG("Calculator_App: activate complete");
 }
 
 /*******************************/
@@ -336,13 +348,6 @@ void Calculator_App::refresh() {
     if (m_impl->lcd) {
         m_impl->lcd->refresh();
     }
-}
-
-/*******************************/
-/*            Name             */
-/*******************************/
-std::string Calculator_App::name() const {
-    return "Calculator";
 }
 
 /*******************************/

@@ -21,7 +21,7 @@ Panel_Manager::Panel_Manager(lv_obj_t* parent)
 /*******************************/
 /*       Register Panel        */
 /*******************************/
-int Panel_Manager::register_panel(std::unique_ptr<I_Panel> panel) {
+int Panel_Manager::register_panel(std::shared_ptr<I_Panel> panel) {
     const int index = static_cast<int>(m_panels.size());
     LOG_DEBUG("Panel_Manager: registering panel '", panel->name(), "' at index ", std::to_string(index));
     m_panels.push_back(std::move(panel));
@@ -32,6 +32,7 @@ int Panel_Manager::register_panel(std::unique_ptr<I_Panel> panel) {
 /*           Push              */
 /*******************************/
 void Panel_Manager::push(int index) {
+    LOG_DEBUG("Panel_Manager::push: index=", std::to_string(index), ", total_panels=", std::to_string(m_panels.size()));
     if (index < 0 || index >= static_cast<int>(m_panels.size())) {
         LOG_DEBUG("Panel_Manager::push: invalid index ", std::to_string(index));
         return;

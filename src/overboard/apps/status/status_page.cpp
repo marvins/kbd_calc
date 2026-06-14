@@ -5,10 +5,11 @@
  *
  * @brief   Status page panel implementation
  */
-#include <overboard/gui/status_page.hpp>
+#include <overboard/apps/status/status_page.hpp>
 
 // Project Libraries
 #include <overboard/gui/lvgl_theme.hpp>
+#include <overboard/hal/display_config.hpp>
 #include <overboard/log/stdout_logger.hpp>
 #include <overboard/version.hpp>
 
@@ -55,8 +56,10 @@ void Status_Page::activate(lv_obj_t* parent) {
     lv_obj_set_style_pad_all(m_impl->container, 0, LV_PART_MAIN);
     lv_obj_clear_flag(m_impl->container, LV_OBJ_FLAG_SCROLLABLE);
 
+    // Use explicit dimensions - parent may not be laid out yet
+    const int width = hal::LCD_WIDTH;
+
     // Header bar
-    const int width = lv_obj_get_width(parent);
     m_impl->header = std::make_unique<Header_Bar>(m_impl->container, width);
     m_impl->header->set_app_name("kbd_calc — Status");
 
@@ -130,13 +133,6 @@ bool Status_Page::handle_input_key(core::Input_Key key) {
 /*******************************/
 void Status_Page::refresh() {
     // Static page — nothing to update
-}
-
-/*******************************/
-/*            Name             */
-/*******************************/
-std::string Status_Page::name() const {
-    return "Status";
 }
 
 } // namespace ovb::gui

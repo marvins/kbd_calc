@@ -172,13 +172,18 @@ void Key_Mapping_Info::build_keys(lv_obj_t* parent) {
 /*       Layer Update      */
 /***************************/
 void Key_Mapping_Info::update_layer() {
+    LOG_DEBUG("Key_Mapping_Info::update_layer: starting");
     const auto& layer = m_layers.current_layer();
     const std::size_t key_count = m_key_labels.size();
+    LOG_DEBUG("Key_Mapping_Info::update_layer: key_count=", std::to_string(key_count));
 
     // Update header label
+    LOG_DEBUG("Key_Mapping_Info::update_layer: updating header");
     const std::string layer_text = "Layer: " + std::string(layer.name);
     lv_label_set_text(m_header_label, layer_text.c_str());
+    LOG_DEBUG("Key_Mapping_Info::update_layer: header updated");
 
+    LOG_DEBUG("Key_Mapping_Info::update_layer: entering loop");
     for (std::size_t i = 0; i < key_count; ++i) {
         if (!m_key_labels[i]) continue;
         // Get display text: custom panel label > JSON label > action code display
@@ -199,6 +204,7 @@ void Key_Mapping_Info::update_layer() {
             lv_obj_clear_flag(m_key_labels[i], LV_OBJ_FLAG_HIDDEN);
         }
     }
+    LOG_DEBUG("Key_Mapping_Info::update_layer: complete");
 }
 
 /***************************/

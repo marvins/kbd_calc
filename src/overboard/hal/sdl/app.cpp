@@ -168,9 +168,13 @@ bool SDL_App::init() {
 
         // Subscribe to panel changes to update Key_Mapping_Info labels
         m_view->set_panel_change_callback([this]([[maybe_unused]] gui::I_Panel* panel) {
+            LOG_DEBUG("SDL_App: panel change callback, panel='", panel ? panel->name() : "null", "'");
             if (m_key_mapping_info) {
+                LOG_DEBUG("SDL_App: calling update_layer");
                 m_key_mapping_info->update_layer();
+                LOG_DEBUG("SDL_App: update_layer done");
             }
+            LOG_DEBUG("SDL_App: panel change callback complete");
         });
 #endif
 
@@ -245,7 +249,7 @@ void SDL_App::on_key_clicked(int key_index, void* user_data) {
 void SDL_App::handle_key(int key_index) {
     // Virtual keyboard buttons: emit text from label if printable, else action
     const std::string label = m_layers.label_at(key_index);
-    
+
     // Check if label is a single printable character
     if (label.length() == 1) {
         char32_t text_char = static_cast<char32_t>(label[0]);
@@ -253,7 +257,7 @@ void SDL_App::handle_key(int key_index) {
         m_view->handle_text(text_char);
         return;
     }
-    
+
     // Not printable text - handle as action
     const core::Action_Code code = m_layers.action_at(key_index);
     LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + ", action_code=" + std::to_string(static_cast<int>(code)) + " (" + core::action_code_to_display(code) + ")");

@@ -39,53 +39,61 @@ namespace ovb::gui {
  * - History table for previous calculations
  * - Canvas for typeset mathematical expression preview
  */
-struct LCD_Section {
+class LCD_Section {
 
-    /// @brief LVGL object for the bezel container
-    lv_obj_t*     bezel          = nullptr;
+    public:
 
-    /// @brief LVGL object for the history table
-    lv_obj_t*     table          = nullptr;
+        /**
+         * @brief Construct LCD section
+         * @param engine Reference to calculation engine for expression state
+         * @param layers Reference to layer manager for display configuration
+         */
+        LCD_Section(const math::Calc_Engine& engine, const core::Layer_Manager& layers);
 
-    /// @brief LVGL object for the preview canvas
-    lv_obj_t*     preview_canvas = nullptr;
+        /**
+         * @brief Destructor - must delete LVGL objects before m_canvas_buf is freed
+         */
+        virtual ~LCD_Section();
 
-    /// @brief Vector of history cells (expression and result)
-    std::vector<std::pair<lv_obj_t*, lv_obj_t*>> history_cells;
+        /**
+         * @brief Build the LCD section UI
+         * @param parent Parent LVGL object
+         * @param width Width of the section
+         * @param height Height of the section
+         */
+        void build(lv_obj_t* parent, int width, int height);
 
-    /// @brief Canvas buffer for expression preview (RAII-managed)
-    std::vector<uint32_t> canvas_buf;  ///< Canvas buffer for expression preview (RAII-managed)
+        /**
+         * @brief Refresh the LCD section UI
+         */
+        void refresh();
 
-    /// @brief Reference to calculation engine for expression state
-    const math::Calc_Engine&   engine;
+    private:
 
-    /// @brief Reference to layer manager for display configuration
-    const core::Layer_Manager& layers;
+        /// @brief LVGL object for the bezel container
+        lv_obj_t*     m_bezel          = nullptr;
 
-    /// @brief Layout engine for typesetting mathematical expressions
-    /// Initialized in build() after LVGL fonts are ready
-    std::optional<math::layout::Layout_Engine> layout_engine;
+        /// @brief LVGL object for the history table
+        lv_obj_t*     m_table          = nullptr;
 
-    /**
-     * @brief Construct LCD section
-     * @param e Reference to calculation engine for expression state
-     * @param l Reference to layer manager for display configuration
-     */
-    LCD_Section(const math::Calc_Engine& e, const core::Layer_Manager& l)
-        : engine(e), layers(l) {}
+        /// @brief LVGL object for the preview canvas
+        lv_obj_t*     m_preview_canvas = nullptr;
 
-    /**
-     * @brief Build the LCD section UI
-     * @param parent Parent LVGL object
-     * @param width Width of the section
-     * @param height Height of the section
-     */
-    void build(lv_obj_t* parent, int width, int height);
+        /// @brief Vector of history cells (expression and result)
+        std::vector<std::pair<lv_obj_t*, lv_obj_t*>> m_history_cells;
 
-    /**
-     * @brief Refresh the LCD section UI
-     */
-    void refresh();
+        /// @brief Canvas buffer for expression preview (RAII-managed)
+        std::vector<uint32_t> m_canvas_buf;  ///< Canvas buffer for expression preview (RAII-managed)
+
+        /// @brief Reference to calculation engine for expression state
+        const math::Calc_Engine&   m_engine;
+
+        /// @brief Reference to layer manager for display configuration
+        [[maybe_unused]] const core::Layer_Manager& m_layers;
+
+        /// @brief Layout engine for typesetting mathematical expressions
+        /// Initialized in build() after LVGL fonts are ready
+        std::optional<math::layout::Layout_Engine> m_layout_engine;
 };
 
 } // namespace ovb::gui

@@ -52,6 +52,9 @@ class App_View : public hal::I_Display {
                   ovb::math::Calc_Engine&        engine,
                   ovb::core::Layer_Manager&      layers );
 
+        /**
+         * @brief Destructor
+         */
         ~App_View() override;
 
         /**
