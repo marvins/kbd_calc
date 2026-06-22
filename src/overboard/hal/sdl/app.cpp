@@ -8,6 +8,7 @@
 #include <overboard/hal/sdl/app.hpp>
 
 // C++ Standard Libraries
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 
@@ -106,11 +107,17 @@ bool SDL_App::init() {
         try {
             auto keyboard_config = io::load_keyboard_config(m_layout_path);
             int bindings_count = 0;
+            int max_key_id = 0;
+            for (const auto& [key_id_str, key_def] : keyboard_config.keys) {
+                max_key_id = std::max(max_key_id, std::stoi(key_id_str));
+            }
+            m_key_input_map.assign(static_cast<size_t>(max_key_id + 1), core::Input_Key::NONE);
             for (const auto& [key_id_str, key_def] : keyboard_config.keys) {
                 int key_id = std::stoi(key_id_str);
                 core::Input_Key input_key = core::string_to_input_key(key_def.input_key);
                 if (input_key != core::Input_Key::NONE) {
                     m_sdl_keymap.bind(input_key, key_id);
+                    m_key_input_map[static_cast<size_t>(key_id)] = input_key;
                     bindings_count++;
                 }
             }
@@ -167,12 +174,23 @@ bool SDL_App::init() {
         });
 
         // Subscribe to panel changes to update Key_Mapping_Info labels
+        // and wire overlay callbacks for popup hotkey display
         m_view->set_panel_change_callback([this]([[maybe_unused]] gui::I_Panel* panel) {
             LOG_DEBUG("SDL_App: panel change callback, panel='", panel ? panel->name() : "null", "'");
             if (m_key_mapping_info) {
                 LOG_DEBUG("SDL_App: calling update_layer");
                 m_key_mapping_info->update_layer();
                 LOG_DEBUG("SDL_App: update_layer done");
+            }
+            // Wire overlay callbacks for any panel that uses them
+            if (panel && m_key_mapping_info) {
+                panel->set_overlay_callbacks(
+                    [this](const std::string& title, const std::vector<gui::I_Panel::Overlay_Key_Desc>& keys) {
+                        m_key_mapping_info->push_overlay(title, keys);
+                    },
+                    [this]() {
+                        m_key_mapping_info->pop_overlay();
+                    });
             }
             LOG_DEBUG("SDL_App: panel change callback complete");
         });
@@ -260,7 +278,15 @@ void SDL_App::handle_key(int key_index) {
         return;
     }
 
-    // No action mapped - fall back to text from label
+    // No action mapped - check if key has an Input_Key mapping (e.g. F-keys)
+    auto slot = static_cast<size_t>(key_index);
+    if (slot < m_key_input_map.size() && m_key_input_map[slot] != core::Input_Key::NONE) {
+        LOG_DEBUG("Keypress: key_index=" + std::to_string(key_index) + " -> Input_Key passthrough");
+        m_view->handle_input_key(m_key_input_map[slot]);
+        return;
+    }
+
+    // Fall back to text from label
     const std::string label = m_layers.label_at(key_index);
     if (label.length() == 1) {
         char32_t text_char = static_cast<char32_t>(label[0]);

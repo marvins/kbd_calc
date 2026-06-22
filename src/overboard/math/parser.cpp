@@ -9,7 +9,6 @@
 
 // C++ Standard Libraries
 #include <cctype>
-#include <stdexcept>
 
 // Project Libraries
 #include <overboard/math/ast/binary_op_node.hpp>
@@ -92,7 +91,7 @@ double Parser::read_number_literal() {
         }
     }
 
-    if (m_pos == start) throw std::runtime_error("Expected number");
+    if (m_pos == start) return 0.0;
     std::string tok = m_src.substr(start, m_pos - start);
     if (is_hex) return static_cast<double>(std::stoll(tok, nullptr, 16));
     return std::stod(tok);
@@ -105,7 +104,7 @@ ast::Node::ptr_t Parser::parse() {
     auto node = parse_expr();
     skip_ws();
     if (m_pos != m_src.size())
-        throw std::runtime_error("Unexpected: " + m_src.substr(m_pos));
+        return nullptr;
     return node;
 }
 

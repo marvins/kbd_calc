@@ -172,6 +172,9 @@ void Key_Mapping_Info::build_keys(lv_obj_t* parent) {
 /*       Layer Update      */
 /***************************/
 void Key_Mapping_Info::update_layer() {
+    // If overlay is active, don't overwrite with layer data
+    if (!m_overlay_stack.empty()) return;
+
     LOG_DEBUG("Key_Mapping_Info::update_layer: starting");
     const auto& layer = m_layers.current_layer();
     const std::size_t key_count = m_key_labels.size();
@@ -205,6 +208,78 @@ void Key_Mapping_Info::update_layer() {
         }
     }
     LOG_DEBUG("Key_Mapping_Info::update_layer: complete");
+}
+
+/********************************/
+/*        Push Overlay          */
+/********************************/
+void Key_Mapping_Info::push_overlay(const std::string& title,
+                                    const std::vector<I_Panel::Overlay_Key_Desc>& keys) {
+    m_overlay_stack.push_back({title, keys});
+    apply_top_overlay();
+}
+
+/********************************/
+/*         Pop Overlay          */
+/********************************/
+void Key_Mapping_Info::pop_overlay() {
+    if (m_overlay_stack.empty()) return;
+
+    m_overlay_stack.pop_back();
+
+    if (m_overlay_stack.empty()) {
+        // Restore normal layer display
+        update_layer();
+    } else {
+        // Show previous overlay frame
+        apply_top_overlay();
+    }
+}
+
+/********************************/
+/*    Is Overlay Active         */
+/********************************/
+bool Key_Mapping_Info::is_overlay_active() const {
+    return !m_overlay_stack.empty();
+}
+
+/********************************/
+/*     Apply Top Overlay        */
+/********************************/
+void Key_Mapping_Info::apply_top_overlay() {
+    if (m_overlay_stack.empty()) return;
+
+    const auto& frame = m_overlay_stack.back();
+    const std::size_t key_count = m_key_labels.size();
+
+    // Update header to show overlay title
+    lv_label_set_text(m_header_label, frame.title.c_str());
+
+    // Clear all key labels first
+    for (std::size_t i = 0; i < key_count; ++i) {
+        if (!m_key_labels[i]) continue;
+        lv_label_set_text(m_key_labels[i], "");
+        lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_DEFAULT, LV_PART_MAIN);
+        lv_obj_add_flag(m_key_labels[i], LV_OBJ_FLAG_HIDDEN);
+    }
+
+    // Set overlay key labels
+    for (const auto& key : frame.keys) {
+        if (key.key_index >= 0 && key.key_index < static_cast<int>(key_count)) {
+            lv_obj_t* label = m_key_labels[static_cast<size_t>(key.key_index)];
+            if (label) {
+                lv_label_set_text(label, key.label.c_str());
+                lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
+
+                // Use custom font for math symbols
+                if (font::requires_custom_font(key.label)) {
+                    lv_obj_set_style_text_font(label, &lv_font_superscript, LV_PART_MAIN);
+                } else {
+                    lv_obj_set_style_text_font(label, LVGL_FONT_DEFAULT, LV_PART_MAIN);
+                }
+            }
+        }
+    }
 }
 
 /***************************/

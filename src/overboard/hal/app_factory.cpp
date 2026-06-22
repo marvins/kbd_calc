@@ -5,11 +5,7 @@
 #ifdef TARGET_SDL
     #include <overboard/hal/sdl/app.hpp>
 #elif defined(TARGET_RP2350)
-    #ifdef BOARD_PICOCALC
-        #include <overboard/hal/picocalc/app.hpp>
-    #else
-        #include <overboard/hal/pico/app.hpp>
-    #endif
+    #include <overboard/hal/picocalc/app.hpp>
 #elif defined(TARGET_ZERO)
     #include <overboard/hal/pi_zero/app.hpp>
 #else
@@ -37,14 +33,8 @@ std::unique_ptr<I_App> App_Factory::create(const core::Grid_Layout& layout,
     #endif
     return sdl::SDL_App::create(layout, layout_path);
 #elif defined(TARGET_RP2350)
-    #ifdef BOARD_PICOCALC
-        s_logger.info("App_Factory: Creating PicoCalc application (RP2350 hardware)");
-        return picocalc::PicoCalc_App::create(layout, layout_path);
-    #else
-        s_logger.info("App_Factory: Creating Pico application (RP2350 hardware)");
-        (void)layout_path;
-        return std::make_unique<pico::Pico_App>(layout);
-    #endif
+    s_logger.info("App_Factory: Creating PicoCalc application (RP2350 hardware)");
+    return picocalc::PicoCalc_App::create(layout, layout_path);
 #elif defined(TARGET_ZERO)
     s_logger.info("App_Factory: Creating Pi Zero application (Linux embedded)");
     return pi_zero::PiZero_App::create(layout, layout_path);

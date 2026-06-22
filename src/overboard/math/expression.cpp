@@ -123,8 +123,10 @@ void Expression::insert(core::Action_Code code) {
             break;
 
         default:
-            // Unknown key code - throw exception for definitive feedback
+#ifdef __cpp_exceptions
             throw std::invalid_argument("Expression::insert: unknown key code");
+#endif
+            break;
     }
 }
 

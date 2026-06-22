@@ -12,7 +12,7 @@ project( calc_simulator
          HOMEPAGE_URL https://github.com/marvins/kbd_calc)
 
 # Initialize Pico SDK for embedded targets (after project(), before other setup)
-if(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
+if(TARGET_DEVICE STREQUAL "PICOCALC")
     if(NOT DEFINED ENV{PICO_SDK_PATH})
         message(FATAL_ERROR "PICO_SDK_PATH environment variable not set for embedded target")
     endif()
@@ -20,7 +20,13 @@ if(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
     # Set platform/board BEFORE pico_sdk_init()
     set(PICO_PLATFORM rp2350 CACHE STRING "Pico platform" FORCE)
     set(PICO_BOARD pico2 CACHE STRING "Pico board" FORCE)
-    set(PICO_NO_PICOTOOL 1 CACHE BOOL "" FORCE)
+    # Point to pre-built picotool so the SDK can generate UF2 output.
+    # Set PICOTOOL_DIR env var to the directory containing picotoolConfig.cmake.
+    if(DEFINED ENV{PICOTOOL_DIR})
+        set(picotool_DIR $ENV{PICOTOOL_DIR} CACHE PATH "Path to picotool cmake config" FORCE)
+    endif()
+    # Enable RTTI — dynamic_cast is used throughout the AST node hierarchy
+    set(PICO_CXX_ENABLE_RTTI 1 CACHE BOOL "Enable C++ RTTI" FORCE)
     include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
     pico_sdk_init()
 endif()
@@ -35,20 +41,20 @@ option( BUILD_TESTS      "Build unit tests"                          ON )
 option( SHOW_KEYBOARD_UI "Show on-screen keyboard UI (SDL only)"    ON )
 option( DEBUG_LAYOUT     "Draw debug borders around LCD regions"     OFF )
 
-# Target device selection: SDL, PICOSDL, RP2350, PICOCALC, or ZERO
+# Target device selection: SDL, PICOSDL, PICOCALC, or ZERO
 if(NOT DEFINED TARGET_DEVICE OR TARGET_DEVICE STREQUAL "")
-    set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, PICOSDL, RP2350, PICOCALC, ZERO)" FORCE)
+    set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, PICOSDL, PICOCALC, ZERO)" FORCE)
 else()
-    set(TARGET_DEVICE ${TARGET_DEVICE} CACHE STRING "Target device (SDL, PICOSDL, RP2350, PICOCALC, ZERO)" FORCE)
+    set(TARGET_DEVICE ${TARGET_DEVICE} CACHE STRING "Target device (SDL, PICOSDL, PICOCALC, ZERO)" FORCE)
 endif()
-set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL PICOSDL RP2350 PICOCALC ZERO)
+set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL PICOSDL PICOCALC ZERO)
 
 # Set keyboard UI default based on target
 if(TARGET_DEVICE STREQUAL "SDL")
     set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
 elseif(TARGET_DEVICE STREQUAL "PICOSDL")
     set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
-elseif(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
+elseif(TARGET_DEVICE STREQUAL "PICOCALC")
     set(SHOW_KEYBOARD_UI OFF CACHE BOOL "Show on-screen keyboard UI" FORCE)
 elseif(TARGET_DEVICE STREQUAL "ZERO")
     set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
@@ -62,8 +68,6 @@ if(TARGET_DEVICE STREQUAL "SDL")
     include(data/hardware/sdl/CMakeLists.txt)
 elseif(TARGET_DEVICE STREQUAL "PICOSDL")
     include(data/hardware/picosdl/CMakeLists.txt)
-elseif(TARGET_DEVICE STREQUAL "RP2350")
-    include(data/hardware/rp2350/CMakeLists.txt)
 elseif(TARGET_DEVICE STREQUAL "PICOCALC")
     include(data/hardware/picocalc/CMakeLists.txt)
 elseif(TARGET_DEVICE STREQUAL "ZERO")
@@ -123,7 +127,7 @@ set(APP_SOURCES
 if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
     set(APP_TARGET calc_sim)
     set(APP_LIBRARIES ${HARDWARE_LIBRARIES} lvgl)
-elseif(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
+elseif(TARGET_DEVICE STREQUAL "PICOCALC")
     set(APP_TARGET calc_firmware)
     set(APP_LIBRARIES ${HARDWARE_LIBRARIES} lvgl)
 elseif(TARGET_DEVICE STREQUAL "ZERO")
@@ -169,7 +173,8 @@ if(DEBUG_LAYOUT)
     target_compile_definitions(${APP_TARGET} PRIVATE OVB_DEBUG_LAYOUT=1)
 endif()
 
-if(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC")
+if(TARGET_DEVICE STREQUAL "PICOCALC")
+    set_target_properties(${APP_TARGET} PROPERTIES SUFFIX ".elf")
     pico_add_extra_outputs(${APP_TARGET})
 endif()
 
@@ -247,7 +252,7 @@ endif()
 
 # ── Tests (shared) ────────────────────────────────────────────────────────────────
 # Tests only for simulator targets (gtest doesn't build for embedded ARM or Pi Zero)
-if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO") )
+if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO") )
     add_executable(calc_tests
         test/test_main.cpp
         test/math/ast/test_ast.cpp

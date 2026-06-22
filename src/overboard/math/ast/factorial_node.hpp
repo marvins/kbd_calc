@@ -8,8 +8,8 @@
 #pragma once
 
 // C++ Standard Libraries
+#include <limits>
 #include <memory>
-#include <stdexcept>
 #include <string>
 
 // Project Libraries
@@ -48,7 +48,7 @@ class Factorial_Node : public Node {
          */
         double eval() const override {
             int n = static_cast<int>(m_operand->eval());
-            if (n < 0) throw std::runtime_error("Factorial of negative");
+            if (n < 0) return std::numeric_limits<double>::quiet_NaN();
             double f = 1.0;
             for (int i = 2; i <= n; ++i) f *= i;
             return f;

@@ -11,11 +11,7 @@
 #ifdef TARGET_SDL
     #include <overboard/hal/sdl/settings_store.hpp>
 #elif defined(TARGET_RP2350)
-    #ifdef BOARD_PICOCALC
-        #include <overboard/hal/picocalc/settings_store.hpp>
-    #else
-        #include <overboard/hal/pico/settings_store.hpp>
-    #endif
+    #include <overboard/hal/picocalc/settings_store.hpp>
 #elif defined(TARGET_ZERO)
     #include <overboard/hal/pi_zero/settings_store.hpp>
 #else
@@ -38,17 +34,10 @@ std::unique_ptr<I_Settings_Store> Settings_Store_Factory::create() {
     s_logger.info("Creating SDL settings store (filesystem)");
     return std::make_unique<sdl::SDL_Settings_Store>();
 #elif defined(TARGET_RP2350)
-    #ifdef BOARD_PICOCALC
-        s_logger.info("Creating PicoCalc settings store (SD card - stub)");
-        auto store = std::make_unique<picocalc::PicoCalc_Settings_Store>();
-        store->init();  // Initialize SD card
-        return store;
-    #else
-        s_logger.info("Creating Pico settings store (LittleFS - stub)");
-        auto store = std::make_unique<pico::Pico_Settings_Store>();
-        store->init();  // Initialize flash filesystem
-        return store;
-    #endif
+    s_logger.info("Creating PicoCalc settings store (SD card - stub)");
+    auto store = std::make_unique<picocalc::PicoCalc_Settings_Store>();
+    store->init();  // Initialize SD card
+    return store;
 #elif defined(TARGET_ZERO)
     s_logger.info("Creating Pi Zero settings store (filesystem)");
     return std::make_unique<pi_zero::PiZero_Settings_Store>();
@@ -68,11 +57,7 @@ std::string_view Settings_Store_Factory::platform_name() {
         return "SDL Simulator";
     #endif
 #elif defined(TARGET_RP2350)
-    #ifdef BOARD_PICOCALC
-        return "PicoCalc (RP2350)";
-    #else
-        return "Pico (RP2350)";
-    #endif
+    return "PicoCalc (RP2350)";
 #elif defined(TARGET_ZERO)
     return "Pi Zero";
 #else

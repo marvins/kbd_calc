@@ -78,15 +78,23 @@ void Function_Menu_Popup::show() {
 
     // Create modal container - position flush with footer bar
     m_impl->container = lv_obj_create(m_impl->parent);
-    lv_obj_set_size(m_impl->container, LV_PCT(90), 180);
-    lv_obj_align(m_impl->container, LV_ALIGN_BOTTOM_MID, 0, -28);  // -28 = Footer_Bar::HEIGHT
+    constexpr int ITEM_HEIGHT { 35 };
+    constexpr int LIST_PADDING { 16 };
+    constexpr int MAX_LIST_HEIGHT { 150 };
+    constexpr int CONTAINER_PADDING { 16 };
+    constexpr int FOOTER_BAR_HEIGHT { 28 };
+    constexpr int TITLE_HEIGHT { 30 };
+
+    int item_count = static_cast<int>(m_impl->items.size());
+    int list_height = std::min(MAX_LIST_HEIGHT, item_count * ITEM_HEIGHT + LIST_PADDING);
+    lv_obj_set_size(m_impl->container, LV_PCT(70), list_height + TITLE_HEIGHT + CONTAINER_PADDING);
+    lv_obj_align(m_impl->container, LV_ALIGN_BOTTOM_MID, 0, -FOOTER_BAR_HEIGHT);
     lv_obj_set_style_bg_color(m_impl->container, lvgl_color(LVGL_COLOR_BG_BEZEL), LV_PART_MAIN);
     lv_obj_set_style_border_color(m_impl->container, lvgl_color(LVGL_COLOR_ACCENT_BLUE), LV_PART_MAIN);
     lv_obj_set_style_border_width(m_impl->container, 2, LV_PART_MAIN);
     lv_obj_set_style_radius(m_impl->container, 8, LV_PART_MAIN);
 
     // Title label - small region at top
-    constexpr int TITLE_HEIGHT = 30;
     lv_obj_t* title_label = lv_label_create(m_impl->container);
     lv_label_set_text(title_label, m_impl->title.c_str());
     lv_obj_set_style_text_font(title_label, LVGL_FONT_DEFAULT, LV_PART_MAIN);
@@ -96,7 +104,7 @@ void Function_Menu_Popup::show() {
 
     // Create list - full width, positioned below title
     m_impl->list = lv_obj_create(m_impl->container);
-    lv_obj_set_size(m_impl->list, LV_PCT(100), 180 - TITLE_HEIGHT);
+    lv_obj_set_size(m_impl->list, LV_PCT(100), list_height);
     lv_obj_set_pos(m_impl->list, 0, TITLE_HEIGHT);
     lv_obj_set_flex_flow(m_impl->list, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_style_pad_all(m_impl->list, 8, LV_PART_MAIN);
@@ -105,11 +113,12 @@ void Function_Menu_Popup::show() {
     lv_obj_set_scroll_dir(m_impl->list, LV_DIR_VER);  // Enable vertical scrolling
     lv_obj_set_scrollbar_mode(m_impl->list, LV_SCROLLBAR_MODE_AUTO);
 
-    // Add menu items
+    // Add menu items with numbered shortcuts
     m_impl->item_labels.clear();
     for (size_t i = 0; i < m_impl->items.size(); ++i) {
         lv_obj_t* item = lv_label_create(m_impl->list);
-        lv_label_set_text(item, m_impl->items[i].label.c_str());
+        std::string numbered_label = std::to_string(i + 1) + ") " + m_impl->items[i].label;
+        lv_label_set_text(item, numbered_label.c_str());
 
         // Use custom font for math symbols
         if (font::requires_custom_font(m_impl->items[i].label)) {
@@ -203,6 +212,50 @@ bool Function_Menu_Popup::handle_input(core::Input_Key key) {
 }
 
 /****************************/
+/*    Handle Action Code    */
+/****************************/
+bool Function_Menu_Popup::handle_input(core::Action_Code action) {
+    if (!m_impl->visible) return false;
+
+    switch (action) {
+        case core::Action_Code::CURSOR_UP:
+            if (m_impl->selected_index > 0) {
+                m_impl->selected_index--;
+                LOG_DEBUG("Function_Menu_Popup: CURSOR_UP - selected_index=", std::to_string(m_impl->selected_index));
+                render();
+            }
+            return true;
+
+        case core::Action_Code::CURSOR_DOWN:
+            if (m_impl->selected_index < static_cast<int>(m_impl->items.size()) - 1) {
+                m_impl->selected_index++;
+                LOG_DEBUG("Function_Menu_Popup: CURSOR_DOWN - selected_index=", std::to_string(m_impl->selected_index));
+                render();
+            }
+            return true;
+
+        case core::Action_Code::EVAL:
+            // EVAL acts as Enter/Return for menu selection
+            if (m_impl->on_select && m_impl->selected_index >= 0 &&
+                m_impl->selected_index < static_cast<int>(m_impl->items.size())) {
+                auto idx = static_cast<size_t>(m_impl->selected_index);
+                core::Action_Code selected_action = m_impl->items[idx].action;
+                LOG_DEBUG("Function_Menu_Popup: selected - ", m_impl->items[idx].label);
+                hide();
+                m_impl->on_select(selected_action);
+            }
+            return true;
+
+        case core::Action_Code::ESCAPE:
+            hide();
+            return true;
+
+        default:
+            return false;
+    }
+}
+
+/****************************/
 /*         Render           */
 /****************************/
 void Function_Menu_Popup::render() {
@@ -214,7 +267,8 @@ void Function_Menu_Popup::render() {
 
     for (size_t i = 0; i < m_impl->items.size(); ++i) {
         lv_obj_t* item = lv_label_create(m_impl->list);
-        lv_label_set_text(item, m_impl->items[i].label.c_str());
+        std::string numbered_label = std::to_string(i + 1) + ") " + m_impl->items[i].label;
+        lv_label_set_text(item, numbered_label.c_str());
 
         // Use custom font for math symbols
         if (font::requires_custom_font(m_impl->items[i].label)) {
@@ -241,6 +295,30 @@ void Function_Menu_Popup::render() {
     if (m_impl->selected_index >= 0 && m_impl->selected_index < static_cast<int>(m_impl->item_labels.size())) {
         lv_obj_scroll_to_view(m_impl->item_labels[static_cast<size_t>(m_impl->selected_index)], LV_ANIM_ON);
     }
+}
+
+/****************************/
+/*     Select By Index      */
+/****************************/
+bool Function_Menu_Popup::select_by_index(int index) {
+    if (!m_impl->visible) return false;
+    if (index < 0 || index >= static_cast<int>(m_impl->items.size())) return false;
+
+    auto idx = static_cast<size_t>(index);
+    core::Action_Code action = m_impl->items[idx].action;
+    LOG_DEBUG("Function_Menu_Popup: shortcut select - ", m_impl->items[idx].label);
+    hide();
+    if (m_impl->on_select) {
+        m_impl->on_select(action);
+    }
+    return true;
+}
+
+/****************************/
+/*         Title            */
+/****************************/
+const std::string& Function_Menu_Popup::title() const {
+    return m_impl->title;
 }
 
 /****************************/

@@ -9,7 +9,7 @@
 
 // C++ Standard Libraries
 #include <cmath>
-#include <stdexcept>
+#include <limits>
 
 // Project Libraries
 #include <overboard/math/ast/number_node.hpp>
@@ -27,7 +27,7 @@ double Binary_Op_Node::eval() const {
         case Binary_Op::SUBTRACT:    return l - r;
         case Binary_Op::MULTIPLY:    return l * r;
         case Binary_Op::DIVIDE:
-            if (r == 0.0) throw std::runtime_error("Division by zero");
+            if (r == 0.0) return std::numeric_limits<double>::quiet_NaN();
             return l / r;
         case Binary_Op::POWER:       return std::pow(l, r);
         case Binary_Op::MODULO:      return std::fmod(l, r);

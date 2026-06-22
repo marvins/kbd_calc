@@ -113,6 +113,13 @@ class Expression {
          */
         const ast::Node::ptr_t& ast_root() const { return m_ast_root; }
 
+        /**
+         * @brief Get the node at the current cursor position
+         * @return Pointer to the cursor node, or nullptr if invalid
+         */
+        ast::Node* get_cursor_node();
+        const ast::Node* get_cursor_node() const;
+
     private:
 
         /**
@@ -138,13 +145,6 @@ class Expression {
          * @param open If true, open new group; if false, close current group
          */
         void insert_group( bool open );
-
-        /**
-         * @brief Get the node at the current cursor position
-         * @return Pointer to the node at the cursor, or nullptr if invalid
-         */
-        ast::Node* get_cursor_node();
-        const ast::Node* get_cursor_node() const;
 
         /**
          * @brief Replace the node at the current cursor path with a new node

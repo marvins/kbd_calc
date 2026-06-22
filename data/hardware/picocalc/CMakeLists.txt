@@ -13,7 +13,6 @@ endif()
 
 set(PICO_SDK_PATH $ENV{PICO_SDK_PATH} CACHE PATH "Path to Raspberry Pi Pico SDK")
 
-
 # PicoCalc compile definitions
 set(HARDWARE_COMPILE_DEFINITIONS
     TARGET_RP2350=1
@@ -84,3 +83,10 @@ configure_file(
     @ONLY
 )
 
+# Embed keyboard.json as C++ resource
+file(READ ${CMAKE_SOURCE_DIR}/data/configs/picocalc/keyboard.json JSON_CONTENT)
+configure_file(
+    ${CMAKE_SOURCE_DIR}/templates/embedded_json.hpp.in
+    ${CMAKE_BINARY_DIR}/src/overboard/resources/embedded_json.hpp
+    @ONLY
+)

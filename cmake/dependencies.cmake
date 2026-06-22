@@ -6,7 +6,7 @@ add_library(project_warnings INTERFACE)
 target_compile_options(project_warnings INTERFACE
     -Wall
     -Wextra
-    -Wpedantic
+    $<$<COMPILE_LANGUAGE:CXX>:-Wpedantic>
     -Werror
     -Wshadow
     -Wconversion
@@ -16,7 +16,6 @@ target_compile_options(project_warnings INTERFACE
     -Wdouble-promotion
     -Wformat=2
     -Wimplicit-fallthrough
-    -Wundef
     # Explicit float conversion warnings (GCC-specific, more aggressive in GCC 10+)
     $<$<CXX_COMPILER_ID:GNU>:-Wfloat-conversion>
     # Clang equivalent
@@ -53,7 +52,11 @@ if(TARGET_DEVICE STREQUAL "ZERO")
 endif()
 
 # Remove SDL sources for embedded targets (LVGL doesn't respect CONFIG_LV_USE_SDL without preprocessing)
-if(TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO")
+if(TARGET_DEVICE STREQUAL "PICOCALC")
+    target_compile_definitions(lvgl PUBLIC TARGET_RP2350=1)
+endif()
+
+if(TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO")
     get_target_property(LVGL_SOURCES lvgl SOURCES)
     if(LVGL_SOURCES)
         list(FILTER LVGL_SOURCES EXCLUDE REGEX ".*src/drivers/sdl/.*")
@@ -63,7 +66,7 @@ endif()
 
 # ── GoogleTest (if tests enabled) ────────────────────────────────────────────────────
 # Only build tests for simulator targets, not embedded
-if(BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "RP2350" OR TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO"))
+if(BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO"))
     add_subdirectory(thirdparty/gtest)
     enable_testing()
 endif()

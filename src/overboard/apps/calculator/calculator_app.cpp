@@ -46,6 +46,12 @@ struct Calculator_App::Impl {
     /// @brief Currently visible popup
     Function_Menu_Popup*                    active_popup = nullptr;
 
+    /// @brief Overlay push callback
+    I_Panel::Overlay_Push_Cb                on_overlay_push;
+
+    /// @brief Overlay pop callback
+    I_Panel::Overlay_Pop_Cb                 on_overlay_pop;
+
     /// @brief Container object
     lv_obj_t*                               container = nullptr;
 
@@ -66,6 +72,14 @@ Calculator_App::Calculator_App(math::Calc_Engine& engine,
                                core::Layer_Manager& layers,
                                Back_Cb on_back)
     : m_impl(std::make_unique<Impl>(engine, layers, std::move(on_back))) {}
+
+/*******************************/
+/*     Set Overlay Callbacks   */
+/*******************************/
+void Calculator_App::set_overlay_callbacks(Overlay_Push_Cb push, Overlay_Pop_Cb pop) {
+    m_impl->on_overlay_push = std::move(push);
+    m_impl->on_overlay_pop  = std::move(pop);
+}
 
 /*******************************/
 /*          Destructor         */
@@ -116,6 +130,7 @@ void Calculator_App::activate(lv_obj_t* parent) {
     // Callback for all function menu selections
     auto menu_callback = [this](core::Action_Code action) {
         m_impl->active_popup = nullptr;  // Clear active popup
+        if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
         m_impl->engine.handle_key(action);
         refresh();
     };
@@ -178,6 +193,16 @@ void Calculator_App::deactivate() {
 /*        Handle Input         */
 /*******************************/
 bool Calculator_App::handle_input(core::Action_Code action) {
+    // If a popup is active, route action codes to it first
+    if (m_impl->active_popup) {
+        bool handled = m_impl->active_popup->handle_input(action);
+        // Clear active popup if ESC was pressed
+        if (action == core::Action_Code::ESCAPE) {
+            m_impl->active_popup = nullptr;
+        }
+        if (handled) return true;
+    }
+
     switch (action) {
         case core::Action_Code::ESCAPE:
             if (m_impl->on_back) { m_impl->on_back(); }
@@ -217,6 +242,7 @@ bool Calculator_App::handle_input_key(core::Input_Key key) {
         // Clear active popup if ESC was pressed
         if (key == core::Input_Key::ESCAPE) {
             m_impl->active_popup = nullptr;
+            if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
         }
         if (handled) return true;
     }
@@ -268,10 +294,11 @@ bool Calculator_App::handle_input_key(core::Input_Key key) {
         case core::Input_Key::F8:
         case core::Input_Key::F9:
         case core::Input_Key::F10: {
-            // Hide any currently active popup
+            // Hide any currently active popup and pop its overlay
             if (m_impl->active_popup) {
                 m_impl->active_popup->hide();
                 m_impl->active_popup = nullptr;
+                if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
             }
 
             // Map F-key to array index (F1=0, F2=1, ...)
@@ -281,6 +308,35 @@ bool Calculator_App::handle_input_key(core::Input_Key key) {
                 if (auto& popup = m_impl->f_key_popups[idx]) {
                     m_impl->active_popup = popup.get();
                     popup->show();
+
+                    // Push keyboard overlay with numbered shortcuts
+                    if (m_impl->on_overlay_push) {
+                        // Find key indices for digits 1-9 from current layer
+                        static constexpr std::array<core::Action_Code, 9> DIGIT_ACTIONS {
+                            core::Action_Code::DIGIT_1, core::Action_Code::DIGIT_2,
+                            core::Action_Code::DIGIT_3, core::Action_Code::DIGIT_4,
+                            core::Action_Code::DIGIT_5, core::Action_Code::DIGIT_6,
+                            core::Action_Code::DIGIT_7, core::Action_Code::DIGIT_8,
+                            core::Action_Code::DIGIT_9,
+                        };
+                        const auto& layer_keys = m_impl->layers.current_layer().keys;
+                        const auto& items = popup->items();
+                        std::vector<Overlay_Key_Desc> overlay_keys;
+                        for (size_t i = 0; i < items.size() && i < DIGIT_ACTIONS.size(); ++i) {
+                            // Find which key index has this digit action
+                            for (size_t k = 0; k < layer_keys.size(); ++k) {
+                                if (layer_keys[k] == DIGIT_ACTIONS[i]) {
+                                    overlay_keys.push_back({
+                                        static_cast<int>(k),
+                                        std::to_string(i + 1) + ")" + items[i].label,
+                                        items[i].action
+                                    });
+                                    break;
+                                }
+                            }
+                        }
+                        m_impl->on_overlay_push(popup->title(), overlay_keys);
+                    }
                     return true;
                 }
             }
@@ -298,6 +354,18 @@ bool Calculator_App::handle_input_key(core::Input_Key key) {
 /*        Handle Text          */
 /*******************************/
 bool Calculator_App::handle_text(char32_t codepoint) {
+    // If a popup is active, route digit keys as shortcut selections
+    if (m_impl->active_popup && codepoint >= U'1' && codepoint <= U'9') {
+        int index = static_cast<int>(codepoint - U'1');  // '1' -> 0, '2' -> 1, etc.
+        auto* popup = dynamic_cast<Function_Menu_Popup*>(m_impl->active_popup);
+        if (popup && popup->select_by_index(index)) {
+            m_impl->active_popup = nullptr;
+            if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
+            refresh();
+            return true;
+        }
+    }
+
     // Handle digit and operator input from standard keyboard
     LOG_DEBUG("Calculator received text: " + std::to_string(static_cast<uint32_t>(codepoint)));
 

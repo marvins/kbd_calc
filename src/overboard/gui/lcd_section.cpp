@@ -183,7 +183,8 @@ void LCD_Section::refresh() {
     // Draw typeset math with result in lower right (if available)
     int pw = hal::PREVIEW_MAX_WIDTH;
     int ph = hal::PREVIEW_MAX_HEIGHT;
-    draw_math_to_canvas(m_preview_canvas, pw, ph, *m_layout_engine, ast, result_str);
+    const auto* cursor_node = m_engine.state().expression.get_cursor_node();
+    draw_math_to_canvas(m_preview_canvas, pw, ph, *m_layout_engine, ast, result_str, cursor_node);
 
     lv_obj_invalidate(m_preview_canvas);
     lv_obj_invalidate(m_bezel);

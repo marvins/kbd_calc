@@ -205,9 +205,6 @@ void Keyboard_Display::on_btn_clicked(lv_event_t* e) {
 /*       Layer Update      */
 /***************************/
 void Keyboard_Display::update_layer() {
-    // If overlay is active, don't update from layer
-    if (m_overlay_active) return;
-    
     const auto& layer = m_layers.current_layer();
     const std::size_t key_count = m_key_labels.size();
 
@@ -228,62 +225,6 @@ void Keyboard_Display::update_layer() {
             lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_DEFAULT, LV_PART_MAIN);
         }
     }
-}
-
-/********************************/
-/*      Set Overlay Mode        */
-/********************************/
-void Keyboard_Display::set_overlay_mode(const std::vector<Overlay_Key>& keys) {
-    m_overlay_active = true;
-    m_overlay_keys = keys;
-    
-    const std::size_t key_count = m_key_labels.size();
-    
-    // Update header to show popup mode
-    lv_label_set_text(m_header_label, "Popup Hotkeys");
-    
-    // Clear all key labels first
-    for (std::size_t i = 0; i < key_count; ++i) {
-        if (!m_key_labels[i]) continue;
-        lv_label_set_text(m_key_labels[i], "");
-    }
-    
-    // Set overlay key labels
-    for (const auto& key : m_overlay_keys) {
-        if (key.key_index >= 0 && key.key_index < static_cast<int>(key_count)) {
-            lv_obj_t* label = m_key_labels[static_cast<size_t>(key.key_index)];
-            if (label) {
-                lv_label_set_text(label, key.label.c_str());
-                
-                // Use custom font for math symbols
-                if (font::requires_custom_font(key.label)) {
-                    lv_obj_set_style_text_font(label, &lv_font_superscript, LV_PART_MAIN);
-                } else {
-                    lv_obj_set_style_text_font(label, LVGL_FONT_DEFAULT, LV_PART_MAIN);
-                }
-            }
-        }
-    }
-}
-
-/********************************/
-/*     Clear Overlay Mode       */
-/********************************/
-void Keyboard_Display::clear_overlay_mode() {
-    if (!m_overlay_active) return;
-    
-    m_overlay_active = false;
-    m_overlay_keys.clear();
-    
-    // Restore normal layer display
-    update_layer();
-}
-
-/********************************/
-/*    Is Overlay Active         */
-/********************************/
-bool Keyboard_Display::is_overlay_active() const {
-    return m_overlay_active;
 }
 
 } // namespace ovb::gui

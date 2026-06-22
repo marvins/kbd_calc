@@ -53,6 +53,7 @@ enum class Popup_Menu : int {
 class Calculator_App : public I_App {
     public:
 
+        /// @brief Back callback
         using Back_Cb = std::function<void()>;
 
         /**
@@ -64,6 +65,11 @@ class Calculator_App : public I_App {
         Calculator_App(math::Calc_Engine& engine,
                        core::Layer_Manager& layers,
                        Back_Cb on_back = {});
+
+        /**
+         * @brief Set keyboard overlay callbacks for popup hotkey display
+         */
+        void set_overlay_callbacks(Overlay_Push_Cb push, Overlay_Pop_Cb pop) override;
 
         /**
          * @brief Destructor

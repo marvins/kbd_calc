@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -27,12 +26,13 @@ namespace ovb::gui {
 /************************************/
 /*       Draw Math To Canvas        */
 /************************************/
-void draw_math_to_canvas( lv_obj_t*                     canvas,
+bool draw_math_to_canvas( lv_obj_t*                     canvas,
                           int                           width,
                           int                           height,
                           math::layout::Layout_Engine&  layout_engine,
                           const math::ast::Node::ptr_t& ast,
-                          const std::string&            result_str )
+                          const std::string&            result_str,
+                          const math::ast::Node*        cursor_node )
 {
     // Create draw layer for canvas
     lv_layer_t layer;
@@ -52,21 +52,31 @@ void draw_math_to_canvas( lv_obj_t*                     canvas,
 
     if (!ast) {
         lv_canvas_finish_layer(canvas, &layer);
-        return;
+        return false;
     }
 
     // Build layout from AST (upper left)
-    try {
-        auto box = layout_engine.build(ast.get());
-        // Measure and position at upper left (0,0) instead of centering
-        layout_engine.measure(box);
-        layout_engine.layout(box, {0, 0});
+    auto box = layout_engine.build(ast.get());
+    // Measure and center in canvas (original behavior)
+    layout_engine.prepare(box, {width, height});
 
-        // Draw boxes recursively
-        std::function<void(const math::layout::Layout_Box&, int, int)> draw_box;
-        draw_box = [&](const math::layout::Layout_Box& b, int offset_x, int offset_y) {
-            int x = b.pos.x + offset_x;
-            int y = b.pos.y + offset_y;
+    // Calculate scroll offset to keep cursor in view
+    int scroll_x = 0;
+    int scroll_y = 0;
+    if (cursor_node) {
+        auto cursor_pos = layout_engine.find_node_position(box, cursor_node);
+        if (cursor_pos) {
+            // Scroll to keep cursor in center of canvas
+            scroll_x = (width / 2) - cursor_pos->x;
+            scroll_y = (height / 2) - cursor_pos->y;
+        }
+    }
+
+    // Draw boxes recursively with scroll offset
+    std::function<void(const math::layout::Layout_Box&, int, int)> draw_box;
+    draw_box = [&](const math::layout::Layout_Box& b, int offset_x, int offset_y) {
+            int x = b.pos.x + offset_x + scroll_x;
+            int y = b.pos.y + offset_y + scroll_y;
 
             if (b.kind == math::layout::Box_Kind::ATOM) {
                 if (!b.text.empty()) {
@@ -132,10 +142,6 @@ void draw_math_to_canvas( lv_obj_t*                     canvas,
 
         draw_box(box, 0, 0);
 
-    } catch (const std::exception& e) {
-        std::cerr << "[math_canvas] render error: " << e.what() << "\n";
-    }
-
     // Draw result in lower right if present
     if (!result_str.empty()) {
         lv_draw_label_dsc_t result_dsc;
@@ -156,6 +162,7 @@ void draw_math_to_canvas( lv_obj_t*                     canvas,
     }
 
     lv_canvas_finish_layer(canvas, &layer);
+    return true;
 }
 
 } // namespace ovb::gui

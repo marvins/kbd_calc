@@ -12,13 +12,30 @@
 #include <cstdio>
 #include <memory>
 
+// Third-Party Libraries
+#ifdef TARGET_RP2350
+#include <pico/stdlib.h>
+#include <hardware/uart.h>
+#include <hardware/gpio.h>
+#endif
+
 namespace ovb::log {
 
 // Static unique_ptr for singleton instance
 std::unique_ptr<Stdout_Logger> Stdout_Logger::s_instance;
 
-Stdout_Logger::Stdout_Logger(Log_Level min_level)
-    : m_min_level(min_level) {}
+Stdout_Logger::Stdout_Logger(Log_Level min_level, bool enable_uart)
+    : m_min_level(min_level) {
+
+    // Initialize UART if requested and on RP2350
+    if (enable_uart) {
+#ifdef TARGET_RP2350
+        uart_init(uart0, 115200);
+        gpio_set_function(0, GPIO_FUNC_UART);  // UART TX
+        gpio_set_function(1, GPIO_FUNC_UART);  // UART RX
+#endif
+    }
+}
 
 Stdout_Logger& Stdout_Logger::instance() {
     if (!s_instance) {
@@ -55,12 +72,23 @@ void Stdout_Logger::log(Log_Level level, std::string_view message) {
     const uint64_t secs  = us / 1'000'000;
     const uint64_t frac  = (us % 1'000'000) / 1'000;
 
-    std::printf("[%4llu.%03llus] [%s] %.*s\n",
+    // Format message
+    char formatted[512];
+    snprintf(formatted, sizeof(formatted),
+        "[%4llu.%03llus] [%s] %.*s\n",
         static_cast<unsigned long long>(secs),
         static_cast<unsigned long long>(frac),
         level_tag(level),
         static_cast<int>(message.size()),
         message.data());
+
+    // Output to stdout
+    std::printf("%s", formatted);
+
+    // Output to UART if available
+#ifdef TARGET_RP2350
+    uart_puts(uart0, formatted);
+#endif
 }
 
 /***************************/
@@ -73,14 +101,25 @@ void Stdout_Logger::log(Log_Level level, std::source_location loc, std::string_v
     const uint64_t secs  = us / 1'000'000;
     const uint64_t frac  = (us % 1'000'000) / 1'000;
 
-    std::printf("[%4llu.%03llus] [%s] %s:%d: %.*s\n",
+    // Format message
+    char formatted[512];
+    snprintf(formatted, sizeof(formatted),
+        "[%4llu.%03llus] [%s] %s:%d: %.*s\n",
         static_cast<unsigned long long>(secs),
         static_cast<unsigned long long>(frac),
         level_tag(level),
         loc.file_name(),
-        loc.line(),
+        static_cast<int>(loc.line()),
         static_cast<int>(message.size()),
         message.data());
+
+    // Output to stdout
+    std::printf("%s", formatted);
+
+    // Output to UART if available
+#ifdef TARGET_RP2350
+    uart_puts(uart0, formatted);
+#endif
 }
 
 } // namespace ovb::log

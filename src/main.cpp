@@ -36,24 +36,19 @@ int main(int argc, char* argv[]) {
     auto& logger = log::Stdout_Logger::instance();
     logger.info("kbd_calc v", PROJECT_VERSION, "\n  build: ", BUILD_DATE, "\n  git: ", GIT_HASH, GIT_DIRTY ? " (dirty)" : "");
 
-    try {
-        auto layout = hal::config::create_layout(config.layout_path());
+    auto layout = hal::config::create_layout(config.layout_path());
 
-        // Create platform-specific application via factory
-        auto app = hal::App_Factory::create( layout,
-                                             config.layout_path() );
+    // Create platform-specific application via factory
+    auto app = hal::App_Factory::create( layout,
+                                         config.layout_path() );
 
-        if (!app) {
-            std::cerr << "Failed to create application\n";
-            return 1;
-        }
-
-        // Run the main event loop
-        app->run();
-
-        return 0;
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << "\n";
+    if (!app) {
+        std::cerr << "Failed to create application\n";
         return 1;
     }
+
+    // Run the main event loop
+    app->run();
+
+    return 0;
 }

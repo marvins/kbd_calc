@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.7.2] - 2026-06-21
+
+### Added
+- `Layout_Engine::find_node_position()` to locate AST nodes in rendered layout
+- Node pointer tracking in `Layout_Box` for AST-to-layout mapping
+- Test for cursor navigation from exponent to parent expression
+
+### Changed
+- Parser error handling: returns nullptr/0.0 instead of throwing on invalid input
+- LVGL memory size: 128KB for RP2350 target, 4MB for SDL simulator
+
+### Fixed
+- Cursor navigation now correctly exits exponent context before adding operators to parent
+
+
 ## [0.7.1] - 2026-06-14
 
 ### Changed

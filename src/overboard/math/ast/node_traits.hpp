@@ -482,16 +482,26 @@ inline Cursor_Path_Runtime cursor_right(const Node* root, const Cursor_Path_Runt
     // If we're at a leaf node, try to move to next sibling
     if (current->child_count() == 0) {
         Cursor_Path_Runtime new_path = current_path;
-        size_t last_index = new_path[new_path.depth() - 1];
 
-        // Get parent to check if there's a next sibling
-        new_path.pop();
-        const Node* parent = get_node_at_path(root, new_path);
-        if (parent && last_index + 1 < parent->child_count()) {
-            // Move to next sibling
-            new_path.push(last_index + 1);
+        // Try to find next sibling by walking up the tree
+        while (!new_path.empty()) {
+            size_t last_index = new_path[new_path.depth() - 1];
+            new_path.pop();
+            const Node* parent = get_node_at_path(root, new_path);
+            if (parent && last_index + 1 < parent->child_count()) {
+                // Move to next sibling
+                new_path.push(last_index + 1);
+                return new_path;
+            }
+            // No next sibling at this level
+            // If we're at depth 1 (top level), stay at current position
+            if (new_path.empty() && current_path.depth() == 1) {
+                return current_path;
+            }
+            // Otherwise, return parent path to exit subtree
             return new_path;
         }
+        // At root with no next sibling - stay at current position
         return current_path;
     }
 

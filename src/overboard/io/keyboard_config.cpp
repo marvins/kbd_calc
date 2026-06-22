@@ -53,15 +53,24 @@ Keyboard_Config parse_keyboard_config(const std::filesystem::path& json_path) {
     // Read JSON file
     std::ifstream file(json_path);
     if (!file.is_open()) {
+#ifdef __cpp_exceptions
         throw std::runtime_error("Failed to open keyboard config: " + json_path.string());
+#else
+        std::cerr << "[keyboard_config] Failed to open: " << json_path.string() << "\n";
+        return {};
+#endif
     }
 
     json data;
+#ifdef __cpp_exceptions
     try {
         file >> data;
     } catch (const json::exception& e) {
         throw std::runtime_error("Failed to parse JSON: " + std::string(e.what()));
     }
+#else
+    file >> data;
+#endif
 
     Keyboard_Config config{};
 
@@ -118,11 +127,15 @@ Keyboard_Config parse_keyboard_config(const std::filesystem::path& json_path) {
 /**********************************/
 Keyboard_Config parse_keyboard_config_string(const std::string& json_string) {
     json data;
+#ifdef __cpp_exceptions
     try {
         data = json::parse(json_string);
     } catch (const json::exception& e) {
         throw std::runtime_error("Failed to parse JSON string: " + std::string(e.what()));
     }
+#else
+    data = json::parse(json_string);
+#endif
 
     Keyboard_Config config{};
 
@@ -351,6 +364,7 @@ Keyboard_Config load_keyboard_config(
         json_path = layout_path / "keyboard.json";
     }
 
+#ifdef __cpp_exceptions
     try {
         return parse_keyboard_config(json_path);
     } catch (const std::exception& e) {
@@ -372,6 +386,16 @@ Keyboard_Config load_keyboard_config(
         // Re-throw original exception if no fallback
         throw;
     }
+#else
+    Keyboard_Config cfg = parse_keyboard_config(json_path);
+    if (cfg.keys.empty() && use_embedded_fallback) {
+        cfg = parse_keyboard_config_string(
+            std::string(ovb::resources::embedded_json_data,
+                        ovb::resources::embedded_json_size)
+        );
+    }
+    return cfg;
+#endif
 }
 
 /*******************************/

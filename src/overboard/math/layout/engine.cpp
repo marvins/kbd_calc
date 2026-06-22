@@ -104,18 +104,30 @@ Layout_Box Layout_Engine::build( const ast::Node* node ) {
 /****************************/
 Layout_Box Layout_Engine::build( const ast::Node* node, float scale ) {
     switch (node->kind()) {
-        case ast::Node_Kind::NUMBER:
-            return Layout_Box::atom(node->to_string(), scale);
+        case ast::Node_Kind::NUMBER: {
+            auto box = Layout_Box::atom(node->to_string(), scale);
+            box.node_ptr = node;
+            return box;
+        }
 
-        case ast::Node_Kind::CONSTANT:
-            return Layout_Box::atom(node->to_string(), scale);
+        case ast::Node_Kind::CONSTANT: {
+            auto box = Layout_Box::atom(node->to_string(), scale);
+            box.node_ptr = node;
+            return box;
+        }
 
-        case ast::Node_Kind::VARIABLE:
-            return Layout_Box::atom(node->to_string(), scale);
+        case ast::Node_Kind::VARIABLE: {
+            auto box = Layout_Box::atom(node->to_string(), scale);
+            box.node_ptr = node;
+            return box;
+        }
 
-        case ast::Node_Kind::PLACEHOLDER:
+        case ast::Node_Kind::PLACEHOLDER: {
             // Create an empty box with default size for placeholder
-            return Layout_Box::atom("", scale);
+            auto box = Layout_Box::atom("", scale);
+            box.node_ptr = node;
+            return box;
+        }
 
         case ast::Node_Kind::BINARY_OP:
             return build_binary_op(static_cast<const ast::Binary_Op_Node*>(node), scale);
@@ -126,8 +138,11 @@ Layout_Box Layout_Engine::build( const ast::Node* node, float scale ) {
         case ast::Node_Kind::FUNCTION:
             return build_function(static_cast<const ast::Function_Node*>(node), scale);
 
-        case ast::Node_Kind::FACTORIAL:
-            return Layout_Box::atom(node->to_string(), scale);
+        case ast::Node_Kind::FACTORIAL: {
+            auto box = Layout_Box::atom(node->to_string(), scale);
+            box.node_ptr = node;
+            return box;
+        }
 
         case ast::Node_Kind::GROUP: {
             // Group renders its child with parentheses
@@ -136,7 +151,9 @@ Layout_Box Layout_Engine::build( const ast::Node* node, float scale ) {
             boxes.push_back(Layout_Box::atom("(", scale));
             boxes.push_back(build(group->child().get(), scale));
             boxes.push_back(Layout_Box::atom(")", scale));
-            return Layout_Box::sequence(std::move(boxes), scale);
+            auto box = Layout_Box::sequence(std::move(boxes), scale);
+            box.node_ptr = node;
+            return box;
         }
     }
 
@@ -150,12 +167,15 @@ Layout_Box Layout_Engine::build_binary_op( const ast::Binary_Op_Node* node, floa
     auto left = build(node->left().get(), scale);
     auto right = build(node->right().get(), scale);
 
+    Layout_Box result;
     switch (node->op()) {
         case ast::Binary_Op::DIVIDE: {
-            return Layout_Box::fraction(std::move(left), std::move(right), scale);
+            result = Layout_Box::fraction(std::move(left), std::move(right), scale);
+            break;
         }
         case ast::Binary_Op::POWER: {
-            return Layout_Box::power(std::move(left), std::move(right), scale);
+            result = Layout_Box::power(std::move(left), std::move(right), scale);
+            break;
         }
         case ast::Binary_Op::MULTIPLY: {
             std::vector<Layout_Box> seq;
@@ -163,7 +183,8 @@ Layout_Box Layout_Engine::build_binary_op( const ast::Binary_Op_Node* node, floa
             seq.push_back(std::move(left));
             seq.push_back(Layout_Box::atom("*", scale));
             seq.push_back(std::move(right));
-            return Layout_Box::sequence(std::move(seq), scale);
+            result = Layout_Box::sequence(std::move(seq), scale);
+            break;
         }
         case ast::Binary_Op::ADD: {
             std::vector<Layout_Box> seq;
@@ -171,7 +192,8 @@ Layout_Box Layout_Engine::build_binary_op( const ast::Binary_Op_Node* node, floa
             seq.push_back(std::move(left));
             seq.push_back(Layout_Box::atom("+", scale));
             seq.push_back(std::move(right));
-            return Layout_Box::sequence(std::move(seq), scale);
+            result = Layout_Box::sequence(std::move(seq), scale);
+            break;
         }
         case ast::Binary_Op::SUBTRACT: {
             std::vector<Layout_Box> seq;
@@ -179,12 +201,15 @@ Layout_Box Layout_Engine::build_binary_op( const ast::Binary_Op_Node* node, floa
             seq.push_back(std::move(left));
             seq.push_back(Layout_Box::atom("-", scale));
             seq.push_back(std::move(right));
-            return Layout_Box::sequence(std::move(seq), scale);
+            result = Layout_Box::sequence(std::move(seq), scale);
+            break;
         }
         default:
             // Fall back to string representation for unhandled operators
-            return Layout_Box::atom(node->to_string(), scale);
+            result = Layout_Box::atom(node->to_string(), scale);
     }
+    result.node_ptr = node;
+    return result;
 }
 
 /****************************/
@@ -193,14 +218,18 @@ Layout_Box Layout_Engine::build_binary_op( const ast::Binary_Op_Node* node, floa
 Layout_Box Layout_Engine::build_unary_op( const ast::Unary_Op_Node* node, float scale ) {
     auto operand = build(node->operand().get(), scale);
 
+    Layout_Box result;
     if (node->op() == ast::Unary_Op::NEGATE) {
         std::vector<Layout_Box> seq;
         seq.reserve(2);
         seq.push_back(Layout_Box::atom("-", scale));
         seq.push_back(std::move(operand));
-        return Layout_Box::sequence(std::move(seq), scale);
+        result = Layout_Box::sequence(std::move(seq), scale);
+    } else {
+        result = Layout_Box::atom(node->to_string(), scale);
     }
-    return Layout_Box::atom(node->to_string(), scale);
+    result.node_ptr = node;
+    return result;
 }
 
 /****************************/
@@ -209,7 +238,9 @@ Layout_Box Layout_Engine::build_unary_op( const ast::Unary_Op_Node* node, float 
 Layout_Box Layout_Engine::build_function( const ast::Function_Node* node, float scale ) {
     // Special case: sqrt function uses proper mathematical notation
     if (node->name() == "sqrt" && node->args().size() == 1) {
-        return Layout_Box::sqrt(build(node->args()[0].get(), scale), scale);
+        auto result = Layout_Box::sqrt(build(node->args()[0].get(), scale), scale);
+        result.node_ptr = node;
+        return result;
     }
 
     std::vector<Layout_Box> seq;
@@ -233,7 +264,9 @@ Layout_Box Layout_Engine::build_function( const ast::Function_Node* node, float 
     // Closing paren
     seq.push_back(Layout_Box::atom(")", scale));
 
-    return Layout_Box::sequence(std::move(seq), scale);
+    auto result = Layout_Box::sequence(std::move(seq), scale);
+    result.node_ptr = node;
+    return result;
 }
 
 /****************************/
@@ -411,6 +444,26 @@ void Layout_Engine::prepare(Layout_Box& box, core::Point<int> container_size) {
     int x = (container_size.x - box.size.x) / 2;
     int y = (container_size.y - box.size.y) / 2;
     layout( box, core::Point<int>( x, y ) );
+}
+
+/****************************/
+/*    Find Node Position    */
+/****************************/
+std::optional<core::Point<int>> Layout_Engine::find_node_position(const Layout_Box& box, const ast::Node* node) const {
+    if (!node) return std::nullopt;
+
+    // Check if this box corresponds to the node via node_ptr
+    if (box.node_ptr == node) {
+        return box.pos;
+    }
+
+    // Check children recursively
+    for (const auto& child : box.children) {
+        auto result = find_node_position(child, node);
+        if (result) return result;
+    }
+
+    return std::nullopt;
 }
 
 } // namespace ovb::math::layout

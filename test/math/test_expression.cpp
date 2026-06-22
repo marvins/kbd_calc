@@ -9,7 +9,9 @@
 #include <gtest/gtest.h>
 
 // Project Libraries
+#include <overboard/math/ast/node.hpp>
 #include <overboard/math/expression.hpp>
+#include <overboard/math/parser.hpp>
 
 using namespace ovb;
 
@@ -426,5 +428,33 @@ TEST(Expression, nested_sqrt_with_division) {
     math::Expression e;
     press( e, { AC::SQRT, AC::DIGIT_4, AC::DIVIDE, AC::DIGIT_3 });
     EXPECT_EQ(e.eval_string(), "sqrt(4/3)");
+}
+
+/*************************************************************/
+/*   Cursor exits exponent, then operator adds to parent     */
+/*************************************************************/
+TEST(Expression, cursor_exit_exponent_then_add_operator) {
+    math::Expression e;
+    press( e, { AC::DIGIT_4, AC::POWER_2, AC::DIGIT_3 });
+    EXPECT_EQ(e.eval_string(), "4^3");
+
+    // Move cursor right to exit exponent (need to go up the tree)
+    // Path: ADD(4, POWER(3)) -> cursor at 3 (path [1,1])
+    // Need to move to parent POWER (path [1]) then to ADD (path [])
+    for (int i = 0; i < 10; i++) {
+        e.cursor_right();
+    }
+
+    // Add operator - should add to parent, not inside exponent
+    press( e, { AC::ADD, AC::DIGIT_4, AC::ADD, AC::DIGIT_4 });
+    EXPECT_EQ(e.eval_string(), "4^3+4+4");
+
+    // Verify evaluation result: 4^3 + 4 + 4 = 64 + 4 + 4 = 72
+    e.remove_trailing_placeholder();
+    math::Parser parser(e.eval_string());
+    auto ast = parser.parse();
+    ASSERT_NE(ast, nullptr);
+    double result = ast->eval();
+    EXPECT_DOUBLE_EQ(result, 72.0);
 }
 

@@ -12,6 +12,7 @@
 
 // C++ Standard Libraries
 #include <memory>
+#include <optional>
 #include <string>
 
 // Project Libraries
@@ -112,6 +113,14 @@ class Layout_Engine {
          * @param container_size Container dimensions as Point
          */
         void prepare(Layout_Box& box, core::Point<int> container_size);
+
+        /**
+         * @brief Find the position of a node in the layout
+         * @param box The layout box to search
+         * @param node The AST node to find
+         * @return The position of the node, or nullopt if not found
+         */
+        std::optional<core::Point<int>> find_node_position(const Layout_Box& box, const ast::Node* node) const;
 
     private:
         font::Font_Metrics m_metrics;       ///< Font metrics for box sizing

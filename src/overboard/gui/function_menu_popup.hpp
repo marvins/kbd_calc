@@ -92,9 +92,26 @@ class Function_Menu_Popup : public I_Popup {
         bool handle_input(core::Input_Key key) override;
 
         /**
+         * @brief Handle action code
+         */
+        bool handle_input(core::Action_Code action) override;
+
+        /**
          * @brief Render the popup
          */
         void render() override;
+
+        /**
+         * @brief Select menu item by numeric shortcut index (0-based)
+         * @param index 0-based index of the item to select
+         * @return true if item was selected, false if index invalid or popup hidden
+         */
+        bool select_by_index(int index);
+
+        /**
+         * @brief Get menu title
+         */
+        const std::string& title() const;
 
         /**
          * @brief Get menu items (for hotkey overlay)

@@ -24,6 +24,7 @@ namespace ovb::log {
  * @brief Stdout-based logger implementation
  *
  * Outputs log messages to stdout with timestamps and level tags.
+ * Can also output to UART for TTY console debugging on RP2350.
  * Thread-safe for single-threaded use (no internal locking).
  */
 class Stdout_Logger : public I_Logger {
@@ -31,8 +32,10 @@ class Stdout_Logger : public I_Logger {
         /**
          * @brief Create logger with minimum output level
          * @param min_level Minimum level to output (Debug=verbose, Error=quiet)
+         * @param enable_uart Enable UART console output (RP2350 only)
          */
-        explicit Stdout_Logger( Log_Level min_level = Log_Level::Debug );
+        explicit Stdout_Logger( Log_Level min_level = Log_Level::Debug,
+                               bool enable_uart = false );
 
         /**
          * @brief Log a message at the specified level

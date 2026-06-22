@@ -9,7 +9,7 @@
 
 // C++ Standard Libraries
 #include <cmath>
-#include <stdexcept>
+#include <limits>
 
 // Project Libraries
 #include <overboard/math/ast/number_node.hpp>
@@ -20,7 +20,7 @@ namespace ovb::math::ast {
 /*         Evaluate        */
 /***************************/
 double Function_Node::eval() const {
-    if (m_args.empty()) throw std::runtime_error("Function missing args: " + m_name);
+    if (m_args.empty()) return std::numeric_limits<double>::quiet_NaN();
     double a = m_args[0]->eval();
     if (m_name == "sin")  return std::sin(a);
     if (m_name == "cos")  return std::cos(a);
@@ -33,11 +33,11 @@ double Function_Node::eval() const {
     if (m_name == "exp")  return std::exp(a);
     if (m_name == "sqrt") return std::sqrt(a);
     if (m_name == "mod") {
-        if (m_args.size() < 2) throw std::runtime_error("mod requires 2 arguments");
+        if (m_args.size() < 2) return std::numeric_limits<double>::quiet_NaN();
         double b = m_args[1]->eval();
         return std::fmod(a, b);
     }
-    throw std::runtime_error("Unknown function: " + m_name);
+    return std::numeric_limits<double>::quiet_NaN();
 }
 
 /***************************/

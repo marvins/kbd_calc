@@ -2,16 +2,18 @@
 
 set -e
 
-CLEAN_FLAG="-c"
+CLEAN_FLAG=""
 DEBUG_FLAG=""
 DEBUG_LAYOUT_FLAG=""
 
-while getopts ":dx" opt; do
+while getopts ":cdx" opt; do
     case "${opt}" in
+        c) CLEAN_FLAG="-c" ;;
         d) DEBUG_FLAG="-d" ;;
         x) DEBUG_LAYOUT_FLAG="-x" ;;
         \?)
-            echo "Usage: $0 [-d] [-x]"
+            echo "Usage: $0 [-c] [-d] [-x]"
+            echo "  -c  Clean build"
             echo "  -d  Debug build type"
             echo "  -x  Enable debug layout borders"
             exit 1
@@ -19,17 +21,19 @@ while getopts ":dx" opt; do
     esac
 done
 
-echo "Building for RP2350..."
-echo "Note: RP2350 requires ARM toolchain (arm-none-eabi-gcc) and Pico SDK"
-echo "PICO_SDK_PATH: ${PICO_SDK_PATH:-NOT SET}"
+echo "Building for PicoCalc (RP2350)..."
+echo "Note: Requires ARM toolchain (arm-none-eabi-gcc) and Pico SDK"
+echo "PICO_SDK_PATH:  ${PICO_SDK_PATH:-NOT SET}"
 
 # Use ARM cross-compiler via environment variables
 export CC="${ARM_TOOLCHAIN_PATH:-/opt/homebrew/bin}/arm-none-eabi-gcc"
 export CXX="${ARM_TOOLCHAIN_PATH:-/opt/homebrew/bin}/arm-none-eabi-g++"
 export ASM="${ARM_TOOLCHAIN_PATH:-/opt/homebrew/bin}/arm-none-eabi-gcc"
 
+# Use the proper Pico SDK toolchain file for better compatibility
+echo "Using Pico SDK toolchain for ARM cross-compilation..."
 PICO_TOOLCHAIN="${PICO_SDK_PATH}/cmake/preload/toolchains/pico_arm_cortex_m33_gcc.cmake"
-./scripts/build.sh ${CLEAN_FLAG} ${DEBUG_FLAG} ${DEBUG_LAYOUT_FLAG} -j -t -p RP2350 -s off -T "${PICO_TOOLCHAIN}" > build.log 2>&1
+./scripts/build.sh ${CLEAN_FLAG} ${DEBUG_FLAG} ${DEBUG_LAYOUT_FLAG} -j -t -p PICOCALC -s off -T "${PICO_TOOLCHAIN}" > build.log 2>&1
 
 if [ $? -eq 0 ]; then
     echo "Build successful. RP2350 firmware ready at build/calc_firmware"

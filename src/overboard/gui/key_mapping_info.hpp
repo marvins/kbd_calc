@@ -22,6 +22,7 @@
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/layer_manager.hpp>
+#include <overboard/gui/i_panel.hpp>
 
 namespace ovb::gui {
 
@@ -64,6 +65,30 @@ class Key_Mapping_Info {
         void update_layer();
 
         /**
+         * @brief Push an overlay frame onto the stack
+         *
+         * Keys not listed keep their current label (passthrough).
+         * Multiple overlays can be stacked; pop removes the top one.
+         *
+         * @param title  Header text for this overlay (e.g., "Alg")
+         * @param keys   Overlay keys to display on this frame
+         */
+        void push_overlay(const std::string& title,
+                          const std::vector<I_Panel::Overlay_Key_Desc>& keys);
+
+        /**
+         * @brief Pop the top overlay frame from the stack
+         *
+         * Restores the previous overlay or normal layer display.
+         */
+        void pop_overlay();
+
+        /**
+         * @brief Check if any overlay is active
+         */
+        bool is_overlay_active() const;
+
+        /**
          * @brief Get the container object for positioning
          * @return LVGL container object
          */
@@ -97,6 +122,18 @@ class Key_Mapping_Info {
 
         /// @brief Callback to get custom label from active panel
         std::function<std::string(int)> m_get_label_cb;
+
+        /// @brief Single overlay frame
+        struct Overlay_Frame {
+            std::string title;
+            std::vector<I_Panel::Overlay_Key_Desc> keys;
+        };
+
+        /// @brief Overlay stack (top frame is active)
+        std::vector<Overlay_Frame> m_overlay_stack;
+
+        /// @brief Apply the top overlay frame (or restore layer if empty)
+        void apply_top_overlay();
 
         /// @brief Build all key display elements from current layout
         void build_keys(lv_obj_t* parent);

@@ -8,6 +8,8 @@
 
 #pragma once
 
+// Overboard Libraries
+#include <overboard/core/action_code.hpp>
 #include <overboard/core/input_key.hpp>
 
 namespace ovb::gui {
@@ -38,6 +40,13 @@ class I_Popup {
          * @return true if the input was handled, false otherwise
          */
         virtual bool handle_input(core::Input_Key key) = 0;
+
+        /**
+         * @brief Handle action code
+         * @param action The action code to handle
+         * @return true if the action was handled, false otherwise
+         */
+        virtual bool handle_input(core::Action_Code action) = 0;
 
         /**
          * @brief Render the popup

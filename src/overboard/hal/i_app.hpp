@@ -12,7 +12,9 @@
 
 // C++ Standard Libraries
 #include <memory>
+#ifdef __cpp_exceptions
 #include <stdexcept>
+#endif
 
 // Project Libraries
 #include <overboard/core/keyboard_layout.hpp>
@@ -65,7 +67,11 @@ class I_App {
          * @throws std::runtime_error if the platform doesn't support input
          */
         virtual ovb::hal::I_Input& get_input() {
+#ifdef __cpp_exceptions
             throw std::runtime_error("get_input not implemented for this platform");
+#else
+            __builtin_unreachable();
+#endif
         }
 };
 

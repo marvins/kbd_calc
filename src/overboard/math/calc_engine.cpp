@@ -11,7 +11,6 @@
 #include <cmath>
 #include <iomanip>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 
 // Project Libraries
@@ -134,17 +133,19 @@ void Calc_Engine::handle_key( core::Action_Code code ) {
             break;
 
         case core::Action_Code::MEM_STORE:
-            try {
-                m_state.memory = Parser(m_state.expression.eval_string()).parse()->eval();
-            } catch (...) {}
+            {
+                auto tree = Parser(m_state.expression.eval_string()).parse();
+                if (tree) m_state.memory = tree->eval();
+            }
             break;
         case core::Action_Code::MEM_RECALL:
             try_insert(core::Action_Code::EULER); // placeholder — MEM_RECALL inserts numeric string
             break;
         case core::Action_Code::MEM_ADD:
-            try {
-                m_state.memory += Parser(m_state.expression.eval_string()).parse()->eval();
-            } catch (...) {}
+            {
+                auto tree = Parser(m_state.expression.eval_string()).parse();
+                if (tree) m_state.memory += tree->eval();
+            }
             break;
         case core::Action_Code::MEM_CLEAR:
             m_state.memory = 0.0;
@@ -177,12 +178,22 @@ void Calc_Engine::evaluate() {
     s_logger.debug("evaluate() called, expression empty: " + std::string(m_state.expression.empty() ? "yes" : "no"));
     if (m_state.expression.empty()) return;
 
+    std::string expr_str = m_state.expression.eval_string();
+    s_logger.debug("Evaluating expression: " + expr_str);
+    Parser           p(expr_str);
+    ast::Node::ptr_t tree = p.parse();
+
+    if (!tree) {
+        s_logger.error("Parse error | Expression: " + expr_str);
+        m_state.error         = "Parse error";
+        m_state.display_value = "Error";
+        return;
+    }
+
+#ifdef __cpp_exceptions
     try {
-        std::string expr_str = m_state.expression.eval_string();
-        s_logger.debug("Evaluating expression: " + expr_str);
-        Parser        p(expr_str);
-        ast::Node::ptr_t tree      = p.parse();
-        ast::Node::ptr_t result    = tree->simplify();
+#endif
+        ast::Node::ptr_t result = tree->simplify();
 
         std::string result_str = result->to_string();
         s_logger.debug("Evaluation result: " + result_str);
@@ -202,11 +213,13 @@ void Calc_Engine::evaluate() {
         m_state.display_value = result_str;
         m_state.last_ast      = nullptr;
         m_result_shown        = true;
-    } catch (const std::exception& e) {
-        s_logger.error("Evaluation error: " + std::string(e.what()) + " | Expression: " + m_state.expression.eval_string());
-        m_state.error         = e.what();
+#ifdef __cpp_exceptions
+    } catch (const std::exception& ex) {
+        s_logger.error("Evaluation error: " + std::string(ex.what()) + " | Expression: " + expr_str);
+        m_state.error         = ex.what();
         m_state.display_value = "Error";
     }
+#endif
 }
 
 /****************************/

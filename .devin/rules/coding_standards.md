@@ -29,8 +29,10 @@ class My_Class {
 ```
 
 Within `public` sections, order members as follows:
-1. **`static constexpr` constants** (before any methods)
-2. **Methods** (constructors, then all other methods)
+1. **Nested types** (`struct`, `enum`, `class` definitions)
+2. **Type aliases** (`using` declarations)
+3. **`static constexpr` constants**
+4. **Methods** (constructors, then all other methods)
 
 Within `private` and `protected` sections, order members as follows:
 1. **Instance methods** (non-static member functions)

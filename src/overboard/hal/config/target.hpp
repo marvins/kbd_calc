@@ -15,10 +15,12 @@
     #include <overboard/hal/config/target_th33.hpp>
 #elif defined(TARGET_MF34)
     #include <overboard/hal/config/target_mf34.hpp>
+#elif defined(TARGET_RP2350)
+    #include <overboard/hal/config/target_picocalc.hpp>
 #elif defined(TARGET_ZERO)
     #include <overboard/hal/config/target_pi_zero.hpp>
 #else
-    #error "No target defined. Define TARGET_SDL, TARGET_TH33, TARGET_MF34, or TARGET_ZERO."
+    #error "No target defined. Define TARGET_SDL, TARGET_RP2350, TARGET_TH33, TARGET_MF34, or TARGET_ZERO."
 #endif
 
 namespace ovb::hal::config {

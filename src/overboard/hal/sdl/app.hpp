@@ -15,8 +15,10 @@
 #include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <vector>
 
 // Project Libraries
+#include <overboard/core/input_key.hpp>
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
@@ -143,6 +145,9 @@ class SDL_App : public I_App {
 
         /// @brief SDL keymap for the calculator
         SDL_Keymap m_sdl_keymap;
+
+        /// @brief Maps key index to Input_Key (for NONE-action passthrough)
+        std::vector<core::Input_Key> m_key_input_map;
 
 };
 

@@ -9,7 +9,6 @@
 
 // C++ Standard Libraries
 #include <cstring>
-#include <stdexcept>
 
 // Third-Party Libraries — Pico SDK (only compiled on TARGET_RP2350)
 #ifdef TARGET_RP2350
@@ -19,6 +18,9 @@
 #endif
 
 #include <lvgl.h>
+
+// Project Libraries
+#include <overboard/log/stdout_logger.hpp>
 
 namespace ovb::hal::picocalc {
 
@@ -55,28 +57,44 @@ static uint8_t s_buf[LCD_PHYS_WIDTH * BUF_ROWS * BYTES_PER_PIXEL];
 /*       SPI Init           */
 /****************************/
 void PicoCalc_Display::spi_init() {
+    LOG_INFO("Initializing ILI9488 SPI display interface");
+
 #ifdef TARGET_RP2350
+    LOG_DEBUG("Configuring SPI1 at ", LCD_SPI_SPEED, " Hz");
     ::spi_init(spi1, LCD_SPI_SPEED);
     gpio_set_function(LCD_SCK,  GPIO_FUNC_SPI);
     gpio_set_function(LCD_MOSI, GPIO_FUNC_SPI);
     gpio_set_function(LCD_MISO, GPIO_FUNC_SPI);
+    LOG_DEBUG("SPI pins configured - SCK:", LCD_SCK, " MOSI:", LCD_MOSI, " MISO:", LCD_MISO);
 
+    LOG_DEBUG("Initializing GPIO pins for display control");
     gpio_init(LCD_CS);
     gpio_set_dir(LCD_CS, GPIO_OUT);
     gpio_put(LCD_CS, 1);
+    LOG_DEBUG("CS pin (", LCD_CS, ") initialized and set high");
 
     gpio_init(LCD_DC);
     gpio_set_dir(LCD_DC, GPIO_OUT);
     gpio_put(LCD_DC, 1);
+    LOG_DEBUG("DC pin (", LCD_DC, ") initialized and set high");
 
     gpio_init(LCD_RST);
     gpio_set_dir(LCD_RST, GPIO_OUT);
     gpio_put(LCD_RST, 1);
+    LOG_DEBUG("RST pin (", LCD_RST, ") initialized and set high");
+
+    LOG_DEBUG("Performing ILI9488 reset sequence");
     sleep_ms(10);
     gpio_put(LCD_RST, 0);
+    LOG_DEBUG("Reset asserted (low)");
     sleep_ms(10);
     gpio_put(LCD_RST, 1);
+    LOG_DEBUG("Reset de-asserted (high), waiting for display to initialize");
     sleep_ms(120);
+
+    LOG_INFO("SPI initialization completed successfully");
+#else
+    LOG_WARN("SPI initialization skipped - not running on RP2350");
 #endif
 }
 
@@ -85,12 +103,15 @@ void PicoCalc_Display::spi_init() {
 /****************************/
 void PicoCalc_Display::lcd_send_cmd(uint8_t cmd) {
 #ifdef TARGET_RP2350
+    LOG_TRACE("Sending ILI9488 command: 0x", std::hex, static_cast<int>(cmd));
     gpio_put(LCD_DC, 0);
     gpio_put(LCD_CS, 0);
     ::spi_write_blocking(spi1, &cmd, 1);
     gpio_put(LCD_CS, 1);
     gpio_put(LCD_DC, 1);
+    LOG_TRACE("Command 0x", std::hex, static_cast<int>(cmd), " sent successfully");
 #else
+    LOG_TRACE("Skipping ILI9488 command 0x", std::hex, static_cast<int>(cmd), " - not on RP2350");
     (void)cmd;
 #endif
 }
@@ -100,11 +121,14 @@ void PicoCalc_Display::lcd_send_cmd(uint8_t cmd) {
 /****************************/
 void PicoCalc_Display::lcd_send_data(const uint8_t* data, size_t len) {
 #ifdef TARGET_RP2350
+    LOG_TRACE("Sending ", len, " bytes of data to ILI9488");
     gpio_put(LCD_DC, 1);
     gpio_put(LCD_CS, 0);
     ::spi_write_blocking(spi1, data, len);
     gpio_put(LCD_CS, 1);
+    LOG_TRACE("Data transmission completed");
 #else
+    LOG_TRACE("Skipping data transmission - not on RP2350");
     (void)data; (void)len;
 #endif
 }
@@ -133,30 +157,45 @@ void PicoCalc_Display::lcd_set_window(uint16_t x1, uint16_t y1,
 /*        LCD Init          */
 /****************************/
 void PicoCalc_Display::lcd_init() {
+    LOG_INFO("Initializing ILI9488 LCD controller");
+
     // Software reset + wake
+    LOG_DEBUG("Sending software reset command (0x01)");
     lcd_send_cmd(ILI9488_SWRESET);
 #ifdef TARGET_RP2350
     sleep_ms(120);
+    LOG_DEBUG("Software reset delay completed");
 #endif
+
+    LOG_DEBUG("Sending sleep out command (0x11)");
     lcd_send_cmd(ILI9488_SLPOUT);
 #ifdef TARGET_RP2350
     sleep_ms(120);
+    LOG_DEBUG("Sleep out delay completed");
 #endif
 
     // Pixel format: 16-bit RGB565
+    LOG_DEBUG("Setting pixel format to RGB565 (0x55)");
     uint8_t pixfmt = 0x55;
     lcd_send_cmd(ILI9488_PIXFMT);
     lcd_send_data(&pixfmt, 1);
 
     // Memory access control: MX + BGR for portrait orientation
+    LOG_DEBUG("Setting memory access control (0x48)");
     uint8_t madctl = 0x48;
     lcd_send_cmd(ILI9488_MADCTL);
     lcd_send_data(&madctl, 1);
 
+    LOG_DEBUG("Disabling inversion (0x20)");
     lcd_send_cmd(ILI9488_INVOFF);
+
+    LOG_DEBUG("Turning display on (0x29)");
     lcd_send_cmd(ILI9488_DISPON);
 #ifdef TARGET_RP2350
     sleep_ms(50);
+    LOG_INFO("ILI9488 LCD initialization completed successfully");
+#else
+    LOG_WARN("LCD initialization completed on non-RP2350 platform");
 #endif
 }
 
@@ -187,7 +226,11 @@ PicoCalc_Display::PicoCalc_Display() {
 
     m_lv_display = lv_display_create(LCD_PHYS_WIDTH, LCD_PHYS_HEIGHT);
     if (!m_lv_display) {
-        throw std::runtime_error("PicoCalc_Display: lv_display_create failed");
+#ifdef TARGET_RP2350
+        panic("PicoCalc_Display: lv_display_create failed");
+#else
+        return;
+#endif
     }
 
     lv_display_set_flush_cb(m_lv_display, flush_cb);

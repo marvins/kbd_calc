@@ -7,10 +7,6 @@
  */
 #include <overboard/hal/picocalc/app.hpp>
 
-// C++ Standard Libraries
-#include <iostream>
-#include <stdexcept>
-
 // Third-Party Libraries
 #include <lvgl.h>
 #ifdef TARGET_RP2350
@@ -50,13 +46,8 @@ std::unique_ptr<PicoCalc_App> PicoCalc_App::create(
     auto app = std::unique_ptr<PicoCalc_App>(new PicoCalc_App(layout));
 
     // Load keyboard configuration with embedded fallback
-    try {
-        io::Keyboard_Config keyboard_config = io::load_keyboard_config(layout_path);
-        app->m_keymap = io::config_to_keymap(keyboard_config);
-    } catch (const std::exception& e) {
-        std::cerr << "PicoCalc_App: failed to load keyboard config: " << e.what() << "\n";
-        return nullptr;
-    }
+    io::Keyboard_Config keyboard_config = io::load_keyboard_config(layout_path);
+    app->m_keymap = io::config_to_keymap(keyboard_config);
 
     app->m_layout_path = layout_path;
 
@@ -72,26 +63,20 @@ std::unique_ptr<PicoCalc_App> PicoCalc_App::create(
 bool PicoCalc_App::init() {
     lv_init();
 
-    try {
-        // Create the hardware display (initialises SPI + ILI9488 + LVGL driver)
-        m_display = std::make_unique<PicoCalc_Display>();
+    // Create the hardware display (initialises SPI + ILI9488 + LVGL driver)
+    m_display = std::make_unique<PicoCalc_Display>();
 
-        // Create the GUI view on the LVGL screen
-        m_view = std::make_unique<gui::App_View>(
-            m_display->screen(), m_layout, m_engine, m_layers);
+    // Create the GUI view on the LVGL screen
+    m_view = std::make_unique<gui::App_View>(
+        m_display->screen(), m_layout, m_engine, m_layers);
 
-        // Create the I2C keyboard input driver
-        m_input = std::make_unique<PicoCalc_Input>(m_layout);
-        // Note: PicoCalc uses native I2C key codes directly from hardware
+    // Create the I2C keyboard input driver
+    m_input = std::make_unique<PicoCalc_Input>(m_layout);
+    // Note: PicoCalc uses native I2C key codes directly from hardware
 
-        m_view->render();
-        m_initialized = true;
-        return true;
-
-    } catch (const std::exception& e) {
-        std::cerr << "PicoCalc_App init error: " << e.what() << "\n";
-        return false;
-    }
+    m_view->render();
+    m_initialized = true;
+    return true;
 }
 
 /****************************/

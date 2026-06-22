@@ -15,6 +15,7 @@
 
 // Project Libraries
 #include <overboard/core/point.hpp>
+#include <overboard/math/ast/node.hpp>
 
 namespace ovb::math::layout {
 
@@ -52,6 +53,7 @@ struct Layout_Box {
     float scale = 2.0f;         ///< Font scale (1.0, 2.0, 3.0...)
     std::string text;           ///< Text content (for ATOM boxes)
     std::vector<Layout_Box> children;  ///< Child boxes (for composite types)
+    const ast::Node* node_ptr = nullptr;  ///< AST node pointer (for cursor position tracking)
 
 
     /**

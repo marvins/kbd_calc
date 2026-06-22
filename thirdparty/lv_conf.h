@@ -53,7 +53,11 @@
 
 #if LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN
     /*Size of the memory available for `lv_malloc()` in bytes (>= 2kB)*/
-    #define LV_MEM_SIZE (4 * 1024 * 1024U)   /*[bytes] 4MB for SDL simulator; embedded targets override via their own conf*/
+    #ifdef TARGET_RP2350
+        #define LV_MEM_SIZE (128 * 1024U)     /*[bytes] 128 KB for RP2350 (520 KB total RAM)*/
+    #else
+        #define LV_MEM_SIZE (4 * 1024 * 1024U) /*[bytes] 4 MB for SDL simulator*/
+    #endif
 
     /*Size of the memory expand for `lv_malloc()` in bytes*/
     #define LV_MEM_POOL_EXPAND_SIZE 0

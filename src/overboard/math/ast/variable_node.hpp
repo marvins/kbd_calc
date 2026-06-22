@@ -8,7 +8,7 @@
 #pragma once
 
 // C++ Standard Libraries
-#include <stdexcept>
+#include <limits>
 #include <string>
 
 // Project Libraries
@@ -47,7 +47,7 @@ class Variable_Node : public Node {
          * @return double Value of the variable
          */
         double eval() const override {
-            throw std::runtime_error("Cannot evaluate variable '" + m_name + "' without a value");
+            return std::numeric_limits<double>::quiet_NaN();
         }
 
         /**

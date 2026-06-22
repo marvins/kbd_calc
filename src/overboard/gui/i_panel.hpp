@@ -13,7 +13,9 @@
 
 // C++ Standard Libraries
 #include <cstdint>
+#include <functional>
 #include <string>
+#include <vector>
 
 // Third-Party Libraries
 #include <lvgl.h>
@@ -33,6 +35,16 @@ namespace ovb::gui {
  */
 class I_Panel {
     public:
+
+        /// @brief Overlay key descriptor for popup hotkey display
+        struct Overlay_Key_Desc {
+            int key_index;
+            std::string label;
+            core::Action_Code action;
+        };
+
+        using Overlay_Push_Cb = std::function<void(const std::string&, const std::vector<Overlay_Key_Desc>&)>;
+        using Overlay_Pop_Cb  = std::function<void()>;
 
         virtual ~I_Panel() = default;
 
@@ -85,6 +97,19 @@ class I_Panel {
          * @return Custom label string, or empty to use default from keyboard.json
          */
         virtual std::string get_custom_label([[maybe_unused]] int key_index) const { return ""; }
+
+        /**
+         * @brief Set keyboard overlay callbacks for popup hotkey display
+         *
+         * Called by the platform layer to provide push/pop overlay access.
+         * Panels that use popups can store these and call them as needed.
+         * Default no-op for panels that don't need overlays.
+         *
+         * @param push Callback to push an overlay frame
+         * @param pop  Callback to pop the top overlay frame
+         */
+        virtual void set_overlay_callbacks([[maybe_unused]] Overlay_Push_Cb push,
+                                           [[maybe_unused]] Overlay_Pop_Cb pop) {}
 };
 
 } // namespace ovb::gui

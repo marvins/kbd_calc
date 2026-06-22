@@ -12,7 +12,7 @@
 #pragma once
 
 // C++ Standard Libraries
-#include <stdexcept>
+#include <limits>
 #include <string>
 
 // Project Libraries
@@ -42,7 +42,7 @@ class Placeholder_Node : public Node {
          * @return double Throws an exception since placeholders cannot be evaluated
          */
         double eval() const override {
-            throw std::runtime_error("Cannot evaluate placeholder");
+            return std::numeric_limits<double>::quiet_NaN();
         }
 
         /**

@@ -9,6 +9,7 @@
 // C++ Standard Libraries
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <string>
 
 // Third-Party Libraries
@@ -46,24 +47,32 @@ std::array<Layer, LAYER_COUNT> load_layers_from_json(
 {
     std::ifstream file(json_path);
     if (!file.is_open()) {
-        throw std::runtime_error("Failed to open keymap JSON file: " + json_path.string());
+        std::cerr << "[keymap] Failed to open keymap JSON file: " << json_path.string() << "\n";
+        return {};
     }
 
     nlohmann::json j;
+#ifdef __cpp_exceptions
     try {
         file >> j;
-    } catch (const nlohmann::json::parse_error& e) {
-        throw std::runtime_error("Failed to parse keymap JSON: " + std::string(e.what()));
+    } catch (const nlohmann::json::parse_error& ex) {
+        std::cerr << "[keymap] Failed to parse keymap JSON: " << ex.what() << "\n";
+        return {};
     }
+#else
+    file >> j;
+#endif
 
     if (!j.contains("layers") || !j["layers"].is_array()) {
-        throw std::runtime_error("Invalid keymap JSON: missing or invalid 'layers' array");
+        std::cerr << "[keymap] Invalid keymap JSON: missing or invalid 'layers' array\n";
+        return {};
     }
 
     auto layers_json = j["layers"];
     if (layers_json.size() != LAYER_COUNT) {
-        throw std::runtime_error("Invalid keymap JSON: expected " + std::to_string(LAYER_COUNT) +
-                                 " layers, got " + std::to_string(layers_json.size()));
+        std::cerr << "[keymap] Invalid keymap JSON: expected " << LAYER_COUNT
+                  << " layers, got " << layers_json.size() << "\n";
+        return {};
     }
 
     std::array<Layer, LAYER_COUNT> layers;
@@ -72,11 +81,13 @@ std::array<Layer, LAYER_COUNT> load_layers_from_json(
         auto layer_json = layers_json[i];
 
         if (!layer_json.contains("name") || !layer_json["name"].is_string()) {
-            throw std::runtime_error("Invalid layer at index " + std::to_string(i) + ": missing or invalid 'name'");
+            std::cerr << "[keymap] Invalid layer at index " << i << ": missing or invalid 'name'\n";
+            return {};
         }
 
         if (!layer_json.contains("keys") || !layer_json["keys"].is_array()) {
-            throw std::runtime_error("Invalid layer at index " + std::to_string(i) + ": missing or invalid 'keys' array");
+            std::cerr << "[keymap] Invalid layer at index " << i << ": missing or invalid 'keys' array\n";
+            return {};
         }
 
         auto keys_json = layer_json["keys"];
