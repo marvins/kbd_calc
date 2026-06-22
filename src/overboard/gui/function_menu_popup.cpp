@@ -250,6 +250,26 @@ bool Function_Menu_Popup::handle_input(core::Action_Code action) {
             hide();
             return true;
 
+        // Digit shortcuts: 1-9 select menu items by index
+        case core::Action_Code::DIGIT_1:
+            return select_by_index(0);
+        case core::Action_Code::DIGIT_2:
+            return select_by_index(1);
+        case core::Action_Code::DIGIT_3:
+            return select_by_index(2);
+        case core::Action_Code::DIGIT_4:
+            return select_by_index(3);
+        case core::Action_Code::DIGIT_5:
+            return select_by_index(4);
+        case core::Action_Code::DIGIT_6:
+            return select_by_index(5);
+        case core::Action_Code::DIGIT_7:
+            return select_by_index(6);
+        case core::Action_Code::DIGIT_8:
+            return select_by_index(7);
+        case core::Action_Code::DIGIT_9:
+            return select_by_index(8);
+
         default:
             return false;
     }

@@ -458,3 +458,60 @@ TEST(Expression, cursor_exit_exponent_then_add_operator) {
     EXPECT_DOUBLE_EQ(result, 72.0);
 }
 
+/****************************/
+/*   Cursor path preservation  */
+/****************************/
+
+/*************************************************************/
+/*   Backspace on single digit inside function allows re-entry */
+/*************************************************************/
+TEST(Expression, backspace_single_digit_in_function_allows_reentry) {
+    math::Expression e;
+    press( e, { AC::SQRT, AC::DIGIT_4 });
+    EXPECT_EQ(e.render_string(), "sqrt(4)");
+
+    // Backspace the 4
+    e.backspace();
+    EXPECT_EQ(e.render_string(), "sqrt(□)");
+    EXPECT_TRUE(e.has_placeholder());
+
+    // Should be able to type a new number
+    press( e, { AC::DIGIT_5 });
+    EXPECT_EQ(e.render_string(), "sqrt(5)");
+}
+
+/*************************************************************/
+/*   Backspace on placeholder with binary op parent deletes op */
+/*************************************************************/
+TEST(Expression, backspace_placeholder_with_binary_op_parent) {
+    math::Expression e;
+    press( e, { AC::SQRT, AC::DIGIT_4, AC::ADD });
+    EXPECT_EQ(e.render_string(), "sqrt(4+□)");
+
+    // Backspace should delete the + operator
+    e.backspace();
+    EXPECT_EQ(e.render_string(), "sqrt(4)");
+}
+
+/*************************************************************/
+/*   Backspace chain in nested function deletes to placeholder */
+/*************************************************************/
+TEST(Expression, backspace_chain_nested_function_to_placeholder) {
+    math::Expression e;
+    press( e, { AC::SQRT, AC::DIGIT_4, AC::ADD, AC::DIGIT_3 });
+    EXPECT_EQ(e.render_string(), "sqrt(4+3)");
+
+    // Backspace 3
+    e.backspace();
+    EXPECT_EQ(e.render_string(), "sqrt(4+□)");
+
+    // Backspace + operator
+    e.backspace();
+    EXPECT_EQ(e.render_string(), "sqrt(4)");
+
+    // Backspace 4
+    e.backspace();
+    EXPECT_EQ(e.render_string(), "sqrt(□)");
+    EXPECT_TRUE(e.has_placeholder());
+}
+

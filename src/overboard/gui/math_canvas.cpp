@@ -135,6 +135,43 @@ bool draw_math_to_canvas( lv_obj_t*                     canvas,
                 lv_draw_rect(&layer, &rect_dsc, &bar_coords);
             }
 
+            if (b.kind == math::layout::Box_Kind::SQRT && !b.children.empty()) {
+                int symbol_width = 2 * static_cast<int>(b.scale);
+                int top_pad = 2 * static_cast<int>(b.scale);
+                int text_offset = 2;
+
+                // Draw horizontal bar over the argument
+                lv_draw_rect_dsc_t rect_dsc;
+                lv_draw_rect_dsc_init(&rect_dsc);
+                rect_dsc.bg_color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
+                rect_dsc.bg_opa   = LV_OPA_COVER;
+
+                lv_area_t bar_coords = {
+                    static_cast<int32_t>(x + symbol_width),
+                    static_cast<int32_t>(y + top_pad),
+                    static_cast<int32_t>(x + b.size.x),
+                    static_cast<int32_t>(y + top_pad + 2)
+                };
+                lv_draw_rect(&layer, &rect_dsc, &bar_coords);
+
+                // Draw √ symbol (vertical line and tick)
+                lv_draw_line_dsc_t line_dsc;
+                lv_draw_line_dsc_init(&line_dsc);
+                line_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
+                line_dsc.width = 1;
+                line_dsc.opa   = LV_OPA_COVER;
+
+                // Vertical line
+                line_dsc.p1 = { static_cast<lv_value_precise_t>(x + 1), static_cast<lv_value_precise_t>(y + top_pad) };
+                line_dsc.p2 = { static_cast<lv_value_precise_t>(x + 1), static_cast<lv_value_precise_t>(y + b.size.y - text_offset) };
+                lv_draw_line(&layer, &line_dsc);
+
+                // Tick mark (diagonal)
+                line_dsc.p1 = { static_cast<lv_value_precise_t>(x + 1), static_cast<lv_value_precise_t>(y + b.size.y - text_offset) };
+                line_dsc.p2 = { static_cast<lv_value_precise_t>(x + symbol_width), static_cast<lv_value_precise_t>(y + top_pad) };
+                lv_draw_line(&layer, &line_dsc);
+            }
+
             for (const auto& child : b.children) {
                 draw_box(child, offset_x, offset_y);
             }

@@ -149,9 +149,10 @@ void Expression::backspace() {
             number_node->set_value(std::floor(value / 10.0));
         } else {
             // Single digit - replace with placeholder
+            // Keep cursor path pointing to this location (don't reset to root)
+            // This allows subsequent digit insertion to work inside functions
             auto new_node = std::make_unique<ast::Placeholder_Node>();
             replace_node_at_cursor(std::move(new_node));
-            m_cursor_path = ast::Cursor_Path_Runtime();
         }
     }
     // If cursor is on a placeholder, check if parent is a function/constant to delete atomically
@@ -168,6 +169,17 @@ void Expression::backspace() {
                 m_cursor_path = ast::Cursor_Path_Runtime();
                 return;
             }
+            // If parent is a binary op, delete the operator and move to left child
+            if (parent && parent->kind() == ast::Node_Kind::BINARY_OP) {
+                auto* bin_node = static_cast<ast::Binary_Op_Node*>(parent);
+                // Replace with left child
+                m_cursor_path = parent_path;
+                auto new_node = bin_node->release_left();
+                replace_node_at_cursor(std::move(new_node));
+                // Cursor now points to left child at the parent's position
+                // Don't reset cursor path - keep it pointing to this location
+                return;
+            }
         }
         // Already at empty state
     }
@@ -177,7 +189,8 @@ void Expression::backspace() {
         // Replace with left child
         auto new_node = bin_node->release_left();
         replace_node_at_cursor(std::move(new_node));
-        m_cursor_path = ast::Cursor_Path_Runtime();
+        // Cursor now points to the left child (which replaced the binary op)
+        // Don't modify cursor path - the replacement keeps us at the same position
     }
     // If cursor is on a function, delete the function atomically
     else if (cursor_node->kind() == ast::Node_Kind::FUNCTION) {
