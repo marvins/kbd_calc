@@ -435,7 +435,7 @@ TEST(Expression, nested_sqrt_with_division) {
 /*************************************************************/
 TEST(Expression, cursor_exit_exponent_then_add_operator) {
     math::Expression e;
-    press( e, { AC::DIGIT_4, AC::POWER_2, AC::DIGIT_3 });
+    press( e, { AC::DIGIT_4, AC::POWER_N, AC::DIGIT_3 });
     EXPECT_EQ(e.eval_string(), "4^3");
 
     // Move cursor right to exit exponent (need to go up the tree)

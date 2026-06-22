@@ -19,6 +19,11 @@ static double eval(const std::string& expr) {
     return ovb::math::Parser(expr).parse()->eval();
 }
 
+// Helper: parse expression string and return AST node
+static ovb::math::ast::Node::ptr_t parse(const std::string& expr) {
+    return ovb::math::Parser(expr).parse();
+}
+
 // Helper: parse expression string and return LaTeX string
 static std::string to_latex(const std::string& expr) {
     return ovb::math::Parser(expr).parse()->to_latex();
@@ -178,20 +183,21 @@ TEST(Parser_Whitespace, Multiple_Spaces) {
 
 // ─── Error cases ─────────────────────────────────────────────────────────────
 
-TEST(Parser_Errors, Empty_Throws) {
-    EXPECT_THROW(ovb::math::Parser("").parse(), std::exception);
+TEST(Parser_Errors, Trailing_Junk_Returns_Nullptr) {
+    EXPECT_EQ(parse("3+4 5"), nullptr);
 }
 
-TEST(Parser_Errors, Trailing_Junk_Throws) {
-    EXPECT_THROW(eval("3+4 5"), std::runtime_error);
+TEST(Parser_Errors, Unknown_Function_Parses_As_Function) {
+    auto node = parse("foo(1)");
+    ASSERT_NE(node, nullptr);
+    EXPECT_EQ(node->kind(), ovb::math::ast::Node_Kind::FUNCTION);
+    EXPECT_TRUE(std::isnan(node->eval()));
 }
 
-TEST(Parser_Errors, Unknown_Function_Throws) {
-    EXPECT_THROW(eval("foo(1)"), std::runtime_error);
-}
-
-TEST(Parser_Errors, Division_By_Zero_Throws) {
-    EXPECT_THROW(eval("1/0"), std::runtime_error);
+TEST(Parser_Errors, Division_By_Zero_Returns_NaN) {
+    auto tree = parse("1/0");
+    ASSERT_NE(tree, nullptr);
+    EXPECT_TRUE(std::isnan(tree->eval()));
 }
 
 // ─── LaTeX output ────────────────────────────────────────────────────────────

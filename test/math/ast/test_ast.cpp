@@ -89,7 +89,7 @@ TEST(Ast_Binary, Divide_By_Zero) {
         Binary_Op::DIVIDE,
         std::make_unique<Number_Node>(1.0),
         std::make_unique<Number_Node>(0.0));
-    EXPECT_THROW(n->eval(), std::runtime_error);
+    EXPECT_TRUE(std::isnan(n->eval()));
 }
 
 TEST(Ast_Binary, Power) {
@@ -229,10 +229,10 @@ TEST(Ast_Function, Ln) {
     EXPECT_DOUBLE_EQ(Function_Node("ln", std::move(args)).eval(), 0.0);
 }
 
-TEST(Ast_Function, Unknown_Throws) {
+TEST(Ast_Function, Unknown_Returns_NaN) {
     std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Number_Node>(1.0));
-    EXPECT_THROW(Function_Node("foo", std::move(args)).eval(), std::runtime_error);
+    EXPECT_TRUE(std::isnan(Function_Node("foo", std::move(args)).eval()));
 }
 
 TEST(Ast_Function, Sqrt_Latex) {
@@ -259,10 +259,9 @@ TEST(Ast_Factorial, Zero) {
         Factorial_Node(std::make_unique<Number_Node>(0.0)).eval(), 1.0);
 }
 
-TEST(Ast_Factorial, Negative_Throws) {
-    EXPECT_THROW(
-        Factorial_Node(std::make_unique<Number_Node>(-1.0)).eval(),
-        std::runtime_error);
+TEST(Ast_Factorial, Negative_Returns_NaN) {
+    EXPECT_TRUE(
+        std::isnan(Factorial_Node(std::make_unique<Number_Node>(-1.0)).eval()));
 }
 
 TEST(Ast_Factorial, To_String) {
