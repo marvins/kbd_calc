@@ -67,4 +67,11 @@ void Header_Bar::refresh() {
     }
 }
 
+/*******************************/
+/*            Get Obj          */
+/*******************************/
+lv_obj_t* Header_Bar::get_obj() const {
+    return m_impl->bar;
+}
+
 } // namespace ovb::gui

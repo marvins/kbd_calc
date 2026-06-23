@@ -222,7 +222,7 @@ void Keyboard_Display::update_layer() {
         if (font::requires_custom_font(layer.keys[i])) {
             lv_obj_set_style_text_font(m_key_labels[i], &lv_font_superscript, LV_PART_MAIN);
         } else {
-            lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_DEFAULT, LV_PART_MAIN);
+            lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_SMALL, LV_PART_MAIN);
         }
     }
 }

@@ -63,6 +63,12 @@ class Footer_Bar : public I_Footer_Bar {
          */
         void refresh()                                     override;
 
+        /**
+         * @brief Get the underlying LVGL object
+         * @return LVGL object pointer
+         */
+        lv_obj_t* get_obj() const override;
+
     private:
 
         static void slot_event_cb(lv_event_t* e);

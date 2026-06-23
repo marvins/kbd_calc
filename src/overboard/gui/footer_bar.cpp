@@ -118,6 +118,13 @@ void Footer_Bar::refresh() {
 }
 
 /*******************************/
+/*            Get Obj          */
+/*******************************/
+lv_obj_t* Footer_Bar::get_obj() const {
+    return m_impl->bar;
+}
+
+/*******************************/
 /*       Slot Event CB         */
 /*******************************/
 void Footer_Bar::slot_event_cb(lv_event_t* e) {

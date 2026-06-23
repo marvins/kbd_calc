@@ -26,6 +26,7 @@ namespace ovb::gui {
  * the active panel name left-aligned.
  */
 class Header_Bar : public I_Header_Bar {
+
     public:
 
         static constexpr int HEIGHT { 20 };
@@ -37,10 +38,27 @@ class Header_Bar : public I_Header_Bar {
          */
         Header_Bar(lv_obj_t* parent, int width);
 
+        /**
+         * @brief Destructor
+         */
         ~Header_Bar() override;
 
+        /**
+         * @brief Set the application name to display
+         * @param name Application name
+         */
         void set_app_name(const std::string& name) override;
-        void refresh()                              override;
+
+        /**
+         * @brief Refresh the header bar
+         */
+        void refresh() override;
+
+        /**
+         * @brief Get the underlying LVGL object
+         * @return LVGL object pointer
+         */
+        lv_obj_t* get_obj() const override;
 
     private:
 

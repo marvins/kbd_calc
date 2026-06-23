@@ -14,6 +14,9 @@
 #include <functional>
 #include <string>
 
+// Third-Party Libraries
+#include <lvgl.h>
+
 // Project Libraries
 #include <overboard/core/action_code.hpp>
 
@@ -57,6 +60,12 @@ class I_Footer_Bar {
          * @brief Refresh the rendered bar (call after set_label changes)
          */
         virtual void refresh() = 0;
+
+        /**
+         * @brief Get the underlying LVGL object
+         * @return LVGL object pointer
+         */
+        virtual lv_obj_t* get_obj() const = 0;
 };
 
 } // namespace ovb::gui

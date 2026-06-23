@@ -106,6 +106,12 @@ class Status_Page : public I_App {
 
     private:
 
+        /// @brief Show the About popup
+        void show_about_popup();
+
+        /// @brief Hide the About popup
+        void hide_about_popup();
+
         /// @brief Implementation details
         struct Impl;
         std::unique_ptr<Impl> m_impl;

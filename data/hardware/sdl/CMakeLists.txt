@@ -76,6 +76,9 @@ set(HARDWARE_SOURCES
     src/overboard/hal/sdl/input_key_mapping.cpp
     src/overboard/hal/sdl/keymap.cpp
     src/overboard/hal/sdl/keyboard_window.cpp
+    src/overboard/hal/sdl/settings_store.cpp
+    src/overboard/hal/settings_store_factory.cpp
+    src/overboard/hal/settings_tree.cpp
 )
 
 # Enable keylogger for SDL (uses SDL input)

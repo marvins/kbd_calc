@@ -84,6 +84,8 @@ set(CORE_SOURCES
     src/overboard/core/input_key.cpp
     src/overboard/core/keyboard_layout.cpp
     src/overboard/core/layer_manager.cpp
+    src/overboard/core/location_provider.cpp
+    src/overboard/core/solar_calc.cpp
     src/overboard/display/cursor_renderer.cpp
     src/overboard/display/dirty_region_tracker.cpp
     src/overboard/display/history_display.cpp
@@ -121,6 +123,9 @@ set(APP_SOURCES
     src/overboard/apps/calculator/calculator_app.cpp
     src/overboard/apps/settings/settings_page.cpp
     src/overboard/apps/status/status_page.cpp
+    src/overboard/apps/status/widgets/analog_clock.cpp
+    src/overboard/apps/status/widgets/digital_clock.cpp
+    src/overboard/apps/status/widgets/solar_info.cpp
 )
 
 # ── Build Main Application ─────────────────────────────────────────────────────────
@@ -161,6 +166,7 @@ target_link_libraries(${APP_TARGET} PRIVATE
     ${APP_LIBRARIES}
     project_warnings
     nlohmann_json
+    tomlplusplus
 )
 
 if(SHOW_KEYBOARD_UI)
@@ -264,9 +270,12 @@ if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STRE
         test/core/test_layout.cpp
         test/core/test_action_code.cpp
         test/core/test_input_key.cpp
+        test/core/test_location_provider.cpp
         test/font/test_font_metrics.cpp
         test/hal/test_settings_tree.cpp
         src/overboard/core/keymap.cpp
+        src/overboard/core/location_provider.cpp
+        src/overboard/core/solar_calc.cpp
         src/overboard/hal/settings_tree.cpp
         src/overboard/core/action_code.cpp
         src/overboard/core/input_key.cpp
@@ -288,7 +297,7 @@ if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STRE
     target_include_directories(calc_tests PRIVATE ${CMAKE_BINARY_DIR}/src)
     target_include_directories(calc_tests SYSTEM PRIVATE thirdparty/lvgl)
     target_include_directories(calc_tests SYSTEM PRIVATE thirdparty/json/include)
-    target_link_libraries(calc_tests PRIVATE GTest::gtest project_warnings lvgl)
+    target_link_libraries(calc_tests PRIVATE GTest::gtest project_warnings lvgl nlohmann_json tomlplusplus)
     include(GoogleTest)
     gtest_discover_tests(calc_tests)
 endif()

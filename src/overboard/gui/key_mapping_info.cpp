@@ -197,7 +197,7 @@ void Key_Mapping_Info::update_layer() {
         if (font::requires_custom_font(layer.keys[i])) {
             lv_obj_set_style_text_font(m_key_labels[i], &lv_font_superscript, LV_PART_MAIN);
         } else {
-            lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_DEFAULT, LV_PART_MAIN);
+            lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_SMALL, LV_PART_MAIN);
         }
 
         // Show/hide label based on whether there's text
@@ -275,7 +275,7 @@ void Key_Mapping_Info::apply_top_overlay() {
                 if (font::requires_custom_font(key.label)) {
                     lv_obj_set_style_text_font(label, &lv_font_superscript, LV_PART_MAIN);
                 } else {
-                    lv_obj_set_style_text_font(label, LVGL_FONT_DEFAULT, LV_PART_MAIN);
+                    lv_obj_set_style_text_font(label, LVGL_FONT_SMALL, LV_PART_MAIN);
                 }
             }
         }

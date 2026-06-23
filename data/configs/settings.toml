@@ -32,3 +32,15 @@ number_format = "auto"
 
 # Decimal places when using fixed format (0-15)
 decimal_places = 6
+
+# Location settings (used by solar calculator)
+[location]
+# Source for geographic location.
+# "settings" - use the lat/lon/timezone values below
+# "ip"       - auto-detect via ip-api.com (requires internet)
+source    = "settings"
+latitude  = 39.7392     # Replace with your coordinates
+longitude = -104.9903
+timezone  = -6.0        # UTC offset in hours (e.g. MDT=-6, MST=-7, EST=-5)
+# URL queried when source = "ip" (must return ip-api.com-compatible JSON)
+# ip_url = "http://ip-api.com/json"

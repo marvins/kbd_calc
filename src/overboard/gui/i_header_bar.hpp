@@ -13,6 +13,9 @@
 // C++ Standard Libraries
 #include <string>
 
+// Third-Party Libraries
+#include <lvgl.h>
+
 namespace ovb::gui {
 
 /**
@@ -39,6 +42,12 @@ class I_Header_Bar {
          * @brief Refresh the rendered bar (call after set_* changes)
          */
         virtual void refresh() = 0;
+
+        /**
+         * @brief Get the underlying LVGL object
+         * @return LVGL object pointer
+         */
+        virtual lv_obj_t* get_obj() const = 0;
 };
 
 } // namespace ovb::gui

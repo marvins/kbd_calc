@@ -139,6 +139,14 @@ Note that section headers should be omitted entirely if that section has no incl
 
 Within each include section, headers must be **alphabetized** unless there is a technical reason not to (e.g. a header that must be included before another to satisfy a dependency). If order matters, add a brief inline comment explaining why.
 
+## Exceptions
+**Do not use C++ exceptions (`throw`, `try`, `catch`).** The RP2350/PicoCalc toolchain builds with `-fno-exceptions` and the linker will reject any code that throws or catches. This applies to all files under `src/` regardless of target guard.
+
+- Use `std::optional`, `std::expected`, or error-code returns instead of throwing.
+- When calling third-party APIs that throw (e.g. `nlohmann::json::parse`), wrap them in `#ifdef TARGET_SDL` guards or use their non-throwing overloads (e.g. `json::parse(s, nullptr, false)` with `is_discarded()` check).
+
+## File Header / Include Order
+
 For `.cpp` files, the associated header (the `.hpp` with the same base name) must be included **first**, before all other includes and before any section comment. The remaining includes then follow in the normal grouped order:
 
 ```cpp

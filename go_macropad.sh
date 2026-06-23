@@ -43,9 +43,10 @@ if [ $DEBUG_LAYOUT -eq 1 ]; then
     BUILD_ARGS="$BUILD_ARGS -x"
 fi
 
-./scripts/build.sh $BUILD_ARGS > build.log 2>&1
+./scripts/build.sh $BUILD_ARGS 2>&1 | tee build.log
+BUILD_EXIT=${PIPESTATUS[0]}
 
-if [ $? -eq 0 ]; then
+if [ $BUILD_EXIT -eq 0 ]; then
     echo "Build successful."
     if [ $RUN_TESTS -eq 1 ]; then
         echo "Running unit tests..."
@@ -63,8 +64,7 @@ if [ $? -eq 0 ]; then
         echo "Skipping simulator run (build only)."
     fi
 else
-    echo "Build failed. Check build.log for details."
-    tail -20 build.log
+    echo "Build failed. Full output saved to build.log."
     exit 1
 fi
 
