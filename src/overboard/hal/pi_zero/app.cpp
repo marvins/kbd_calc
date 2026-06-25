@@ -20,8 +20,10 @@
 #include <overboard/core/action_code.hpp>
 #include <overboard/core/input_key.hpp>
 #include <overboard/core/keymap.hpp>
+#include <overboard/core/settings_manager.hpp>
 #include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
+#include <overboard/hal/settings_store_factory.hpp>
 #include <overboard/io/keyboard_config.hpp>
 #include <overboard/log/stdout_logger.hpp>
 #include <overboard/resources/embedded_json.hpp>
@@ -95,12 +97,17 @@ bool PiZero_App::init() {
         return false;
     }
 
+    // Create settings manager
+    auto settings_store = Settings_Store_Factory::create();
+    auto settings = std::make_shared<core::Settings_Manager>(std::move(settings_store));
+
     // Create main application view
     m_view = std::make_unique<gui::App_View>(
         m_display->screen(),
         m_layout,
         m_engine,
-        m_layers
+        m_layers,
+        settings
     );
 
     // Create input handler (try common keyboard devices)

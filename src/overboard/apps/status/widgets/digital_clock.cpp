@@ -59,15 +59,18 @@ void Digital_Clock::create(lv_obj_t* parent) {
 /*            Update           */
 /*******************************/
 void Digital_Clock::update(const std::tm& tm) {
+    // Create mutable copy for std::put_time (requires non-const pointer)
+    std::tm tm_copy = tm;
+
     if (m_time_label) {
         std::ostringstream oss;
-        oss << std::put_time(&tm, "%H:%M:%S");
+        oss << std::put_time(&tm_copy, "%H:%M:%S");
         lv_label_set_text(m_time_label, oss.str().c_str());
     }
 
     if (m_date_label) {
         std::ostringstream oss;
-        oss << std::put_time(&tm, "%A, %B %d");
+        oss << std::put_time(&tm_copy, "%A, %B %d");
         lv_label_set_text(m_date_label, oss.str().c_str());
     }
 }

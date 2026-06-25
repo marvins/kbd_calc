@@ -1,3 +1,6 @@
+// C++ Standard Libraries
+#include <cmath>
+
 // Third-Party Libraries
 #include <gtest/gtest.h>
 
@@ -285,13 +288,14 @@ TEST(Ast_Simplify, Constant_Stays_Symbolic) {
     EXPECT_EQ(s->to_string(), "pi");
 }
 
-TEST(Ast_Simplify, Binary_Constant_Folds_Two_Numbers) {
+TEST(Ast_Simplify, Binary_Numeric_Operands_Fold_To_Number) {
     auto n = std::make_unique<Binary_Op_Node>(
         Binary_Op::ADD,
         std::make_unique<Number_Node>(3.0),
         std::make_unique<Number_Node>(4.0));
     auto s = n->simplify();
     EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
+    EXPECT_EQ(s->to_string(), "7");
     EXPECT_DOUBLE_EQ(s->eval(), 7.0);
 }
 
@@ -305,12 +309,13 @@ TEST(Ast_Simplify, Binary_Stays_Symbolic_With_Constant) {
     EXPECT_EQ(s->to_string(), "(2*pi)");
 }
 
-TEST(Ast_Simplify, Function_Folds_Numeric_Sqrt) {
+TEST(Ast_Simplify, Function_Numeric_Args_Fold_To_Number) {
     std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Number_Node>(9.0));
     auto n = std::make_unique<Function_Node>("sqrt", std::move(args));
     auto s = n->simplify();
     EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
+    EXPECT_EQ(s->to_string(), "3");
     EXPECT_DOUBLE_EQ(s->eval(), 3.0);
 }
 
@@ -321,6 +326,160 @@ TEST(Ast_Simplify, Function_Stays_Symbolic_With_Constant_Arg) {
     auto s = n->simplify();
     EXPECT_EQ(s->kind(), Node_Kind::FUNCTION);
     EXPECT_EQ(s->to_string(), "sin(pi)");
+}
+
+TEST(Ast_Simplify, Binary_Stays_Symbolic_With_Numeric_And_Constant) {
+    // 2 * pi — one side is a constant, cannot fold
+    auto n = std::make_unique<Binary_Op_Node>(
+        Binary_Op::MULTIPLY,
+        std::make_unique<Number_Node>(2.0),
+        std::make_unique<Constant_Node>(Constant_Id::PI));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::BINARY_OP);
+    EXPECT_EQ(s->to_string(), "(2*pi)");
+}
+
+TEST(Ast_Simplify, Nested_Numeric_Binary_Folds_Fully) {
+    // (1 + 2) * (3 + 4) -> 3 * 7 -> 21
+    auto lhs = std::make_unique<Binary_Op_Node>(
+        Binary_Op::ADD,
+        std::make_unique<Number_Node>(1.0),
+        std::make_unique<Number_Node>(2.0));
+    auto rhs = std::make_unique<Binary_Op_Node>(
+        Binary_Op::ADD,
+        std::make_unique<Number_Node>(3.0),
+        std::make_unique<Number_Node>(4.0));
+    auto n = std::make_unique<Binary_Op_Node>(
+        Binary_Op::MULTIPLY, std::move(lhs), std::move(rhs));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
+    EXPECT_EQ(s->to_string(), "21");
+}
+
+TEST(Ast_Simplify, Sqrt_Of_Two_Stays_Symbolic) {
+    // sqrt(2) is irrational — result is not an integer, so stays symbolic
+    std::vector<Node::ptr_t> args;
+    args.push_back(std::make_unique<Number_Node>(2.0));
+    auto n = std::make_unique<Function_Node>("sqrt", std::move(args));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::FUNCTION);
+    EXPECT_EQ(s->to_string(), "sqrt(2)");
+}
+
+TEST(Ast_Simplify, Sqrt_Two_Over_Four_Stays_Symbolic) {
+    // sqrt(2)/4 — irrational result, stays symbolic
+    std::vector<Node::ptr_t> sqrt_args;
+    sqrt_args.push_back(std::make_unique<Number_Node>(2.0));
+    auto sqrt_2 = std::make_unique<Function_Node>("sqrt", std::move(sqrt_args));
+    auto n = std::make_unique<Binary_Op_Node>(
+        Binary_Op::DIVIDE, std::move(sqrt_2), std::make_unique<Number_Node>(4.0));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::BINARY_OP);
+    EXPECT_EQ(s->to_string(), "(sqrt(2)/4)");
+}
+
+TEST(Ast_Simplify, Non_Integer_Division_Stays_Symbolic) {
+    // 10/4 = 2.5 — not an integer, stays symbolic
+    auto n = std::make_unique<Binary_Op_Node>(
+        Binary_Op::DIVIDE,
+        std::make_unique<Number_Node>(10.0),
+        std::make_unique<Number_Node>(4.0));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::BINARY_OP);
+    EXPECT_EQ(s->to_string(), "(10/4)");
+}
+
+TEST(Ast_Simplify, Integer_Division_Folds) {
+    // 10/2 = 5 — exact integer, folds
+    auto n = std::make_unique<Binary_Op_Node>(
+        Binary_Op::DIVIDE,
+        std::make_unique<Number_Node>(10.0),
+        std::make_unique<Number_Node>(2.0));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
+    EXPECT_EQ(s->to_string(), "5");
+}
+
+TEST(Ast_Simplify, Sin_Of_Zero_Folds_To_Zero) {
+    // sin(0) = 0 — exact integer result, folds
+    std::vector<Node::ptr_t> args;
+    args.push_back(std::make_unique<Number_Node>(0.0));
+    auto n = std::make_unique<Function_Node>("sin", std::move(args));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
+    EXPECT_EQ(s->to_string(), "0");
+}
+
+TEST(Ast_Simplify, Sin_Of_One_Stays_Symbolic) {
+    // sin(1) ≈ 0.8415 — not an integer, stays symbolic
+    std::vector<Node::ptr_t> args;
+    args.push_back(std::make_unique<Number_Node>(1.0));
+    auto n = std::make_unique<Function_Node>("sin", std::move(args));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::FUNCTION);
+    EXPECT_EQ(s->to_string(), "sin(1)");
+}
+
+TEST(Ast_Simplify, Sqrt_Of_Non_Perfect_Square_Stays_Symbolic) {
+    // sqrt(3) is irrational, stays symbolic
+    std::vector<Node::ptr_t> args;
+    args.push_back(std::make_unique<Number_Node>(3.0));
+    auto n = std::make_unique<Function_Node>("sqrt", std::move(args));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::FUNCTION);
+    EXPECT_EQ(s->to_string(), "sqrt(3)");
+}
+
+TEST(Ast_Simplify, Sqrt_Of_Perfect_Square_Folds) {
+    // sqrt(25) = 5 — exact integer, folds
+    std::vector<Node::ptr_t> args;
+    args.push_back(std::make_unique<Number_Node>(25.0));
+    auto n = std::make_unique<Function_Node>("sqrt", std::move(args));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
+    EXPECT_EQ(s->to_string(), "5");
+}
+
+TEST(Ast_Simplify, Mixed_Symbolic_And_Irrational_Stays_Symbolic) {
+    // sqrt(2) + pi — both symbolic, nothing folds
+    std::vector<Node::ptr_t> sqrt_args;
+    sqrt_args.push_back(std::make_unique<Number_Node>(2.0));
+    auto sqrt_2 = std::make_unique<Function_Node>("sqrt", std::move(sqrt_args));
+    auto n = std::make_unique<Binary_Op_Node>(
+        Binary_Op::ADD,
+        std::move(sqrt_2),
+        std::make_unique<Constant_Node>(Constant_Id::PI));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::BINARY_OP);
+    EXPECT_EQ(s->to_string(), "(sqrt(2)+pi)");
+}
+
+// ─── Number_Node::to_string() epsilon behaviour ───────────────────────────────
+
+TEST(Ast_Number_ToString, Exact_Integer_Displayed_Without_Decimal) {
+    EXPECT_EQ(Number_Node(0.0).to_string(),   "0");
+    EXPECT_EQ(Number_Node(1.0).to_string(),   "1");
+    EXPECT_EQ(Number_Node(-5.0).to_string(),  "-5");
+    EXPECT_EQ(Number_Node(100.0).to_string(), "100");
+}
+
+TEST(Ast_Number_ToString, IEEE_Noise_Within_Epsilon_Snaps_To_Integer) {
+    // sqrt(2)*sqrt(2) in IEEE 754 is 2.0000000000000004 (4.4e-16 away from 2)
+    const double ieee_two = std::sqrt(2.0) * std::sqrt(2.0);
+    EXPECT_EQ(Number_Node(ieee_two).to_string(), "2");
+}
+
+TEST(Ast_Number_ToString, Value_Beyond_Epsilon_Not_Snapped) {
+    // Use a gap large enough to survive std::to_string's 6 decimal place precision
+    // and exceed the 1e-10 snap threshold
+    const double close_but_not_integer = 1.0 + 1e-4;
+    const std::string result = Number_Node(close_but_not_integer).to_string();
+    EXPECT_NE(result, "1");
+}
+
+TEST(Ast_Number_ToString, Decimal_Value_Preserved) {
+    EXPECT_EQ(Number_Node(2.5).to_string(), "2.5");
+    EXPECT_EQ(Number_Node(0.1).to_string(), "0.1");
 }
 
 // ─── approx() ────────────────────────────────────────────────────────────────
@@ -357,6 +516,30 @@ TEST(Ast_Approx, Two_Plus_Two_Stays_Four) {
     auto s = n->simplify();
     EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
     EXPECT_DOUBLE_EQ(s->eval(), 4.0);
+}
+
+TEST(Ast_Approx, Sqrt_Two_Over_Four_Exact_Then_Approx) {
+    // Build sqrt(2)/4 symbolically
+    std::vector<Node::ptr_t> sqrt_args;
+    sqrt_args.push_back(std::make_unique<Number_Node>(2.0));
+    auto sqrt_2 = std::make_unique<Function_Node>("sqrt", std::move(sqrt_args));
+    auto expr = std::make_unique<Binary_Op_Node>(
+        Binary_Op::DIVIDE,
+        std::move(sqrt_2),
+        std::make_unique<Number_Node>(4.0));
+
+    // sqrt(2) is irrational, so sqrt(2)/4 stays symbolic
+    auto s = expr->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::BINARY_OP);
+    EXPECT_EQ(s->to_string(), "(sqrt(2)/4)");
+
+    // approx() forces numeric evaluation
+    std::vector<Node::ptr_t> approx_args;
+    approx_args.push_back(std::move(s));
+    auto approx_expr = std::make_unique<Function_Node>("approx", std::move(approx_args));
+    auto approx_result = approx_expr->simplify();
+    EXPECT_EQ(approx_result->kind(), Node_Kind::NUMBER);
+    EXPECT_NEAR(approx_result->eval(), 0.35355339, 1e-6);  // sqrt(2)/4 ≈ 0.3536
 }
 
 // ─── clone() ─────────────────────────────────────────────────────────────────

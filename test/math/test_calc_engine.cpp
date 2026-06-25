@@ -127,10 +127,9 @@ TEST(Calc_Engine_Evaluate, Sqrt_Of_Four_Divided_By_Three) {
     press(eng, { core::Action_Code::SQRT, core::Action_Code::DIGIT_4, core::Action_Code::DIVIDE,
                  core::Action_Code::DIGIT_3, core::Action_Code::PAREN_CLOSE,
                  core::Action_Code::EQUALS });
-    // sqrt(4/3) evaluates numerically to approximately 1.1547
+    // Exact mode: sqrt(4/3) is irrational, stays symbolic
     ASSERT_FALSE(eng.state().history.empty());
-    double result = std::stod(eng.state().history.front().result);
-    EXPECT_NEAR(result, 1.1547005, 1e-6);
+    EXPECT_EQ(eng.state().history.front().result, "sqrt((4/3))");
 }
 
 /************************************************************/

@@ -15,8 +15,10 @@
 
 // Project Libraries
 #include <overboard/core/keymap.hpp>
+#include <overboard/core/settings_manager.hpp>
 #include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
+#include <overboard/hal/settings_store_factory.hpp>
 #include <overboard/io/keyboard_config.hpp>
 #include <overboard/log/stdout_logger.hpp>
 #include <overboard/resources/embedded_json.hpp>
@@ -66,9 +68,13 @@ bool PicoCalc_App::init() {
     // Create the hardware display (initialises SPI + ILI9488 + LVGL driver)
     m_display = std::make_unique<PicoCalc_Display>();
 
+    // Create settings manager
+    auto settings_store = Settings_Store_Factory::create();
+    auto settings = std::make_shared<core::Settings_Manager>(std::move(settings_store));
+
     // Create the GUI view on the LVGL screen
     m_view = std::make_unique<gui::App_View>(
-        m_display->screen(), m_layout, m_engine, m_layers);
+        m_display->screen(), m_layout, m_engine, m_layers, settings);
 
     // Create the I2C keyboard input driver
     m_input = std::make_unique<PicoCalc_Input>(m_layout);

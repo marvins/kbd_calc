@@ -20,6 +20,7 @@
 
 // Project Libraries
 #include <overboard/core/layer_manager.hpp>
+#include <overboard/core/settings_manager.hpp>
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/header_bar.hpp>
 #include <overboard/gui/i_app.hpp>
@@ -36,14 +37,18 @@ namespace ovb::gui {
 class Status_Page : public I_App {
     public:
 
+        /// @brief Callback fired on first keypress
         using Dismiss_Cb = std::function<void()>;
 
         /**
          * @brief Construct the status page
          * @param layers     Layer manager (used to show layer count)
+         * @param settings   Application settings manager
          * @param on_dismiss Callback fired on first keypress
          */
-        Status_Page(const core::Layer_Manager& layers, Dismiss_Cb on_dismiss);
+        Status_Page(const core::Layer_Manager& layers,
+                   std::shared_ptr<core::Settings_Manager> settings,
+                   Dismiss_Cb on_dismiss);
 
         /**
          * @brief Destructor

@@ -18,11 +18,24 @@
 #include <lvgl.h>
 
 // Project Libraries
+#include <overboard/core/settings_manager.hpp>
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/header_bar.hpp>
 #include <overboard/gui/i_app.hpp>
 
 namespace ovb::gui {
+
+/**
+ * @brief Setting entry for key-value display
+ */
+struct Setting_Entry {
+    std::string key;
+    std::string value;
+    lv_obj_t*   row       { nullptr };
+    lv_obj_t*   key_label { nullptr };
+    lv_obj_t*   val_input { nullptr };
+    bool        modified  { false };
+};
 
 /**
  * @brief Settings page panel
@@ -38,9 +51,10 @@ class Settings_Page : public I_App {
 
         /**
          * @brief Construct the settings panel
+         * @param settings Application settings manager
          * @param on_back Callback fired when user navigates back (ESCAPE)
          */
-        explicit Settings_Page(Back_Cb on_back = {});
+        Settings_Page(std::shared_ptr<core::Settings_Manager> settings, Back_Cb on_back = {});
 
         /**
          * @brief Destroy the settings page
@@ -96,8 +110,40 @@ class Settings_Page : public I_App {
 
     private:
 
-        struct Impl;
-        std::unique_ptr<Impl> m_impl;
+        /**
+         * @brief Load settings from manager
+         */
+        void load_settings();
+        
+        /**
+         * @brief Create a setting row
+         */
+        void create_setting_row(Setting_Entry& entry, lv_obj_t* parent);
+        
+        void save_all();
+        
+        void reload_all();
+        
+        void update_save_button_state();
+
+        /// @brief Settings manager
+        std::shared_ptr<core::Settings_Manager> m_settings;
+        /// @brief Callback fired when user navigates back (ESCAPE)
+        Back_Cb                                 m_on_back;
+        /// @brief Container object
+        lv_obj_t*                               m_container   { nullptr };
+        /// @brief Scroll area object
+        lv_obj_t*                               m_scroll_area { nullptr };
+        /// @brief Save button object
+        lv_obj_t*                               m_save_btn    { nullptr };
+        /// @brief Reload button object
+        lv_obj_t*                               m_reload_btn  { nullptr };
+        /// @brief Header bar object
+        std::unique_ptr<Header_Bar>             m_header;
+        /// @brief Footer bar object
+        std::unique_ptr<Footer_Bar>             m_footer;
+        /// @brief Setting entries
+        std::vector<Setting_Entry>              m_entries;
 };
 
 } // namespace ovb::gui

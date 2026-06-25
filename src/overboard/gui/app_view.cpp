@@ -31,10 +31,11 @@ using ovb::apps::PANEL_MENU;
 /*            Impl             */
 /*******************************/
 struct App_View::Impl {
-    std::unique_ptr<Panel_Manager>    panels;
-    std::unique_ptr<Keyboard_Display> keyboard_display;
-    int                               menu_idx       { -1 };
-    int                               prev_panel_idx { PANEL_STATUS };
+    std::unique_ptr<Panel_Manager>              panels;
+    std::unique_ptr<Keyboard_Display>           keyboard_display;
+    std::shared_ptr<core::Settings_Manager>     settings;
+    int                                         menu_idx       { -1 };
+    int                                         prev_panel_idx { PANEL_STATUS };
 
     lv_obj_t*              panel_container = nullptr;
     lv_obj_t*              kbd_container   = nullptr;
@@ -54,10 +55,12 @@ App_View::~App_View() = default;
 App_View::App_View( lv_obj_t*                      root,
                     [[maybe_unused]] const ovb::core::Grid_Layout&  layout,
                     ovb::math::Calc_Engine&        engine,
-                    ovb::core::Layer_Manager&      layers )
+                    ovb::core::Layer_Manager&      layers,
+                    std::shared_ptr<ovb::core::Settings_Manager> settings )
     : m_impl(std::make_unique<Impl>())
 {
     m_impl->layers = &layers;
+    m_impl->settings = settings;
     LOG_TRACE("App_View: Applying baseline screen styling");
     lv_obj_set_style_pad_all(root, 0, 0);
     lv_obj_set_style_border_width(root, 0, 0);
@@ -82,7 +85,8 @@ App_View::App_View( lv_obj_t*                      root,
         registry,
         engine,
         layers,
-        *m_impl->panels);
+        *m_impl->panels,
+        m_impl->settings);
 
     // Get apps and menu items from registry
     auto apps = registry.create_apps();

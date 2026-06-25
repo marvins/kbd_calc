@@ -9,6 +9,7 @@
 
 // C++ Standard Libraries
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 
 // Project Libraries
@@ -37,22 +38,37 @@ SDL_Settings_Store::SDL_Settings_Store(
 /*     Load                 */
 /****************************/
 bool SDL_Settings_Store::load(Settings_Tree& out_tree) {
-    if (!exists()) {
-        s_logger.debug("Settings file does not exist, returning empty tree");
-        out_tree = Settings_Tree();
-        return true;
+    // Start with the defaults template so all keys are always present
+    Settings_Tree merged;
+    const std::filesystem::path defaults_path { "data/configs/settings.toml" };
+    if (std::filesystem::exists(defaults_path)) {
+        try {
+            toml::table defaults = toml::parse_file(defaults_path.string());
+            merged = Settings_Tree(std::move(defaults));
+            s_logger.debug("Loaded defaults from {}", defaults_path.string());
+        } catch (const toml::parse_error& e) {
+            s_logger.warn("Failed to parse defaults file: {}", std::string(e.what()));
+        }
     }
 
-    try {
-        toml::table table = toml::parse_file(m_settings_file.string());
-        out_tree = Settings_Tree(std::move(table));
-        s_logger.debug("Loaded settings from {}", m_settings_file.string());
-        return true;
-    } catch (const toml::parse_error& e) {
-        s_logger.error("Failed to parse settings file: {} - {}",
-                       m_settings_file.string(), std::string(e.what()));
-        return false;
+    // Overlay user settings on top of defaults
+    if (exists()) {
+        try {
+            toml::table user_table = toml::parse_file(m_settings_file.string());
+            Settings_Tree user_tree(std::move(user_table));
+            merged.merge(user_tree);
+            s_logger.debug("Overlaid user settings from {}", m_settings_file.string());
+        } catch (const toml::parse_error& e) {
+            s_logger.error("Failed to parse user settings file: {} - {}",
+                           m_settings_file.string(), std::string(e.what()));
+            // Continue with defaults only
+        }
+    } else {
+        s_logger.debug("No user settings file found, using defaults only");
     }
+
+    out_tree = std::move(merged);
+    return true;
 }
 
 /****************************/

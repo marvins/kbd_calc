@@ -23,7 +23,6 @@
 #include <overboard/core/location_provider.hpp>
 #include <overboard/gui/lvgl_theme.hpp>
 #include <overboard/hal/display_config.hpp>
-#include <overboard/hal/settings_store_factory.hpp>
 #include <overboard/log/stdout_logger.hpp>
 #include <overboard/version.hpp>
 
@@ -33,13 +32,15 @@ namespace ovb::gui {
 /*            Impl             */
 /*******************************/
 struct Status_Page::Impl {
-    Impl(const core::Layer_Manager& l, Dismiss_Cb cb)
-        : layers(l), on_dismiss(std::move(cb)) {}
+    Impl(const core::Layer_Manager& l, std::shared_ptr<core::Settings_Manager> s, Dismiss_Cb cb)
+        : layers(l), settings(s), on_dismiss(std::move(cb)) {}
 
-    const core::Layer_Manager&   layers;
-    Dismiss_Cb                   on_dismiss;
+    const core::Layer_Manager&              layers;
+    std::shared_ptr<core::Settings_Manager> settings;
+    Dismiss_Cb                              on_dismiss;
     lv_obj_t*                    container  = nullptr;
     lv_timer_t*                  clock_timer = nullptr;
+    lv_timer_t*                  solar_timer = nullptr;
     lv_obj_t*                    about_popup = nullptr;
     std::unique_ptr<Header_Bar>  header;
     std::unique_ptr<Footer_Bar>  footer;
@@ -56,8 +57,10 @@ struct Status_Page::Impl {
 /*******************************/
 /*          Constructor        */
 /*******************************/
-Status_Page::Status_Page(const core::Layer_Manager& layers, Dismiss_Cb on_dismiss)
-    : m_impl(std::make_unique<Impl>(layers, std::move(on_dismiss))) {}
+Status_Page::Status_Page( const core::Layer_Manager& layers,
+                          std::shared_ptr<core::Settings_Manager> settings,
+                          Dismiss_Cb on_dismiss )
+    : m_impl(std::make_unique<Impl>(layers, settings, std::move(on_dismiss))) {}
 
 /*******************************/
 /*          Destructor         */
@@ -124,11 +127,7 @@ void Status_Page::activate(lv_obj_t* parent) {
 
     // Resolve geographic location from settings or IP geolocation
     {
-        auto store = hal::Settings_Store_Factory::create();
-        hal::Settings_Tree settings;
-        store->load(settings);
-
-        core::resolve_location_async(settings, [this](core::Solar_Location loc) {
+        core::resolve_location_async(m_impl->settings->tree(), [this](core::Solar_Location loc) {
             std::lock_guard<std::mutex> lock(m_impl->location_mutex);
             m_impl->pending_location = loc;
         });
@@ -143,22 +142,36 @@ void Status_Page::activate(lv_obj_t* parent) {
     m_impl->digital_clock->update(tm);
     m_impl->solar_info->update(tm);
 
-    // Timer to update clock every second
+    // Read update rates from settings
+    const uint32_t clock_update_ms = m_impl->settings->get<uint32_t>("status.clock_update_ms", 1000);
+    const uint32_t solar_update_ms = m_impl->settings->get<uint32_t>("status.solar_update_ms", 60000);
+
+    // Timer to update clocks
     m_impl->clock_timer = lv_timer_create([](lv_timer_t* timer) {
         auto* impl = static_cast<Status_Page::Impl*>(timer->user_data);
         if (!impl) return;
 
-        auto now = std::chrono::system_clock::now();
-        std::time_t time = std::chrono::system_clock::to_time_t(now);
-        std::tm tm = *std::localtime(&time);
+        auto now_update = std::chrono::system_clock::now();
+        std::time_t time_update = std::chrono::system_clock::to_time_t(now_update);
+        std::tm tm_update = *std::localtime(&time_update);
 
         if (impl->analog_clock) {
-            impl->analog_clock->update(tm);
+            impl->analog_clock->update(tm_update);
         }
 
         if (impl->digital_clock) {
-            impl->digital_clock->update(tm);
+            impl->digital_clock->update(tm_update);
         }
+    }, clock_update_ms, m_impl.get());
+
+    // Separate timer for solar widget (slower update rate)
+    m_impl->solar_timer = lv_timer_create([](lv_timer_t* timer) {
+        auto* impl = static_cast<Status_Page::Impl*>(timer->user_data);
+        if (!impl) return;
+
+        auto now_update = std::chrono::system_clock::now();
+        std::time_t time_update = std::chrono::system_clock::to_time_t(now_update);
+        std::tm tm_update = *std::localtime(&time_update);
 
         if (impl->solar_info) {
             // Apply location if background thread resolved one
@@ -169,9 +182,9 @@ void Status_Page::activate(lv_obj_t* parent) {
                     impl->pending_location.reset();
                 }
             }
-            impl->solar_info->update(tm);
+            impl->solar_info->update(tm_update);
         }
-    }, 1000, m_impl.get());
+    }, solar_update_ms, m_impl.get());
 
     // Footer bar — decorative only, navigation via ESCAPE
     m_impl->footer = std::make_unique<Footer_Bar>(m_impl->container, width);
@@ -187,6 +200,10 @@ void Status_Page::deactivate() {
     if (m_impl->clock_timer) {
         lv_timer_del(m_impl->clock_timer);
         m_impl->clock_timer = nullptr;
+    }
+    if (m_impl->solar_timer) {
+        lv_timer_del(m_impl->solar_timer);
+        m_impl->solar_timer = nullptr;
     }
     m_impl->footer.reset();
     m_impl->header.reset();

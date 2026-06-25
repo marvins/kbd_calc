@@ -40,12 +40,14 @@ inline constexpr int PANEL_MENU         { 3 };  // Not an app, created separatel
  * @param engine        Calculator engine (for Calculator_App)
  * @param layers        Layer manager (for Calculator_App, Status_Page)
  * @param panels        Panel manager for navigation callbacks
+ * @param settings      Application settings manager
  */
 inline void register_all_apps(
     gui::App_Registry& registry,
     math::Calc_Engine& engine,
     core::Layer_Manager& layers,
-    gui::Panel_Manager& panels)
+    gui::Panel_Manager& panels,
+    std::shared_ptr<core::Settings_Manager> settings)
 {
     // Auto-incrementing priority - just add apps here in desired menu order
     int priority = 0;
@@ -54,8 +56,8 @@ inline void register_all_apps(
     // ESCAPE returns to menu (pop)
     registry.register_app(
         "Status", LV_SYMBOL_FILE, priority++, 's',
-        [&layers, &panels]() mutable {
-            return std::make_shared<gui::Status_Page>(layers, [&panels]() {
+        [&layers, &panels, settings]() mutable {
+            return std::make_shared<gui::Status_Page>(layers, settings, [&panels]() {
                 panels.pop();
             });
         });
@@ -74,8 +76,8 @@ inline void register_all_apps(
     // ESCAPE returns to menu (pop)
     registry.register_app(
         "Settings", LV_SYMBOL_SETTINGS, priority++, 'g',
-        [&panels]() mutable {
-            return std::make_shared<gui::Settings_Page>([&panels]() {
+        [&panels, settings]() mutable {
+            return std::make_shared<gui::Settings_Page>(settings, [&panels]() {
                 panels.pop();
             });
         });

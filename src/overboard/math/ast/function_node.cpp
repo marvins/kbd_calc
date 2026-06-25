@@ -8,6 +8,7 @@
 #include <overboard/math/ast/function_node.hpp>
 
 // C++ Standard Libraries
+#include <algorithm>
 #include <cmath>
 #include <limits>
 
@@ -84,22 +85,33 @@ Node::ptr_t Function_Node::clone() const {
 /*        Simplify         */
 /***************************/
 Node::ptr_t Function_Node::simplify() const {
+    // approx() always forces numeric evaluation regardless of argument type
     if (m_name == "approx" && m_args.size() == 1) {
         return std::make_unique<Number_Node>(m_args[0]->eval());
     }
 
+    // Simplify all arguments first
     std::vector<Node::ptr_t> simplified_args;
     simplified_args.reserve(m_args.size());
-    bool all_numbers = true;
     for (const auto& arg : m_args) {
         simplified_args.push_back(arg->simplify());
-        if (simplified_args.back()->kind() != Node_Kind::NUMBER)
-            all_numbers = false;
     }
-    if (all_numbers) {
-        return std::make_unique<Number_Node>(
-            Function_Node(m_name, std::move(simplified_args)).eval());
+
+    // Fold: if all simplified args are plain numbers, evaluate now
+    const bool all_numeric = std::all_of(simplified_args.begin(), simplified_args.end(),
+        [](const Node::ptr_t& n) { return n->kind() == Node_Kind::NUMBER; });
+
+    if (all_numeric) {
+        std::vector<Node::ptr_t> copies;
+        copies.reserve(simplified_args.size());
+        for (const auto& a : simplified_args) copies.push_back(a->clone());
+        const double result = Function_Node(m_name, std::move(copies)).eval();
+        if (std::abs(result - std::floor(result)) < 1e-10 && std::abs(result) < 1e15) {
+            return std::make_unique<Number_Node>(result);
+        }
     }
+
+    // Otherwise stay symbolic (e.g. sqrt(pi), sin(pi/3))
     return std::make_unique<Function_Node>(m_name, std::move(simplified_args));
 }
 

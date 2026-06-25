@@ -39,9 +39,17 @@ std::optional<T> Settings_Tree::get(const std::string& path) const {
         if (auto val = node->value<int64_t>()) {
             return static_cast<int>(*val);
         }
+    } else if constexpr (std::is_same_v<T, uint32_t>) {
+        if (auto val = node->value<int64_t>()) {
+            return static_cast<uint32_t>(*val);
+        }
     } else if constexpr (std::is_same_v<T, float>) {
         if (auto val = node->value<double>()) {
             return static_cast<float>(*val);
+        }
+    } else if constexpr (std::is_same_v<T, double>) {
+        if (auto val = node->value<double>()) {
+            return *val;
         }
     } else if constexpr (std::is_same_v<T, std::string>) {
         if (auto val = node->value<std::string>()) {
@@ -74,7 +82,9 @@ T Settings_Tree::get(const std::string& path, T default_val) const {
 // Explicit instantiations
 template bool        Settings_Tree::get<bool>(const std::string&, bool) const;
 template int         Settings_Tree::get<int>(const std::string&, int) const;
+template uint32_t    Settings_Tree::get<uint32_t>(const std::string&, uint32_t) const;
 template float       Settings_Tree::get<float>(const std::string&, float) const;
+template double      Settings_Tree::get<double>(const std::string&, double) const;
 template std::string Settings_Tree::get<std::string>(const std::string&, std::string) const;
 template std::filesystem::path Settings_Tree::get<std::filesystem::path>(const std::string&, std::filesystem::path) const;
 
@@ -122,8 +132,12 @@ void Settings_Tree::set(const std::string& path, T value) {
         parent_table->insert_or_assign(key, value);
     } else if constexpr (std::is_same_v<T, int>) {
         parent_table->insert_or_assign(key, static_cast<int64_t>(value));
+    } else if constexpr (std::is_same_v<T, uint32_t>) {
+        parent_table->insert_or_assign(key, static_cast<int64_t>(value));
     } else if constexpr (std::is_same_v<T, float>) {
         parent_table->insert_or_assign(key, static_cast<double>(value));
+    } else if constexpr (std::is_same_v<T, double>) {
+        parent_table->insert_or_assign(key, value);
     } else if constexpr (std::is_same_v<T, std::string>) {
         parent_table->insert_or_assign(key, value);
     } else if constexpr (std::is_same_v<T, std::string_view>) {
@@ -138,7 +152,9 @@ void Settings_Tree::set(const std::string& path, T value) {
 // Explicit instantiations
 template void Settings_Tree::set<bool>(const std::string&, bool);
 template void Settings_Tree::set<int>(const std::string&, int);
+template void Settings_Tree::set<uint32_t>(const std::string&, uint32_t);
 template void Settings_Tree::set<float>(const std::string&, float);
+template void Settings_Tree::set<double>(const std::string&, double);
 template void Settings_Tree::set<std::string>(const std::string&, std::string);
 template void Settings_Tree::set<std::string_view>(const std::string&, std::string_view);
 template void Settings_Tree::set<const char*>(const std::string&, const char*);

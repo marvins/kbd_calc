@@ -10,6 +10,7 @@
 // C++ Standard Libraries
 #include <array>
 #include <cstdio>
+#include <format>
 #include <string>
 #include <thread>
 
@@ -63,10 +64,10 @@ std::optional<Solar_Location> parse_ip_api_response(const std::string& body) {
         loc.timezone = diff / 60.0;
     }
 
-    s_logger.info("ip-api.com resolved: lat={}, lon={}, tz={}",
-                  std::to_string(loc.latitude),
-                  std::to_string(loc.longitude),
-                  std::to_string(loc.timezone));
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(6) << "ip-api.com resolved: lat=" << loc.latitude
+        << ", lon=" << loc.longitude << std::setprecision(1) << ", tz=" << loc.timezone;
+    s_logger.info(oss.str());
     return loc;
 }
 

@@ -58,7 +58,7 @@ void Analog_Clock::create(lv_obj_t* parent) {
         lv_obj_set_style_line_rounded(m_hour_ticks[i], true, LV_PART_MAIN);
 
         // Start from 12 o'clock (270 degrees) and go clockwise every 30 degrees
-        const float angle_deg = (i * 30.0f) + 270.0f;
+        const float angle_deg = (static_cast<float>(i) * 30.0f) + 270.0f;
         const float angle_rad = angle_deg * 3.14159265f / 180.0f;
         const float inner_r = hour_tick_radius - hour_tick_length;
         const float outer_r = hour_tick_radius;
@@ -86,7 +86,7 @@ void Analog_Clock::create(lv_obj_t* parent) {
         lv_obj_set_style_line_rounded(m_minute_ticks[i], true, LV_PART_MAIN);
 
         // Start from 12 o'clock (270 degrees) and go clockwise
-        const float angle_deg = (i * 6.0f) + 270.0f;
+        const float angle_deg = (static_cast<float>(i) * 6.0f) + 270.0f;
         const float angle_rad = angle_deg * 3.14159265f / 180.0f;
         const float inner_r = minute_tick_radius - minute_tick_length;
         const float outer_r = minute_tick_radius;
@@ -172,9 +172,9 @@ void Analog_Clock::update_hands(lv_obj_t* hour, lv_obj_t* minute, lv_obj_t* seco
     const int minutes = tm.tm_min;
     const int seconds = tm.tm_sec;
 
-    const float hour_angle = (hours * 30.0f + minutes * 0.5f - 90.0f) * 3.14159265f / 180.0f;
-    const float minute_angle = (minutes * 6.0f - 90.0f) * 3.14159265f / 180.0f;
-    const float second_angle = (seconds * 6.0f - 90.0f) * 3.14159265f / 180.0f;
+    const float hour_angle = (static_cast<float>(hours) * 30.0f + static_cast<float>(minutes) * 0.5f - 90.0f) * 3.14159265f / 180.0f;
+    const float minute_angle = (static_cast<float>(minutes) * 6.0f - 90.0f) * 3.14159265f / 180.0f;
+    const float second_angle = (static_cast<float>(seconds) * 6.0f - 90.0f) * 3.14159265f / 180.0f;
 
     const float hour_len = CLOCK_SIZE * 0.30f;
     const float minute_len = CLOCK_SIZE * 0.42f;

@@ -23,6 +23,7 @@
 #include <overboard/core/input_key.hpp>
 #include <overboard/core/keyboard_layout.hpp>
 #include <overboard/core/layer_manager.hpp>
+#include <overboard/core/settings_manager.hpp>
 #include <overboard/gui/panel_manager.hpp>
 #include <overboard/hal/i_display.hpp>
 #include <overboard/math/calc_engine.hpp>
@@ -42,15 +43,17 @@ class App_View : public hal::I_Display {
         /**
          * @brief Construct and build the application view
          *
-         * @param root   LVGL root object to attach widgets to
-         * @param layout Keyboard grid layout for key positioning
-         * @param engine Calculation engine for expression state and history
-         * @param layers Layer manager for key label management
+         * @param root     LVGL root object to attach widgets to
+         * @param layout   Keyboard grid layout for key positioning
+         * @param engine   Calculation engine for expression state and history
+         * @param layers   Layer manager for key label management
+         * @param settings Application settings manager
          */
-        App_View( lv_obj_t*                      root,
-                  const ovb::core::Grid_Layout&  layout,
-                  ovb::math::Calc_Engine&        engine,
-                  ovb::core::Layer_Manager&      layers );
+        App_View( lv_obj_t*                               root,
+                  const core::Grid_Layout&                layout,
+                  math::Calc_Engine&                      engine,
+                  core::Layer_Manager&                    layers,
+                  std::shared_ptr<core::Settings_Manager> settings );
 
         /**
          * @brief Destructor

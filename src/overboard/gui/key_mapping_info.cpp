@@ -51,16 +51,14 @@ Key_Mapping_Info::Key_Mapping_Info( lv_obj_t*                      parent,
     lv_obj_set_style_radius(header, 0, LV_PART_MAIN);
     lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
 
-    LOG_TRACE("Key_Mapping_Info: Creating header label");
     m_header_label = lv_label_create(header);
     const std::string layer_text = "Layer: " + std::string(m_layers.current_layer().name);
     lv_label_set_text(m_header_label, layer_text.c_str());
     lv_obj_set_style_text_color(m_header_label, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
     lv_obj_align(m_header_label, LV_ALIGN_LEFT_MID, MARGIN_LEFT, 0);
 
-    LOG_TRACE("Key_Mapping_Info: Building key display elements");
     build_keys(m_container);
-    LOG_TRACE("Key_Mapping_Info: Constructor complete");
+    LOG_DEBUG("Key_Mapping_Info: Initialized with " + std::to_string(m_key_labels.size()) + " keys");
 }
 
 /***************************/
@@ -126,20 +124,13 @@ void Key_Mapping_Info::build_keys(lv_obj_t* parent) {
         lv_obj_set_style_pad_all(rect, 2, LV_PART_MAIN);
         // Note: NOT clickable — purely informational
 
-        LOG_TRACE("Key_Mapping_Info::build_keys: Creating label for key " + std::to_string(i));
         // Label
         lv_obj_t* lbl = lv_label_create(rect);
-        if (!lbl) {
-            LOG_TRACE("Key_Mapping_Info::build_keys: Failed to create label for key " + std::to_string(i) + ", skipping");
-            continue;
-        }
+        if (!lbl) continue;
 
-        LOG_TRACE("Key_Mapping_Info::build_keys: Getting display text for key " + std::to_string(i));
         auto action_code = layer.keys[static_cast<std::size_t>(i)];
-        LOG_TRACE("Key_Mapping_Info::build_keys: Key " + std::to_string(i) + " has action_code=" + std::to_string(static_cast<int>(action_code)));
         // Get display text: custom panel label > JSON label > action code display
         std::string text = get_key_label(i, action_code);
-        LOG_TRACE("Key_Mapping_Info::build_keys: Display text for key " + std::to_string(i) + " is: '" + text + "' (length=" + std::to_string(text.length()) + ")");
 
         // Set label text - empty string for unassigned keys
         lv_label_set_text(lbl, text.c_str());
@@ -175,18 +166,13 @@ void Key_Mapping_Info::update_layer() {
     // If overlay is active, don't overwrite with layer data
     if (!m_overlay_stack.empty()) return;
 
-    LOG_DEBUG("Key_Mapping_Info::update_layer: starting");
     const auto& layer = m_layers.current_layer();
     const std::size_t key_count = m_key_labels.size();
-    LOG_DEBUG("Key_Mapping_Info::update_layer: key_count=", std::to_string(key_count));
 
     // Update header label
-    LOG_DEBUG("Key_Mapping_Info::update_layer: updating header");
     const std::string layer_text = "Layer: " + std::string(layer.name);
     lv_label_set_text(m_header_label, layer_text.c_str());
-    LOG_DEBUG("Key_Mapping_Info::update_layer: header updated");
 
-    LOG_DEBUG("Key_Mapping_Info::update_layer: entering loop");
     for (std::size_t i = 0; i < key_count; ++i) {
         if (!m_key_labels[i]) continue;
         // Get display text: custom panel label > JSON label > action code display

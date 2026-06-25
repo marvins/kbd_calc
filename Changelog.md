@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.8.0] - 2026-06-24
+
+### Added
+- Status page: analog clock, digital clock, and solar info widgets (sunrise/sunset/solar noon)
+- `Location_Provider` and `Solar_Calc` supporting the solar widget
+- `Settings_Manager` API with type-safe access, dirty-state tracking, and observer notifications
+- Settings app now displays all registered settings fields
+
+### Fixed
+- Calculator: `simplify()` folds integer-exact results (e.g. `2+3`, `sqrt(4)`) but keeps irrationals symbolic (e.g. `sqrt(2)/4`) until `approx()` is called
+- Calculator: arrow key now correctly exits function/group nodes (e.g. `sqrt(4)→+4` works as expected)
+
+### Tests
+- 377 tests passing; added suites for `Settings_Manager`, AST constant folding, and `Number_Node::to_string()` epsilon behaviour
+
+
 ## [0.7.2] - 2026-06-21
 
 ### Added

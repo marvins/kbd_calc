@@ -33,6 +33,14 @@ number_format = "auto"
 # Decimal places when using fixed format (0-15)
 decimal_places = 6
 
+# Status page settings
+[status]
+# Update rate for clocks in milliseconds (default: 1000 = 1 second)
+clock_update_ms = 1000
+
+# Update rate for solar widget in milliseconds (default: 60000 = 1 minute)
+solar_update_ms = 60000
+
 # Location settings (used by solar calculator)
 [location]
 # Source for geographic location.

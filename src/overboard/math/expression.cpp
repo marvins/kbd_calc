@@ -257,16 +257,23 @@ void Expression::cursor_right() {
         return;
     }
 
-    // If at a leaf node, try to move to next sibling
+    // If at a leaf node, try to move to next sibling; if none, climb up until we
+    // find a level with a next sibling (allows exiting a function/group).
     if (current->child_count() == 0) {
-        std::size_t current_index = m_cursor_path.path()[m_cursor_path.depth() - 1];
-        ast::Node* parent = ast::get_node_at_path(m_ast_root.get(), m_cursor_path.parent_path());
-
-        if (parent && current_index + 1 < parent->child_count()) {
-            // Move to next sibling
-            m_cursor_path.path()[m_cursor_path.depth() - 1] = current_index + 1;
+        ast::Cursor_Path_Runtime path = m_cursor_path;
+        while (!path.empty()) {
+            std::size_t idx = path[path.depth() - 1];
+            path.pop();
+            ast::Node* parent = ast::get_node_at_path(m_ast_root.get(), path);
+            if (parent && idx + 1 < parent->child_count()) {
+                path.push(idx + 1);
+                m_cursor_path = path;
+                return;
+            }
+            // No next sibling at this level — keep climbing
         }
-        // No next sibling, stay where we are
+        // Reached the root with no next sibling — move to root
+        m_cursor_path = path; // now empty = root
     } else {
         // At internal node, move to first child
         m_cursor_path.push(0);

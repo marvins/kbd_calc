@@ -85,6 +85,7 @@ set(CORE_SOURCES
     src/overboard/core/keyboard_layout.cpp
     src/overboard/core/layer_manager.cpp
     src/overboard/core/location_provider.cpp
+    src/overboard/core/settings_manager.cpp
     src/overboard/core/solar_calc.cpp
     src/overboard/display/cursor_renderer.cpp
     src/overboard/display/dirty_region_tracker.cpp
@@ -271,9 +272,11 @@ if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STRE
         test/core/test_action_code.cpp
         test/core/test_input_key.cpp
         test/core/test_location_provider.cpp
+        test/core/test_settings_manager.cpp
         test/font/test_font_metrics.cpp
         test/hal/test_settings_tree.cpp
         src/overboard/core/keymap.cpp
+        src/overboard/core/settings_manager.cpp
         src/overboard/core/location_provider.cpp
         src/overboard/core/solar_calc.cpp
         src/overboard/hal/settings_tree.cpp

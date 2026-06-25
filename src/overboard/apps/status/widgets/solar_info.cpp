@@ -10,10 +10,13 @@
 // C++ Standard Libraries
 #include <cmath>
 #include <cstdio>
+#include <iomanip>
+#include <sstream>
 #include <string>
 
 // Project Libraries
 #include <overboard/gui/lvgl_theme.hpp>
+#include <overboard/log/stdout_logger.hpp>
 
 namespace ovb::gui::widgets {
 
@@ -38,6 +41,9 @@ inline constexpr uint32_t COLOR_HORIZON  { 0x888888 };  // Horizon line
 /*******************************/
 struct Solar_Info::Impl {
     lv_obj_t* container    = nullptr;
+
+    // Title
+    lv_obj_t* title_label  = nullptr;  ///< Day of week title
 
     // Arc visualization
     lv_obj_t* arc_bg       = nullptr;  ///< Background arc (full semicircle)
@@ -136,11 +142,12 @@ void Solar_Info::create(lv_obj_t* parent) {
     lv_obj_set_flex_align(m_impl->container, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_row(m_impl->container, 6, LV_PART_MAIN);
 
-    // --- Title label ---
+    // --- Title label (day of week) ---
     lv_obj_t* title = lv_label_create(m_impl->container);
-    lv_label_set_text(title, "Sun");
+    lv_label_set_text(title, "---");  // Will be updated in update()
     lv_obj_set_style_text_font(title, LVGL_FONT_DEFAULT, LV_PART_MAIN);
     lv_obj_set_style_text_color(title, lv_color_hex(LVGL_COLOR_TEXT_SECONDARY), LV_PART_MAIN);
+    m_impl->title_label = title;
 
     // --- Arc visualization container ---
     lv_obj_t* arc_container = lv_obj_create(m_impl->container);
@@ -151,8 +158,9 @@ void Solar_Info::create(lv_obj_t* parent) {
     lv_obj_clear_flag(arc_container, LV_OBJ_FLAG_SCROLLABLE);
 
     // Background arc (full day semicircle, grey)
+    // Top semicircle: 180° (left/sunrise) → 360°/0° (right/sunset) going through 270° (top/noon)
     m_impl->arc_bg = lv_arc_create(arc_container);
-    lv_arc_set_bg_angles(m_impl->arc_bg, 0, 180);
+    lv_arc_set_bg_angles(m_impl->arc_bg, 180, 360);
     lv_arc_set_value(m_impl->arc_bg, 0);
     lv_arc_set_range(m_impl->arc_bg, 0, 100);
     lv_obj_set_size(m_impl->arc_bg, ARC_SIZE, ARC_SIZE);
@@ -211,6 +219,14 @@ void Solar_Info::create(lv_obj_t* parent) {
 void Solar_Info::update(const std::tm& tm) {
     if (!m_impl->container) return;
 
+    // Update day of week title
+    if (m_impl->title_label) {
+        std::tm tm_copy = tm;  // std::put_time requires non-const pointer
+        std::ostringstream oss;
+        oss << std::put_time(&tm_copy, "%A");  // %A = full weekday name
+        lv_label_set_text(m_impl->title_label, oss.str().c_str());
+    }
+
     const core::Solar_Times solar = core::calculate_solar_times(tm, m_impl->location);
     m_impl->last_solar = solar;
 
@@ -231,18 +247,18 @@ void Solar_Info::update(const std::tm& tm) {
 
     // Update elevation label
     {
-        char buf[32];
-        std::snprintf(buf, sizeof(buf), "Elev: %.1f deg", solar.solar_elevation);
-        lv_label_set_text(m_impl->elevation_label, buf);
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(1) << "Elev: " << solar.solar_elevation << " deg";
+        lv_label_set_text(m_impl->elevation_label, oss.str().c_str());
     }
 
     // Update day length label
     {
         const int dl_h = static_cast<int>(solar.day_length_hour);
         const int dl_m = static_cast<int>((solar.day_length_hour - dl_h) * 60.0 + 0.5);
-        char buf[24];
-        std::snprintf(buf, sizeof(buf), "Day: %dh %02dm", dl_h, dl_m);
-        lv_label_set_text(m_impl->daylength_label, buf);
+        std::ostringstream oss;
+        oss << "Day: " << dl_h << "h " << std::setfill('0') << std::setw(2) << dl_m << "m";
+        lv_label_set_text(m_impl->daylength_label, oss.str().c_str());
     }
 
     // Update arc and sun dot
@@ -256,26 +272,39 @@ void Solar_Info::update(const std::tm& tm) {
             progress = (current_hour - solar.sunrise_hour) / day_len;
             progress = std::max(0.0, std::min(1.0, progress));
         }
+        
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(2)
+            << "Solar: current=" << current_hour
+            << ", sunrise=" << solar.sunrise_hour
+            << ", noon=" << solar.solar_noon_hour
+            << ", sunset=" << solar.sunset_hour
+            << std::setprecision(3) << ", progress=" << progress;
+        LOG_DEBUG(oss.str());
+        
         lv_arc_set_value(m_impl->arc_bg, static_cast<int32_t>(progress * 100.0));
 
         // Sun dot position along the arc
-        // Arc goes from 180deg (left=sunrise) to 0deg (right=sunset) on LVGL coordinate
-        // LVGL arc: 0deg=3 o'clock, angles go clockwise
-        // Our semicircle uses bg_angles 0..180 = 3 o'clock to 9 o'clock going through 6 o'clock (bottom)
-        // We want sunrise at left (9 o'clock = 180deg) and sunset at right (3 o'clock = 0deg)
-        // Sun traverses from 180 → 0 (going counterclockwise through the top = 90deg)
-        // Angle for sun dot: 180 - progress*180 degrees in standard math, but in LVGL arc angle space:
-        // Map progress [0..1] to arc angle [180..0] going through the top arc
-        const float arc_angle_deg = static_cast<float>(180.0 - progress * 180.0);
-        const float arc_angle_rad = arc_angle_deg * 3.14159265f / 180.0f;
+        // LVGL arc angles: 0° = 3 o'clock (right), increases clockwise
+        // Our semicircle: bg_angles(0, 180) = right to left through bottom
+        // But we want: sunrise (left) → noon (top) → sunset (right)
+        // So we need the TOP semicircle: 180° (left) → 270° (top) → 0°/360° (right)
+        // Map progress [0..1] to LVGL angle [180..360] (or [180..0] wrapping through 270)
+        // In standard math: left=180°, top=90°, right=0°
+        // progress=0 (sunrise): angle = 180° (left)
+        // progress=0.5 (noon): angle = 90° (top) 
+        // progress=1.0 (sunset): angle = 0° (right)
+        const float math_angle_deg = static_cast<float>(180.0 - progress * 180.0);
+        const float math_angle_rad = math_angle_deg * 3.14159265f / 180.0f;
 
         // Radius of arc center line
         const float arc_r = (ARC_SIZE / 2.0f) - ARC_LINE_WIDTH / 2.0f;
         const float cx    = ARC_SIZE / 2.0f;
         const float cy    = ARC_SIZE / 2.0f;  // center of full circle (top half visible)
 
-        const float sun_x = cx + arc_r * std::cos(arc_angle_rad);
-        const float sun_y = cy - arc_r * std::sin(arc_angle_rad);  // y is flipped in screen coords
+        // Standard math: cos/sin with y-axis inverted for screen coordinates
+        const float sun_x = cx + arc_r * std::cos(math_angle_rad);
+        const float sun_y = cy - arc_r * std::sin(math_angle_rad);  // y is flipped in screen coords
 
         // Position sun dot relative to arc container
         const int dot_x = static_cast<int>(sun_x) - SUN_DOT_SIZE / 2;
@@ -305,6 +334,7 @@ void Solar_Info::destroy() {
     if (m_impl->container) {
         lv_obj_del(m_impl->container);
         m_impl->container   = nullptr;
+        m_impl->title_label = nullptr;
         m_impl->arc_bg      = nullptr;
         m_impl->sun_dot     = nullptr;
         m_impl->horizon_line = nullptr;

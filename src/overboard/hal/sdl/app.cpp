@@ -23,10 +23,12 @@
 #include <overboard/core/action_code.hpp>
 #include <overboard/core/input_key.hpp>
 #include <overboard/core/keymap.hpp>
+#include <overboard/core/settings_manager.hpp>
 #include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/hal/sdl/keymap.hpp>
 #include <overboard/hal/sdl/input.hpp>
+#include <overboard/hal/settings_store_factory.hpp>
 #include <overboard/io/keyboard_config.hpp>
 #include <overboard/log/stdout_logger.hpp>
 #include <overboard/resources/embedded_json.hpp>
@@ -96,10 +98,15 @@ bool SDL_App::init() {
         m_display = std::make_unique<Display>("Calculator", DISPLAY_WIDTH, DISPLAY_HEIGHT);
         LOG_TRACE("SDL display created successfully");
 
+        // Create settings manager
+        LOG_DEBUG("Creating Settings_Manager");
+        auto settings_store = Settings_Store_Factory::create();
+        auto settings = std::make_shared<core::Settings_Manager>(std::move(settings_store));
+
         // Create GUI view and attach to LVGL screen
         LOG_DEBUG("Creating App_View");
         m_view = std::make_unique<gui::App_View>(
-            m_display->screen(), m_layout, m_engine, m_layers);
+            m_display->screen(), m_layout, m_engine, m_layers, settings);
         LOG_TRACE("App_View created successfully");
 
         // Build input_key -> key_index mapping from keyboard.json
