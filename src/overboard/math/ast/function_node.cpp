@@ -97,11 +97,9 @@ Node::ptr_t Function_Node::simplify() const {
         simplified_args.push_back(arg->simplify());
     }
 
-    // Fold: if all simplified args are plain numbers, evaluate now
-    const bool all_numeric = std::all_of(simplified_args.begin(), simplified_args.end(),
-        [](const Node::ptr_t& n) { return n->kind() == Node_Kind::NUMBER; });
-
-    if (all_numeric) {
+    // Fold: evaluate with simplified args and fold if result is an exact integer.
+    // Covers numeric args (sqrt(4)=2) and symbolic cancellations (sin(pi)=0).
+    {
         std::vector<Node::ptr_t> copies;
         copies.reserve(simplified_args.size());
         for (const auto& a : simplified_args) copies.push_back(a->clone());

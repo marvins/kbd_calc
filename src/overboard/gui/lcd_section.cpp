@@ -169,22 +169,23 @@ void LCD_Section::refresh() {
     // Update history table
     update_history_table(m_table, m_engine.state().history);
 
-    // Get AST from expression
-    const auto& ast = m_engine.state().expression.ast_root();
-    LOG_DEBUG("AST retrieved from expression");
+    // Choose which AST to render: result AST (typeset) or live expression AST
+    const math::ast::Node::ptr_t* ast_to_render = &m_engine.state().expression.ast_root();
+    const math::ast::Node* cursor_node = nullptr;
 
-    // Only show result in lower right if evaluation was performed
-    std::string result_str;
-    if (m_engine.result_shown()) {
-        result_str = m_engine.state().display_value;
-        LOG_DEBUG("Result string: " + result_str);
+    if (m_engine.result_shown() && m_engine.state().last_ast) {
+        LOG_DEBUG("Result string: " + m_engine.state().display_value);
+        ast_to_render = &m_engine.state().last_ast;
+        // No cursor when showing result
+    } else {
+        LOG_DEBUG("AST retrieved from expression");
+        cursor_node = m_engine.state().expression.get_cursor_node();
     }
 
-    // Draw typeset math with result in lower right (if available)
+    // Draw typeset math — result and expression both go through the layout engine
     int pw = hal::PREVIEW_MAX_WIDTH;
     int ph = hal::PREVIEW_MAX_HEIGHT;
-    const auto* cursor_node = m_engine.state().expression.get_cursor_node();
-    draw_math_to_canvas(m_preview_canvas, pw, ph, *m_layout_engine, ast, result_str, cursor_node);
+    draw_math_to_canvas(m_preview_canvas, pw, ph, *m_layout_engine, *ast_to_render, "", cursor_node);
 
     lv_obj_invalidate(m_preview_canvas);
     lv_obj_invalidate(m_bezel);

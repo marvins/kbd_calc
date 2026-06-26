@@ -319,13 +319,14 @@ TEST(Ast_Simplify, Function_Numeric_Args_Fold_To_Number) {
     EXPECT_DOUBLE_EQ(s->eval(), 3.0);
 }
 
-TEST(Ast_Simplify, Function_Stays_Symbolic_With_Constant_Arg) {
+TEST(Ast_Simplify, Function_With_Constant_Arg_Folds_If_Integer_Result) {
+    // sin(pi) = ~0 — within epsilon of 0, folds to integer
     std::vector<Node::ptr_t> args;
     args.push_back(std::make_unique<Constant_Node>(Constant_Id::PI));
     auto n = std::make_unique<Function_Node>("sin", std::move(args));
     auto s = n->simplify();
-    EXPECT_EQ(s->kind(), Node_Kind::FUNCTION);
-    EXPECT_EQ(s->to_string(), "sin(pi)");
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
+    EXPECT_EQ(s->to_string(), "0");
 }
 
 TEST(Ast_Simplify, Binary_Stays_Symbolic_With_Numeric_And_Constant) {
@@ -441,7 +442,7 @@ TEST(Ast_Simplify, Sqrt_Of_Perfect_Square_Folds) {
 }
 
 TEST(Ast_Simplify, Mixed_Symbolic_And_Irrational_Stays_Symbolic) {
-    // sqrt(2) + pi — both symbolic, nothing folds
+    // sqrt(2) + pi ≈ 4.555 — not an integer, stays symbolic
     std::vector<Node::ptr_t> sqrt_args;
     sqrt_args.push_back(std::make_unique<Number_Node>(2.0));
     auto sqrt_2 = std::make_unique<Function_Node>("sqrt", std::move(sqrt_args));
@@ -452,6 +453,20 @@ TEST(Ast_Simplify, Mixed_Symbolic_And_Irrational_Stays_Symbolic) {
     auto s = n->simplify();
     EXPECT_EQ(s->kind(), Node_Kind::BINARY_OP);
     EXPECT_EQ(s->to_string(), "(sqrt(2)+pi)");
+}
+
+TEST(Ast_Simplify, Sqrt_Two_Squared_Folds_To_Two) {
+    // sqrt(2)^2 = 2 — symbolic cancellation, folds to exact integer
+    std::vector<Node::ptr_t> sqrt_args;
+    sqrt_args.push_back(std::make_unique<Number_Node>(2.0));
+    auto sqrt_2 = std::make_unique<Function_Node>("sqrt", std::move(sqrt_args));
+    auto n = std::make_unique<Binary_Op_Node>(
+        Binary_Op::POWER,
+        std::move(sqrt_2),
+        std::make_unique<Number_Node>(2.0));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
+    EXPECT_EQ(s->to_string(), "2");
 }
 
 // ─── Number_Node::to_string() epsilon behaviour ───────────────────────────────

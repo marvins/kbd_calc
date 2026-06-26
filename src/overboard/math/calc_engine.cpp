@@ -211,7 +211,7 @@ void Calc_Engine::evaluate() {
             m_state.expression.clear();
         }
         m_state.display_value = result_str;
-        m_state.last_ast      = nullptr;
+        m_state.last_ast      = std::move(result);
         m_result_shown        = true;
 #ifdef __cpp_exceptions
     } catch (const std::exception& ex) {

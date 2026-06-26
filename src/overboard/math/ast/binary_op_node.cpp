@@ -94,13 +94,14 @@ Node::ptr_t Binary_Op_Node::simplify() const {
     Node::ptr_t l = m_left->simplify();
     Node::ptr_t r = m_right->simplify();
 
-    // Fold: if both children are plain numbers and the result is an exact integer,
-    // evaluate now (e.g. 2+3=5, 10/2=5). Leave non-integer results symbolic
+    // Fold: evaluate with simplified children and fold if the result is an exact integer.
+    // This covers numeric-only cases (2+3=5) as well as symbolic cancellations
+    // (sqrt(2)^2=2, sqrt(3)*sqrt(3)=3). Leave non-integer results symbolic
     // (e.g. 10/4=2.5, sqrt(2)/4) so the user sees exact form until approx() is used.
     //
     // Note: this is a float-based heuristic, not a true symbolic type system (cf. SymPy/GiNaC).
     // A value is considered "exact integer" if it is within 1e-10 of a whole number.
-    if (l->kind() == Node_Kind::NUMBER && r->kind() == Node_Kind::NUMBER) {
+    {
         const double result = Binary_Op_Node(m_op, l->clone(), r->clone()).eval();
         if (std::abs(result - std::floor(result)) < 1e-10 && std::abs(result) < 1e15) {
             return std::make_unique<Number_Node>(result);
