@@ -53,7 +53,7 @@ TEST(Calc_Engine_Decimal, New_Token_After_Operator_Allows_Decimal) {
     press(eng, { core::Action_Code::DIGIT_3, core::Action_Code::DECIMAL, core::Action_Code::DIGIT_3,
                  core::Action_Code::ADD,
                  core::Action_Code::DIGIT_1, core::Action_Code::DECIMAL, core::Action_Code::DIGIT_1 });
-    EXPECT_EQ(eng.state().expression.eval_string(), "3.3+1.1");
+    EXPECT_EQ(eng.state().expression.eval_string(), "(3.3+1.1)");
 }
 
 TEST(Calc_Engine_Decimal, Second_Decimal_After_Operator_Ignored) {
@@ -63,7 +63,7 @@ TEST(Calc_Engine_Decimal, Second_Decimal_After_Operator_Ignored) {
                  core::Action_Code::ADD,
                  core::Action_Code::DIGIT_1, core::Action_Code::DECIMAL, core::Action_Code::DIGIT_1,
                  core::Action_Code::DECIMAL });
-    EXPECT_EQ(eng.state().expression.eval_string(), "3.3+1.1");
+    EXPECT_EQ(eng.state().expression.eval_string(), "(3.3+1.1)");
 }
 
 TEST(Calc_Engine_Decimal, Leading_Decimal_Prepends_Zero) {
@@ -159,7 +159,7 @@ TEST(Calc_Engine_Parenthesis, Nested_Groups_Create_Nested_Parens) {
                  core::Action_Code::PAREN_CLOSE,
                  core::Action_Code::PAREN_CLOSE });
     // Nested groups: inner (1+2), outer wrapping it: ((1+2))
-    EXPECT_EQ(eng.state().expression.eval_string(), "((1+2))");
+    EXPECT_EQ(eng.state().expression.eval_string(), "(((1+2)))");
 }
 
 TEST(Calc_Engine_Parenthesis, Expression_With_Group_Evaluates) {
@@ -199,7 +199,7 @@ TEST(Calc_Engine_Group, Group_Then_Operator_Creates_Inside) {
                  core::Action_Code::DIGIT_4,
                  core::Action_Code::SUBTRACT });
     // Should be (4 - □) with cursor on right placeholder
-    EXPECT_EQ(eng.state().expression.eval_string(), "(4-0)");
+    EXPECT_EQ(eng.state().expression.eval_string(), "((4-0))");
 }
 
 TEST(Calc_Engine_Group, Group_Complete_Expression) {
@@ -209,7 +209,7 @@ TEST(Calc_Engine_Group, Group_Complete_Expression) {
                  core::Action_Code::SUBTRACT,
                  core::Action_Code::DIGIT_3,
                  core::Action_Code::PAREN_CLOSE });
-    EXPECT_EQ(eng.state().expression.eval_string(), "(4-3)");
+    EXPECT_EQ(eng.state().expression.eval_string(), "((4-3))");
 }
 
 TEST(Calc_Engine_Group, Nested_Groups) {
@@ -224,7 +224,7 @@ TEST(Calc_Engine_Group, Nested_Groups) {
                  core::Action_Code::DIGIT_3,
                  core::Action_Code::PAREN_CLOSE });
     // Inner group (1+2), multiplied by 3 outside: ((1+2))*3
-    EXPECT_EQ(eng.state().expression.eval_string(), "((1+2))*3");
+    EXPECT_EQ(eng.state().expression.eval_string(), "((((1+2)))*3)");
 }
 
 TEST(Calc_Engine_Group, Group_With_External_Operator) {
@@ -237,7 +237,7 @@ TEST(Calc_Engine_Group, Group_With_External_Operator) {
                  core::Action_Code::MULTIPLY,
                  core::Action_Code::DIGIT_4 });
     // Group wraps (2+3), then multiplied by 4 outside: (2+3)*4
-    EXPECT_EQ(eng.state().expression.eval_string(), "(2+3)*4");
+    EXPECT_EQ(eng.state().expression.eval_string(), "(((2+3))*4)");
 }
 
 TEST(Calc_Engine_Group, Group_Evaluates_Correctly) {

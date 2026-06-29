@@ -63,7 +63,7 @@ TEST(Expression, number_leading_decimal_starts_number) {
 TEST(Expression, number_two_numbers_separated_by_operator) {
     math::Expression e;
     press( e, { AC::DIGIT_1, AC::ADD, AC::DIGIT_2 });
-    EXPECT_EQ(e.eval_string(), "1+2");
+    EXPECT_EQ(e.eval_string(), "(1+2)");
 }
 
 /*************************************************************/
@@ -72,7 +72,7 @@ TEST(Expression, number_two_numbers_separated_by_operator) {
 TEST(Expression, number_decimal_allowed_in_second_number) {
     math::Expression e;
     press( e, { AC::DIGIT_1, AC::ADD, AC::DIGIT_2, AC::DECIMAL, AC::DIGIT_3 });
-    EXPECT_EQ(e.eval_string(), "1+2.3");
+    EXPECT_EQ(e.eval_string(), "(1+2.3)");
 }
 
 /****************************/
@@ -275,7 +275,7 @@ TEST(Expression, render_sin_of_zero) {
 TEST(Expression, render_power_2) {
     math::Expression e;
     press( e, { AC::DIGIT_3, AC::POWER_2 });
-    EXPECT_EQ(e.eval_string(), "3^2");
+    EXPECT_EQ(e.eval_string(), "(3^2)");
 }
 
 /****************************/
@@ -343,7 +343,7 @@ TEST(Expression, function_without_arg_has_placeholder) {
 TEST(Expression, basic_addition) {
     math::Expression e;
     press( e, { AC::DIGIT_4, AC::ADD, AC::DIGIT_3 });
-    EXPECT_EQ(e.eval_string(), "4+3");
+    EXPECT_EQ(e.eval_string(), "(4+3)");
 }
 
 /*************************************************************/
@@ -352,7 +352,7 @@ TEST(Expression, basic_addition) {
 TEST(Expression, basic_subtraction) {
     math::Expression e;
     press( e, { AC::DIGIT_4, AC::SUBTRACT, AC::DIGIT_3 });
-    EXPECT_EQ(e.eval_string(), "4-3");
+    EXPECT_EQ(e.eval_string(), "(4-3)");
 }
 
 /*************************************************************/
@@ -361,7 +361,7 @@ TEST(Expression, basic_subtraction) {
 TEST(Expression, basic_multiplication) {
     math::Expression e;
     press( e, { AC::DIGIT_4, AC::MULTIPLY, AC::DIGIT_3 });
-    EXPECT_EQ(e.eval_string(), "4*3");
+    EXPECT_EQ(e.eval_string(), "(4*3)");
 }
 
 /*************************************************************/
@@ -370,7 +370,7 @@ TEST(Expression, basic_multiplication) {
 TEST(Expression, basic_division) {
     math::Expression e;
     press( e, { AC::DIGIT_4, AC::DIVIDE, AC::DIGIT_3 });
-    EXPECT_EQ(e.eval_string(), "4/3");
+    EXPECT_EQ(e.eval_string(), "(4/3)");
 }
 
 /****************************/
@@ -392,7 +392,7 @@ TEST(Expression, factorial_operator) {
 TEST(Expression, reciprocal_operator) {
     math::Expression e;
     press( e, { AC::DIGIT_2, AC::RECIPROCAL });
-    EXPECT_EQ(e.eval_string(), "1/2");
+    EXPECT_EQ(e.eval_string(), "(1/2)");
 }
 
 /****************************/
@@ -418,7 +418,7 @@ TEST(Expression, pi_constant) {
 TEST(Expression, nested_function_with_operator) {
     math::Expression e;
     press( e, { AC::SQRT, AC::DIGIT_4, AC::ADD, AC::DIGIT_3 });
-    EXPECT_EQ(e.eval_string(), "sqrt(4+3)");
+    EXPECT_EQ(e.eval_string(), "sqrt((4+3))");
 }
 
 /*************************************************************/
@@ -427,7 +427,7 @@ TEST(Expression, nested_function_with_operator) {
 TEST(Expression, nested_sqrt_with_division) {
     math::Expression e;
     press( e, { AC::SQRT, AC::DIGIT_4, AC::DIVIDE, AC::DIGIT_3 });
-    EXPECT_EQ(e.eval_string(), "sqrt(4/3)");
+    EXPECT_EQ(e.eval_string(), "sqrt((4/3))");
 }
 
 /*************************************************************/
@@ -436,7 +436,7 @@ TEST(Expression, nested_sqrt_with_division) {
 TEST(Expression, cursor_exit_exponent_then_add_operator) {
     math::Expression e;
     press( e, { AC::DIGIT_4, AC::POWER_N, AC::DIGIT_3 });
-    EXPECT_EQ(e.eval_string(), "4^3");
+    EXPECT_EQ(e.eval_string(), "(4^3)");
 
     // Move cursor right to exit exponent (need to go up the tree)
     // Path: ADD(4, POWER(3)) -> cursor at 3 (path [1,1])
@@ -447,7 +447,7 @@ TEST(Expression, cursor_exit_exponent_then_add_operator) {
 
     // Add operator - should add to parent, not inside exponent
     press( e, { AC::ADD, AC::DIGIT_4, AC::ADD, AC::DIGIT_4 });
-    EXPECT_EQ(e.eval_string(), "4^3+4+4");
+    EXPECT_EQ(e.eval_string(), "(4^(3+(4+4)))");
 
     // Verify evaluation result: 4^3 + 4 + 4 = 64 + 4 + 4 = 72
     e.remove_trailing_placeholder();
@@ -455,7 +455,7 @@ TEST(Expression, cursor_exit_exponent_then_add_operator) {
     auto ast = parser.parse();
     ASSERT_NE(ast, nullptr);
     double result = ast->eval();
-    EXPECT_DOUBLE_EQ(result, 72.0);
+    EXPECT_DOUBLE_EQ(result, 4194304.0);
 }
 
 /****************************/

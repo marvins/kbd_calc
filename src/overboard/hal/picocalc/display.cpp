@@ -48,10 +48,11 @@ static constexpr uint8_t ILI9488_RAMWR    = 0x2C;
 static constexpr uint8_t ILI9488_MADCTL   = 0x36;
 static constexpr uint8_t ILI9488_PIXFMT   = 0x3A;
 
-// Partial render buffer: 10 rows × 320 px × 2 bytes (RGB565)
-static constexpr int BYTES_PER_PIXEL = 2;
+// Partial render buffer: 10 rows × 320 px × 3 bytes (RGB888 wire format for ILI9488 18-bit mode)
+static constexpr int BYTES_PER_PIXEL = 3;
 static constexpr int BUF_ROWS        = 10;
-static uint8_t s_buf[LCD_PHYS_WIDTH * BUF_ROWS * BYTES_PER_PIXEL];
+static uint8_t s_buf[LCD_PHYS_WIDTH * BUF_ROWS * 2];   // LVGL uses RGB565 (2 bytes) internally
+static uint8_t s_out[LCD_PHYS_WIDTH * BUF_ROWS * BYTES_PER_PIXEL]; // expanded to 3-byte wire format
 
 /****************************/
 /*       SPI Init           */
@@ -65,6 +66,8 @@ void PicoCalc_Display::spi_init() {
     gpio_set_function(LCD_SCK,  GPIO_FUNC_SPI);
     gpio_set_function(LCD_MOSI, GPIO_FUNC_SPI);
     gpio_set_function(LCD_MISO, GPIO_FUNC_SPI);
+    gpio_set_drive_strength(LCD_SCK,  GPIO_DRIVE_STRENGTH_12MA);
+    gpio_set_drive_strength(LCD_MOSI, GPIO_DRIVE_STRENGTH_12MA);
     LOG_DEBUG("SPI pins configured - SCK:", LCD_SCK, " MOSI:", LCD_MOSI, " MISO:", LCD_MISO);
 
     LOG_DEBUG("Initializing GPIO pins for display control");
@@ -174,9 +177,9 @@ void PicoCalc_Display::lcd_init() {
     LOG_DEBUG("Sleep out delay completed");
 #endif
 
-    // Pixel format: 16-bit RGB565
-    LOG_DEBUG("Setting pixel format to RGB565 (0x55)");
-    uint8_t pixfmt = 0x55;
+    // Pixel format: 18-bit (3 bytes per pixel on the wire) — ILI9488 requires 0x66 for SPI
+    LOG_DEBUG("Setting pixel format to 18-bit (0x66)");
+    uint8_t pixfmt = 0x66;
     lcd_send_cmd(ILI9488_PIXFMT);
     lcd_send_data(&pixfmt, 1);
 
@@ -212,7 +215,21 @@ void PicoCalc_Display::flush_cb( lv_display_t* disp,
 
     int32_t w = area->x2 - area->x1 + 1;
     int32_t h = area->y2 - area->y1 + 1;
-    lcd_send_data(px_map, static_cast<size_t>(w * h * BYTES_PER_PIXEL));
+    int32_t n_pixels = w * h;
+
+    // LVGL renders RGB565 (2 bytes/pixel); ILI9488 in 18-bit mode needs 3 bytes/pixel.
+    // Expand in-place into the wire buffer.
+    const uint16_t* src = reinterpret_cast<const uint16_t*>(px_map);
+    uint8_t* dst = s_out;
+    for (int32_t i = 0; i < n_pixels; ++i) {
+        uint16_t c = src[i];
+        dst[0] = (c & 0xF800) >> 8;  // R: bits 15-11 → top byte
+        dst[1] = (c & 0x07E0) >> 3;  // G: bits 10-5
+        dst[2] = (c & 0x001F) << 3;  // B: bits 4-0
+        dst += 3;
+    }
+
+    lcd_send_data(s_out, static_cast<size_t>(n_pixels * BYTES_PER_PIXEL));
 
     lv_display_flush_ready(disp);
 }
@@ -236,7 +253,7 @@ PicoCalc_Display::PicoCalc_Display() {
     lv_display_set_flush_cb(m_lv_display, flush_cb);
     lv_display_set_buffers(m_lv_display,
                            s_buf, nullptr,
-                           sizeof(s_buf),
+                           sizeof(s_buf),   // LVGL RGB565 buffer size
                            LV_DISPLAY_RENDER_MODE_PARTIAL);
     lv_display_set_default(m_lv_display);
 }

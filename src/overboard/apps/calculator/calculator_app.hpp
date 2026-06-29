@@ -39,7 +39,7 @@ inline constexpr int F_KEY_POPUP_COUNT = 10;
 enum class Popup_Menu : int {
     Alg      = 0,  // F1: Algebraic operations (reciprocal, square, power, sqrt)
     Trig     = 1,  // F2: Trigonometric functions (sin, cos, tan, etc.)
-    Calc     = 2,  // F3: Available for future use
+    Const    = 2,  // F3: Mathematical constants (π, e, φ, τ)
     Memory   = 3,  // F4: Available for future use
     Advanced = 4,  // F5: Available for future use
     // F6-F10: Reserved for future menus
@@ -143,7 +143,7 @@ class Calculator_App : public I_App {
         /**
          * @brief Get custom label for keys in calculator context
          * @param key_index The key index
-         * @return "F1"-"F4" for keys 3-6, empty for others
+         * @return popup name for F-keys (indices 4-8), empty for others
          */
         std::string get_custom_label(int key_index) const override;
 

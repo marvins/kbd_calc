@@ -23,7 +23,7 @@ npx lv_font_conv \
   --bpp 8 \
   --format lvgl \
   --font /System/Library/Fonts/Geneva.ttf \
-  -r 0x00B2-0x00B3,0x207F,0x78,0x221A \
+  -r 0x0020-0x007E,0x00B2-0x00B3,0x207F,0x221A,0x03C0,0x03C6,0x03C4 \
   -o /Users/marvin/Desktop/Projects/kbd_calc/src/overboard/gui/lv_font_superscript.c \
   --lv-font-name lv_font_superscript \
   --no-compress
@@ -33,7 +33,7 @@ npx lv_font_conv \
 
 - `--size 16`: Slightly larger than default Montserrat 14px for thicker appearance
 - `--bpp 8`: Higher bit depth for thicker, smoother glyphs (was 4, increased to 8)
-- `-r 0x00B2-0x00B3,0x207F,0x78,0x221A`: Unicode ranges for superscript ², ³, ⁿ, base character x, and square root √
+- `-r 0x0020-0x007E,...`: Full printable ASCII, superscript ², ³, ⁿ, square root √, and Greek letters π, φ, τ — full ASCII is required so numbered menu prefixes (e.g. `1) π`) render correctly with a single font
 - `--no-compress`: Disables RLE compression for simpler integration
 
 ### Integration Steps

@@ -24,6 +24,10 @@ bool requires_custom_font(core::Action_Code code) {
         case core::Action_Code::POWER_2:    // ² (superscript)
         case core::Action_Code::POWER_3:    // ³ (superscript)
         case core::Action_Code::POWER_N:    // ⁿ (superscript)
+        case core::Action_Code::PI:         // π (U+03C0)
+        case core::Action_Code::EULER:      // e (ASCII — still safe)
+        case core::Action_Code::PHI:        // φ (U+03C6)
+        case core::Action_Code::TAU:        // τ (U+03C4)
             return true;
         default:
             return false;
@@ -35,15 +39,21 @@ bool requires_custom_font(core::Action_Code code) {
 /********************************************************/
 bool requires_custom_font(const std::string& display_text) {
     // Check for UTF-8 sequences of math symbols (superscripts, radicals, etc.)
-    // ² (U+00B2): \xC2\xB2 - superscript two
-    // ³ (U+00B3): \xC2\xB³ - superscript three
+    // ² (U+00B2): \xC2\xB2   - superscript two
+    // ³ (U+00B3): \xC2\xB3   - superscript three
     // ⁿ (U+207F): \xE2\x81\xBF - superscript n
     // √ (U+221A): \xE2\x88\x9A - square root / radical sign
-    
-    return display_text.find("\xC2\xB2") != std::string::npos ||      // ²
-           display_text.find("\xC2\xB3") != std::string::npos ||      // ³
-           display_text.find("\xE2\x81\xBF") != std::string::npos ||  // ⁿ
-           display_text.find("\xE2\x88\x9A") != std::string::npos;    // √
+    // π (U+03C0): \xCF\x80   - pi
+    // φ (U+03C6): \xCF\x86   - phi
+    // τ (U+03C4): \xCF\x84   - tau
+
+    return display_text.find("\xC2\xB2") != std::string::npos ||      // ²  (U+00B2)
+           display_text.find("\xC2\xB3") != std::string::npos ||      // ³  (U+00B3)
+           display_text.find("\xE2\x81\xBF") != std::string::npos ||  // ⁿ  (U+207F)
+           display_text.find("\xE2\x88\x9A") != std::string::npos ||  // √  (U+221A)
+           display_text.find("\xCF\x80") != std::string::npos ||      // π  (U+03C0)
+           display_text.find("\xCF\x86") != std::string::npos ||      // φ  (U+03C6)
+           display_text.find("\xCF\x84") != std::string::npos;        // τ  (U+03C4)
 }
 
 } // namespace ovb::font

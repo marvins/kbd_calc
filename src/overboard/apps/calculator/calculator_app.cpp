@@ -175,7 +175,19 @@ void Calculator_App::activate(lv_obj_t* parent) {
         std::make_unique<Function_Menu_Popup>(m_impl->container, "Trig", trig_items, menu_callback);
     LOG_DEBUG("Calculator_App: Trig popup created");
 
-    // F3-F10: Available for future menus
+    // F3: Constants menu
+    std::vector<Function_Menu_Item> const_items = {
+        {"\u03c0", core::Action_Code::PI},
+        {"e",      core::Action_Code::EULER},
+        {"\u03c6", core::Action_Code::PHI},
+        {"\u03c4", core::Action_Code::TAU},
+    };
+    LOG_DEBUG("Calculator_App: creating Const popup");
+    m_impl->f_key_popups[static_cast<int>(Popup_Menu::Const)] =
+        std::make_unique<Function_Menu_Popup>(m_impl->container, "Const", const_items, menu_callback);
+    LOG_DEBUG("Calculator_App: Const popup created");
+
+    // F4-F10: Available for future menus
     LOG_DEBUG("Calculator_App: activate complete");
 }
 
@@ -230,6 +242,26 @@ bool Calculator_App::handle_input(core::Action_Code action) {
         case core::Action_Code::GO_ALG_LAYER:
             m_impl->layers.set_layer(4);
             return true;
+        case core::Action_Code::FUNC_1:
+        case core::Action_Code::FUNC_2:
+        case core::Action_Code::FUNC_3: {
+            const int popup_index = static_cast<int>(action) - static_cast<int>(core::Action_Code::FUNC_1);
+            auto& popup = m_impl->f_key_popups[static_cast<std::size_t>(popup_index)];
+            if (popup) {
+                m_impl->active_popup = popup.get();
+                popup->show();
+                if (m_impl->on_overlay_push) {
+                    std::vector<I_Panel::Overlay_Key_Desc> descs;
+                    for (const auto& item : popup->items()) {
+                        if (item.key_index >= 0) {
+                            descs.push_back({item.key_index, item.label, item.action});
+                        }
+                    }
+                    m_impl->on_overlay_push(popup->title(), descs);
+                }
+            }
+            return true;
+        }
         case core::Action_Code::TOGGLE_MATH_LAYOUT:
             m_impl->engine.toggle_math_layout();
             return true;
@@ -441,13 +473,20 @@ void Calculator_App::refresh() {
 /*      Get Custom Label       */
 /*******************************/
 std::string Calculator_App::get_custom_label(int key_index) const {
-    // In calculator context, keys 3-6 act as function menu keys
-    switch (key_index) {
-        case 3: return "Alg";
-        case 4: return "Trig";
-        case 5: return "F3";
-        case 6: return "F4";
-        default: return ""; // Use default from keyboard.json
+    // Resolve the action code for this physical key in the base layer (layer 0),
+    // then return the calculator-specific popup name.  This is keyboard-JSON-agnostic
+    // — it doesn't matter which key index F1 lives on in the JSON.
+    const auto& layer = m_impl->layers.current_layer();
+    if (key_index < 0 || static_cast<std::size_t>(key_index) >= layer.keys.size()) {
+        return "";
+    }
+    switch (layer.keys[static_cast<std::size_t>(key_index)]) {
+        case core::Action_Code::FUNC_1: return "Alg";
+        case core::Action_Code::FUNC_2: return "Trig";
+        case core::Action_Code::FUNC_3: return "Const";
+        case core::Action_Code::FUNC_4: return "F4";
+        case core::Action_Code::FUNC_5: return "F5";
+        default: return "";
     }
 }
 

@@ -451,7 +451,7 @@ std::string Expression::eval_string() const {
                     case ast::Binary_Op::SHIFT_LEFT: op_str = "<<"; break;
                     case ast::Binary_Op::SHIFT_RIGHT:op_str = ">>"; break;
                 }
-                return left + op_str + right;
+                return "(" + left + op_str + right + ")";
             }
             case ast::Node_Kind::FUNCTION: {
                 const auto* func = static_cast<const ast::Function_Node*>(node);
