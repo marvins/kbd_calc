@@ -48,6 +48,7 @@ enum class Action_Code : uint16_t {
     // Evaluation
     EVAL,
     APPROX,
+    ANS,
 
     // Basic arithmetic
     NEGATE,

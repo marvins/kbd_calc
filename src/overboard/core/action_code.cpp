@@ -38,6 +38,7 @@ Action_Code string_to_action_code(const std::string& str) {
     // Evaluation
     if (str == "EVAL")             return Action_Code::EVAL;
     if (str == "APPROX")           return Action_Code::APPROX;
+    if (str == "ANS")              return Action_Code::ANS;
 
     // Basic arithmetic
     if (str == "NEGATE")           return Action_Code::NEGATE;
@@ -180,6 +181,7 @@ std::string action_code_to_display(Action_Code code) {
 
         case Action_Code::EVAL:             return "Eval";
         case Action_Code::APPROX:           return "Aprx";
+        case Action_Code::ANS:              return "Ans";
         case Action_Code::NEGATE:           return "+/-";
         case Action_Code::PERCENT:          return "%";
         case Action_Code::SIN:              return "sin";
@@ -304,6 +306,7 @@ std::string action_code_to_string(Action_Code code) {
 
         case Action_Code::EVAL:             return "EVAL";
         case Action_Code::APPROX:           return "APPROX";
+        case Action_Code::ANS:              return "ANS";
         case Action_Code::NEGATE:           return "NEGATE";
         case Action_Code::PERCENT:          return "PERCENT";
         case Action_Code::SIN:              return "SIN";

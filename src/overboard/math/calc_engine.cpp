@@ -67,6 +67,7 @@ void Calc_Engine::handle_key( core::Action_Code code ) {
             case core::Action_Code::MULTIPLY:
             case core::Action_Code::DIVIDE:
             case core::Action_Code::POWER_N:
+            case core::Action_Code::ANS:
                 break;
             default:
                 m_state.expression.clear();
@@ -149,6 +150,13 @@ void Calc_Engine::handle_key( core::Action_Code code ) {
             break;
         case core::Action_Code::MEM_CLEAR:
             m_state.memory = 0.0;
+            break;
+
+        case core::Action_Code::ANS:
+            if (m_state.last_ast) {
+                m_state.expression.insert_node(*m_state.last_ast);
+                m_state.display_value = m_state.expression.render_string();
+            }
             break;
 
         case core::Action_Code::EQUALS:

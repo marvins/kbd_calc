@@ -42,6 +42,16 @@ class Expression {
         void insert( core::Action_Code code );
 
         /**
+         * @brief Insert an arbitrary AST node at the cursor position
+         *
+         * If the cursor is on a placeholder, replaces it with a clone of @p node.
+         * Used by ANS to paste the previous result into the expression.
+         *
+         * @param node The node to clone and insert
+         */
+        void insert_node( const ast::Node& node );
+
+        /**
          * @brief Delete the node at the current cursor position
          */
         void backspace();

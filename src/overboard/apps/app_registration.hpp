@@ -66,10 +66,10 @@ inline void register_all_apps(
     // ESCAPE returns to menu (pop)
     registry.register_app(
         "Calculator", LV_SYMBOL_KEYBOARD, priority++, 'c',
-        [&engine, &layers, &panels]() mutable {
+        [&engine, &layers, &panels, settings]() mutable {
             return std::make_shared<gui::Calculator_App>(engine, layers, [&panels]() {
                 panels.pop();
-            });
+            }, settings);
         });
 
     // Settings - third in menu

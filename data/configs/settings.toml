@@ -33,6 +33,12 @@ number_format = "auto"
 # Decimal places when using fixed format (0-15)
 decimal_places = 6
 
+# UI settings
+[ui]
+# Highlight color for the focused/cursor node in the expression canvas
+# Specified as a 24-bit RGB hex integer (e.g. 0xD8E8F8 = light blue-gray)
+cursor_highlight_color = 14215416  # 0xD8E8F8
+
 # Status page settings
 [status]
 # Update rate for clocks in milliseconds (default: 1000 = 1 second)

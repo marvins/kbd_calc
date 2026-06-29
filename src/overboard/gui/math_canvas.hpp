@@ -17,6 +17,7 @@
 #include <lvgl.h>
 
 // Project Libraries
+#include <overboard/gui/lvgl_theme.hpp>
 #include <overboard/math/layout/engine.hpp>
 
 namespace ovb::gui {
@@ -32,7 +33,8 @@ namespace ovb::gui {
  * @param layout_engine Layout engine for box construction and positioning
  * @param ast           AST node to render (upper left)
  * @param result_str    Result string to render (lower right), empty if no result
- * @param cursor_node   Optional cursor node for scroll-to-cursor, nullptr if no cursor
+ * @param cursor_node             Optional cursor node for scroll-to-cursor, nullptr if no cursor
+ * @param cursor_highlight_color  Background color for the focused node highlight
  * @return true on success, false if layout build failed
  */
 bool draw_math_to_canvas( lv_obj_t*                     canvas,
@@ -41,6 +43,7 @@ bool draw_math_to_canvas( lv_obj_t*                     canvas,
                           math::layout::Layout_Engine&  layout_engine,
                           const math::ast::Node::ptr_t& ast,
                           const std::string&            result_str = "",
-                          const math::ast::Node*        cursor_node = nullptr );
+                          const math::ast::Node*        cursor_node = nullptr,
+                          uint32_t                      cursor_highlight_color = LVGL_COLOR_CURSOR_HIGHLIGHT );
 
 } // namespace ovb::gui

@@ -222,20 +222,17 @@ void Expression::cursor_left() {
         return;
     }
 
-    // If at a leaf node, try to move to previous sibling
-    if (current->child_count() == 0) {
-        std::size_t current_index = m_cursor_path.path()[m_cursor_path.depth() - 1];
-        if (current_index > 0) {
-            // Move to previous sibling
-            m_cursor_path.path()[m_cursor_path.depth() - 1] = current_index - 1;
-        } else {
-            // At first child, move up to parent
-            m_cursor_path.pop();
-        }
-    } else {
-        // At internal node, move to last child
-        m_cursor_path.push(current->child_count() - 1);
+    // Pop one level: if there's a previous sibling, land on it.
+    // If we're at index 0, land on the parent itself (making it a cursor stop).
+    ast::Cursor_Path_Runtime path = m_cursor_path;
+    std::size_t idx = path[path.depth() - 1];
+    path.pop();
+    if (idx > 0) {
+        // Land on the previous sibling (may be internal or leaf)
+        path.push(idx - 1);
     }
+    // else: land on the parent (path now points to the parent node)
+    m_cursor_path = path;
 }
 
 /********************************************/
@@ -277,6 +274,21 @@ void Expression::cursor_right() {
     } else {
         // At internal node, move to first child
         m_cursor_path.push(0);
+    }
+}
+
+/********************************************/
+/*            Insert Node                   */
+/********************************************/
+void Expression::insert_node( const ast::Node& node ) {
+    ast::Node* cursor_node = get_cursor_node();
+    if (!cursor_node) {
+        return;
+    }
+
+    if (cursor_node->kind() == ast::Node_Kind::PLACEHOLDER) {
+        replace_node_at_cursor(node.clone());
+        m_decimal_position = 0;
     }
 }
 

@@ -52,26 +52,34 @@ struct Calculator_App::Impl {
     /// @brief Overlay pop callback
     I_Panel::Overlay_Pop_Cb                 on_overlay_pop;
 
+    /// @brief Settings manager
+    std::shared_ptr<core::Settings_Manager>  settings;
+
     /// @brief Container object
     lv_obj_t*                               container = nullptr;
 
     /**
      * @brief Constructor
-     * @param e Calculator engine
-     * @param l Layer manager
+     * @param e  Calculator engine
+     * @param l  Layer manager
      * @param cb Back callback
+     * @param s  Settings manager
      */
-    Impl(math::Calc_Engine& e, core::Layer_Manager& l, Back_Cb cb)
-        : engine(e), layers(l), on_back(std::move(cb)) {}
+    Impl( math::Calc_Engine& e,
+         core::Layer_Manager& l,
+         Back_Cb cb,
+         std::shared_ptr<core::Settings_Manager> s)
+        : engine(e), layers(l), on_back(std::move(cb)), settings(std::move(s)) {}
 };
 
 /*******************************/
 /*          Constructor        */
 /*******************************/
-Calculator_App::Calculator_App(math::Calc_Engine& engine,
-                               core::Layer_Manager& layers,
-                               Back_Cb on_back)
-    : m_impl(std::make_unique<Impl>(engine, layers, std::move(on_back))) {}
+Calculator_App::Calculator_App(math::Calc_Engine&                      engine,
+                               core::Layer_Manager&                    layers,
+                               Back_Cb                                 on_back,
+                               std::shared_ptr<core::Settings_Manager> settings)
+    : m_impl(std::make_unique<Impl>(engine, layers, std::move(on_back), std::move(settings))) {}
 
 /*******************************/
 /*     Set Overlay Callbacks   */
@@ -119,7 +127,7 @@ void Calculator_App::activate(lv_obj_t* parent) {
     lv_obj_clear_flag(lcd_parent, LV_OBJ_FLAG_SCROLLABLE);
 
     LOG_DEBUG("Calculator_App: creating LCD_Section");
-    m_impl->lcd = std::make_unique<LCD_Section>(m_impl->engine, m_impl->layers);
+    m_impl->lcd = std::make_unique<LCD_Section>(m_impl->engine, m_impl->layers, m_impl->settings);
     LOG_DEBUG("Calculator_App: building LCD_Section");
     m_impl->lcd->build(lcd_parent, width, lcd_h);
     LOG_DEBUG("Calculator_App: LCD_Section built");
@@ -281,6 +289,11 @@ bool Calculator_App::handle_input_key(core::Input_Key key) {
         case core::Input_Key::DELETE:
             // Delete node to the right of cursor
             m_impl->engine.state().expression.delete_right();
+            refresh();
+            return true;
+
+        case core::Input_Key::HOME:
+            m_impl->engine.handle_key(core::Action_Code::ANS);
             refresh();
             return true;
 

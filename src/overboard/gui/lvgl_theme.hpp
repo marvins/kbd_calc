@@ -16,11 +16,12 @@
 namespace ovb::gui {
 
 // Background colors
-constexpr uint32_t LVGL_COLOR_BG_SCREEN      = 0xF0F0F0;  // Main screen background
-constexpr uint32_t LVGL_COLOR_BG_BEZEL       = 0xFFFFFF;  // Bezel/container background
-constexpr uint32_t LVGL_COLOR_BG_PREVIEW     = 0xF8F8F8;  // Preview area background
-constexpr uint32_t LVGL_COLOR_BG_TABLE       = 0xFFFFFF;  // Table background
-constexpr uint32_t LVGL_COLOR_BG_CANVAS      = 0xF8F8F8;  // Canvas clear color
+constexpr uint32_t LVGL_COLOR_BG_SCREEN        = 0xF0F0F0;  // Main screen background
+constexpr uint32_t LVGL_COLOR_BG_BEZEL         = 0xFFFFFF;  // Bezel/container background
+constexpr uint32_t LVGL_COLOR_BG_PREVIEW       = 0xF8F8F8;  // Preview area background
+constexpr uint32_t LVGL_COLOR_BG_TABLE         = 0xFFFFFF;  // Table background
+constexpr uint32_t LVGL_COLOR_BG_CANVAS        = 0xF8F8F8;  // Canvas clear color
+constexpr uint32_t LVGL_COLOR_CURSOR_HIGHLIGHT = 0xD8E8F8;  // Focused node highlight (light blue-gray)
 
 // Text colors
 constexpr uint32_t LVGL_COLOR_TEXT_PRIMARY   = 0x333333;  // Main text (dark gray)

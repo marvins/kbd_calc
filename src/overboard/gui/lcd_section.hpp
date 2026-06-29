@@ -22,10 +22,11 @@
 #include <lvgl.h>
 
 // Project Libraries
+#include <overboard/core/layer_manager.hpp>
+#include <overboard/core/settings_manager.hpp>
 #include <overboard/font/font_metrics.hpp>
 #include <overboard/gui/lvgl_theme.hpp>
 #include <overboard/hal/display_config.hpp>
-#include <overboard/core/layer_manager.hpp>
 #include <overboard/math/calc_engine.hpp>
 #include <overboard/math/layout/engine.hpp>
 
@@ -45,10 +46,13 @@ class LCD_Section {
 
         /**
          * @brief Construct LCD section
-         * @param engine Reference to calculation engine for expression state
-         * @param layers Reference to layer manager for display configuration
+         * @param engine   Reference to calculation engine for expression state
+         * @param layers   Reference to layer manager for display configuration
+         * @param settings Optional settings manager for runtime color configuration
          */
-        LCD_Section(const math::Calc_Engine& engine, const core::Layer_Manager& layers);
+        LCD_Section(const math::Calc_Engine&               engine,
+                    const core::Layer_Manager&             layers,
+                    std::shared_ptr<core::Settings_Manager> settings = nullptr);
 
         /**
          * @brief Destructor - must delete LVGL objects before m_canvas_buf is freed
@@ -90,6 +94,9 @@ class LCD_Section {
 
         /// @brief Reference to layer manager for display configuration
         [[maybe_unused]] const core::Layer_Manager& m_layers;
+
+        /// @brief Optional settings manager for runtime configuration
+        std::shared_ptr<core::Settings_Manager> m_settings;
 
         /// @brief Layout engine for typesetting mathematical expressions
         /// Initialized in build() after LVGL fonts are ready

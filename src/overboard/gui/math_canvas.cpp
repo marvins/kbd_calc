@@ -32,7 +32,8 @@ bool draw_math_to_canvas( lv_obj_t*                     canvas,
                           math::layout::Layout_Engine&  layout_engine,
                           const math::ast::Node::ptr_t& ast,
                           const std::string&            result_str,
-                          const math::ast::Node*        cursor_node )
+                          const math::ast::Node*        cursor_node,
+                          uint32_t                      cursor_highlight_color )
 {
     // Create draw layer for canvas
     lv_layer_t layer;
@@ -77,6 +78,22 @@ bool draw_math_to_canvas( lv_obj_t*                     canvas,
     draw_box = [&](const math::layout::Layout_Box& b, int offset_x, int offset_y) {
             int x = b.pos.x + offset_x + scroll_x;
             int y = b.pos.y + offset_y + scroll_y;
+
+            // Draw cursor highlight behind the focused node
+            if (cursor_node && b.node_ptr == cursor_node && b.size.x > 0 && b.size.y > 0) {
+                lv_draw_rect_dsc_t hl_dsc;
+                lv_draw_rect_dsc_init(&hl_dsc);
+                hl_dsc.bg_color = lvgl_color(cursor_highlight_color);
+                hl_dsc.bg_opa   = LV_OPA_COVER;
+                hl_dsc.radius   = 2;
+                const lv_area_t hl_area = {
+                    static_cast<int32_t>(x - 1),
+                    static_cast<int32_t>(y - 1),
+                    static_cast<int32_t>(x + b.size.x + 1),
+                    static_cast<int32_t>(y + b.size.y + 1)
+                };
+                lv_draw_rect(&layer, &hl_dsc, &hl_area);
+            }
 
             if (b.kind == math::layout::Box_Kind::ATOM) {
                 if (!b.text.empty()) {

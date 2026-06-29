@@ -22,6 +22,7 @@
 // Project Libraries
 #include <overboard/core/input_key.hpp>
 #include <overboard/core/layer_manager.hpp>
+#include <overboard/core/settings_manager.hpp>
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/header_bar.hpp>
 #include <overboard/gui/i_app.hpp>
@@ -61,10 +62,12 @@ class Calculator_App : public I_App {
          * @param engine   Shared calculation engine
          * @param layers   Shared layer manager for key lookups
          * @param on_back  Optional callback fired when user navigates back (F1)
+         * @param settings Optional settings manager for runtime configuration
          */
-        Calculator_App(math::Calc_Engine& engine,
-                       core::Layer_Manager& layers,
-                       Back_Cb on_back = {});
+        Calculator_App(math::Calc_Engine&                      engine,
+                       core::Layer_Manager&                    layers,
+                       Back_Cb                                 on_back  = {},
+                       std::shared_ptr<core::Settings_Manager> settings = nullptr);
 
         /**
          * @brief Set keyboard overlay callbacks for popup hotkey display

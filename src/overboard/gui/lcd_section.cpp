@@ -25,8 +25,10 @@ namespace ovb::gui {
 /*****************************/
 /*       Constructor         */
 /*****************************/
-LCD_Section::LCD_Section(const math::Calc_Engine& engine, const core::Layer_Manager& layers)
-    : m_engine(engine), m_layers(layers) {}
+LCD_Section::LCD_Section(const math::Calc_Engine&                engine,
+                         const core::Layer_Manager&              layers,
+                         std::shared_ptr<core::Settings_Manager>  settings)
+    : m_engine(engine), m_layers(layers), m_settings(std::move(settings)) {}
 
 /*****************************/
 /*        Destructor         */
@@ -182,10 +184,16 @@ void LCD_Section::refresh() {
         cursor_node = m_engine.state().expression.get_cursor_node();
     }
 
+    // Resolve cursor highlight color from settings (fallback to theme default)
+    const uint32_t highlight_color = m_settings
+        ? m_settings->get<uint32_t>("ui.cursor_highlight_color", LVGL_COLOR_CURSOR_HIGHLIGHT)
+        : LVGL_COLOR_CURSOR_HIGHLIGHT;
+
     // Draw typeset math — result and expression both go through the layout engine
     int pw = hal::PREVIEW_MAX_WIDTH;
     int ph = hal::PREVIEW_MAX_HEIGHT;
-    draw_math_to_canvas(m_preview_canvas, pw, ph, *m_layout_engine, *ast_to_render, "", cursor_node);
+    draw_math_to_canvas(m_preview_canvas, pw, ph, *m_layout_engine, *ast_to_render, "", cursor_node,
+                        highlight_color);
 
     lv_obj_invalidate(m_preview_canvas);
     lv_obj_invalidate(m_bezel);

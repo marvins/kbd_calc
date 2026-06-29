@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.9.0] - 2026-06-28
+
+### Added
+- **ANS key**: Home key remapped to ANS in the calculator; inserts the previous result AST at the cursor position.
+- **Cursor highlighting**: the focused node in the expression canvas is drawn with a configurable background highlight color (`LVGL_COLOR_CURSOR_HIGHLIGHT`, default light blue-gray `0xD8E8F8`)
+- `ui.cursor_highlight_color` setting in `settings.toml` for runtime color configuration
+- `Expression::insert_node()` for pasting an arbitrary AST subtree at the cursor
+
+### Fixed
+- **Cursor left navigation**: left arrow now correctly traverses the full expression tree — every node (including fractions, functions, and other internal nodes) is a visitable cursor stop; previously the cursor would cycle within a sub-expression and never escape
+- **Cursor right navigation** (committed): fixed `clone()` on `Binary_Op_Node` and `Function_Node` so ANS paste and copy operations produce correct deep copies
+
 ## [0.8.0] - 2026-06-24
 
 ### Added
