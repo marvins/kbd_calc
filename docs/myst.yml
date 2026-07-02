@@ -1,0 +1,15 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: c76c83b6-c35b-49fe-a4e0-7629d906d091
+  # title:
+  # description:
+  # keywords: []
+  # authors: []
+  github: https://github.com/Terminus-Geospatial/overboard
+  # To autogenerate a Table of Contents, run "jupyter book init --write-toc"
+site:
+  template: book-theme
+  # options:
+  #   favicon: favicon.ico
+  #   logo: site_logo.png

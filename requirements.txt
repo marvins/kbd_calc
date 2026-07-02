@@ -1,3 +1,8 @@
 # Python dependencies for project tools
 jsonschema>=4.0.0
 PyQt6>=6.0.0
+
+# Documentation
+# Jupyter Book 2.x (MyST-based) for narrative docs
+# Doxygen (system install) for C++ API reference
+jupyter-book>=2.0.0
