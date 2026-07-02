@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.1] - 2026-07-02
+
+### Fixed
+- **Build issue**: Fixed build issue on GitHub Actions
+
 ## [0.10.0] - 2026-07-02
 
 ### Added
@@ -215,4 +220,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Converted `display_config.hpp` to CMake template (`templates/display_config.hpp.in`)
 - Per-target display dimensions (SDL: 400×800, PicoCalc: 320×320)
 - Updated architecture documentation with Mermaid diagrams
+- Added brace-init style for `constexpr` constants to coding standards
+
 - Added brace-init style for `constexpr` constants to coding standards
