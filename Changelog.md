@@ -18,14 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`docs/images/logo.png`**: project logo for documentation
 - **API Reference link** in documentation navigation pointing to Doxygen output
 
-### Fixed
-- **Cross-platform `sed -i` compatibility**: macOS uses `sed -i ''`, Linux uses `sed -i` — added OS detection
-- **PlantUML path detection**: updated to detect binary (macOS Homebrew) vs JAR (Linux apt-get) installations
-- **Doxygen source file parsing**: removed duplicate `INPUT`, `FILE_PATTERNS`, `EXCLUDE_PATTERNS`, and `RECURSIVE` settings that were overriding intended configurations
-- **Doxygen `RECURSIVE` setting**: removed duplicate `RECURSIVE = NO` that prevented Doxygen from recursing into subdirectories
-
 ### Changed
-- **Documentation organization**: moved Doxyfile and MyST config to `docs/` folder
 - **Build script logging**: added `-l/--log` option to redirect all output to a log file
 - **Build script clean flag**: `-c/--clean` now works as a flag that can be combined with other modes
 
