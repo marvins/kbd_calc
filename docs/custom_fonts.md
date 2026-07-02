@@ -8,32 +8,24 @@ The superscript font (`lv_font_superscript.c`) provides proper rendering for pow
 
 ### Font Generation
 
-The font was generated using `lv_font_conv` from the Geneva system font:
+The font was generated using `lv_font_conv` from Arial Unicode (the only macOS system font with ∛/∜ glyphs).
+
+Only one size is needed — `lv_font_superscript` is always used alongside `LVGL_FONT_SMALL` (Montserrat 12px), so both must be the same size. If `LVGL_FONT_SMALL` changes, regenerate this font to match.
+
+Use the provided script (run from the repo root):
 
 ```bash
-# Clone lv_font_conv (in parent directory)
-cd /Users/marvin/Desktop/Projects
-git clone https://github.com/lvgl/lv_font_conv.git
-cd lv_font_conv
-npm install
-
-# Generate font with superscript glyphs and square root
-npx lv_font_conv \
-  --size 16 \
-  --bpp 8 \
-  --format lvgl \
-  --font /System/Library/Fonts/Geneva.ttf \
-  -r 0x0020-0x007E,0x00B2-0x00B3,0x207F,0x221A,0x03C0,0x03C6,0x03C4 \
-  -o /Users/marvin/Desktop/Projects/kbd_calc/src/overboard/gui/lv_font_superscript.c \
-  --lv-font-name lv_font_superscript \
-  --no-compress
+bash scripts/generate_fonts.sh
 ```
+
+The script regenerates both `lv_font_superscript_regular.c` and `lv_font_superscript_bold.c` and handles locating `lv_font_conv` automatically (global install or sibling-directory clone). See the script header for prerequisite details.
 
 ### Parameters
 
-- `--size 16`: Slightly larger than default Montserrat 14px for thicker appearance
-- `--bpp 8`: Higher bit depth for thicker, smoother glyphs (was 4, increased to 8)
-- `-r 0x0020-0x007E,...`: Full printable ASCII, superscript ², ³, ⁿ, square root √, and Greek letters π, φ, τ — full ASCII is required so numbered menu prefixes (e.g. `1) π`) render correctly with a single font
+- `--size 12`: Matches `LVGL_FONT_SMALL` (Montserrat 12px) so custom and default font items render at the same size
+- `--bpp 4`: Standard bit depth for LVGL fonts
+- `--font Arial Unicode.ttf`: Switched from Geneva (missing ∛/∜) to Arial Unicode which has all required math glyphs
+- `-r 0x0020-0x007E,...`: Full printable ASCII, superscript ², ³, ⁿ, root symbols √, ∛, ∜, and Greek letters π, φ, τ — full ASCII is required so numbered menu prefixes (e.g. `1) π`) render correctly with a single font
 - `--no-compress`: Disables RLE compression for simpler integration
 
 ### Integration Steps
@@ -45,25 +37,14 @@ npx lv_font_conv \
 
 ### Example: Power Button Labels and Square Root
 
-In `keyboard_view.cpp`, the custom font is applied to power button labels and the square root button:
+Font selection is handled by `font::requires_custom_font()` in `src/overboard/font/font_selector.cpp`, which checks display strings for known UTF-8 sequences and applies `lv_font_superscript` automatically. Display strings in `action_code.cpp`:
 
 ```cpp
-// Use custom superscript font for power buttons and square root
-if (key_code == core::Key_Code::POWER_2 ||
-    key_code == core::Key_Code::POWER_3 ||
-    key_code == core::Key_Code::POWER_N ||
-    key_code == core::Key_Code::SQRT) {
-    lv_obj_set_style_text_font(lbl, &lv_font_superscript, LV_PART_MAIN);
-}
-```
-
-The corresponding display text in `keymap.cpp` uses UTF-8 encoded characters:
-
-```cpp
-case Key_Code::POWER_2: return "x\xC2\xB2";  // x²
-case Key_Code::POWER_3: return "x\xC2\xB3";  // x³
-case Key_Code::POWER_N: return "x\xE2\x81\xBF"; // xⁿ
-case Key_Code::SQRT:    return "\xE2\x88\x9A"; // √
+case Action_Code::POWER_2:   return "x\xC2\xB2";     // x²
+case Action_Code::POWER_3:   return "x\xC2\xB3";     // x³
+case Action_Code::POWER_N:   return "x\xE2\x81\xBF"; // xⁿ
+case Action_Code::SQRT:      return "\xE2\x88\x9A";  // √
+case Action_Code::CUBE_ROOT: return "\xE2\x88\x9B";  // ∛
 ```
 
 ## Adding New Custom Fonts

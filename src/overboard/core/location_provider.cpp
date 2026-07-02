@@ -24,8 +24,6 @@ namespace ovb::core {
 
 namespace {
 
-static ovb::log::Stdout_Logger s_logger(ovb::log::Log_Level::Debug);
-
 /****************************************/
 /*      Parse ip-api.com JSON           */
 /****************************************/
@@ -33,17 +31,17 @@ std::optional<Solar_Location> parse_ip_api_response(const std::string& body) {
     // Use non-throwing parse overload (no exceptions — Pico builds with -fno-exceptions)
     const auto j = nlohmann::json::parse(body, nullptr, false);
     if (j.is_discarded()) {
-        s_logger.error("Failed to parse ip-api.com response as JSON");
+        LOG_ERROR("Failed to parse ip-api.com response as JSON");
         return std::nullopt;
     }
 
     if (j.value("status", std::string{}) != "success") {
-        s_logger.warn("ip-api.com returned non-success status");
+        LOG_WARN("ip-api.com returned non-success status");
         return std::nullopt;
     }
 
     if (!j.contains("lat") || !j.contains("lon")) {
-        s_logger.warn("ip-api.com response missing lat/lon");
+        LOG_WARN("ip-api.com response missing lat/lon");
         return std::nullopt;
     }
 
@@ -64,10 +62,7 @@ std::optional<Solar_Location> parse_ip_api_response(const std::string& body) {
         loc.timezone = diff / 60.0;
     }
 
-    std::ostringstream oss;
-    oss << std::fixed << std::setprecision(6) << "ip-api.com resolved: lat=" << loc.latitude
-        << ", lon=" << loc.longitude << std::setprecision(1) << ", tz=" << loc.timezone;
-    s_logger.info(oss.str());
+    LOG_INFO("ip-api.com resolved: lat=", loc.latitude, ", lon=", loc.longitude, ", tz=", loc.timezone);
     return loc;
 }
 
@@ -76,10 +71,11 @@ std::optional<Solar_Location> parse_ip_api_response(const std::string& body) {
 /****************************************/
 std::optional<Solar_Location> fetch_ip_location(const std::string& url) {
     // Use popen to call curl — avoids libcurl dependency
-    const std::string cmd = "curl -s --max-time 5 \"" + url + "\"";
+    // Timeout kept short to allow fast application shutdown
+    const std::string cmd = "curl -s --max-time 2 \"" + url + "\"";
     FILE* pipe = popen(cmd.c_str(), "r");
     if (!pipe) {
-        s_logger.error("Failed to launch curl for IP geolocation");
+        LOG_ERROR("Failed to launch curl for IP geolocation");
         return std::nullopt;
     }
 
@@ -91,7 +87,7 @@ std::optional<Solar_Location> fetch_ip_location(const std::string& url) {
     pclose(pipe);
 
     if (result.empty()) {
-        s_logger.warn("ip-api.com returned empty response");
+        LOG_WARN("ip-api.com returned empty response");
         return std::nullopt;
     }
 
@@ -132,13 +128,11 @@ void resolve_location_async(const hal::Settings_Tree& tree, Location_Cb cb) {
     // Try settings first regardless of source — if fully populated, use it
     if (source == "settings") {
         if (const auto loc = location_from_settings(tree)) {
-            s_logger.info("Location resolved from settings: lat={}, lon={}",
-                          std::to_string(loc->latitude),
-                          std::to_string(loc->longitude));
+            LOG_INFO("Location resolved from settings: lat=", loc->latitude, ", lon=", loc->longitude);
             cb(*loc);
             return;
         }
-        s_logger.warn("location.source=settings but lat/lon/timezone missing — falling back to IP");
+        LOG_WARN("location.source=settings but lat/lon/timezone missing — falling back to IP");
     }
 
     // IP geolocation — launch background thread
@@ -149,7 +143,7 @@ void resolve_location_async(const hal::Settings_Tree& tree, Location_Cb cb) {
         if (auto loc = fetch_ip_location(url)) {
             cb(*loc);
         } else {
-            s_logger.warn("IP geolocation failed, using default location (Denver, CO)");
+            LOG_WARN("IP geolocation failed, using default location (Denver, CO)");
             cb(DEFAULT_LOCATION);
         }
     }).detach();

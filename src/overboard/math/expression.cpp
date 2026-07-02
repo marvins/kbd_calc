@@ -85,10 +85,26 @@ void Expression::insert(core::Action_Code code) {
         case AC::ASIN:        insert_function(operators::Asin()); break;
         case AC::ACOS:        insert_function(operators::Acos()); break;
         case AC::ATAN:        insert_function(operators::Atan()); break;
+        case AC::ATAN2:       insert_function(operators::Atan2()); break;
+        case AC::COT:         insert_function(operators::Cot()); break;
+        case AC::ACOT:        insert_function(operators::Acot()); break;
+        case AC::SEC:         insert_function(operators::Sec()); break;
+        case AC::CSC:         insert_function(operators::Csc()); break;
+        case AC::SINH:        insert_function(operators::Sinh()); break;
+        case AC::COSH:        insert_function(operators::Cosh()); break;
+        case AC::TANH:        insert_function(operators::Tanh()); break;
+        case AC::ASINH:       insert_function(operators::Asinh()); break;
+        case AC::ACOSH:       insert_function(operators::Acosh()); break;
+        case AC::ATANH:       insert_function(operators::Atanh()); break;
+        case AC::COTH:        insert_function(operators::Coth()); break;
+        case AC::SECH:        insert_function(operators::Sech()); break;
+        case AC::CSCH:        insert_function(operators::Csch()); break;
         case AC::LOG:         insert_function(operators::Log()); break;
         case AC::LN:          insert_function(operators::Ln()); break;
         case AC::EXP:         insert_function(operators::Exp()); break;
         case AC::SQRT:        insert_function(operators::Sqrt()); break;
+        case AC::CUBE_ROOT:   insert_function(operators::Cube_Root()); break;
+        case AC::NTH_ROOT:    insert_function(operators::Nth_Root()); break;
         case AC::CEIL:        insert_function(operators::Ceil()); break;
         case AC::FLOOR:       insert_function(operators::Floor()); break;
         case AC::ABS:         insert_function(operators::Abs()); break;
@@ -103,6 +119,7 @@ void Expression::insert(core::Action_Code code) {
         case AC::FACTORIAL:   insert_function(operators::Factorial()); break;
         case AC::RECIPROCAL:  insert_function(operators::Reciprocal()); break;
         case AC::POWER_2:     insert_function(operators::Power_2()); break;
+        case AC::POWER_3:     insert_function(operators::Power_3()); break;
 
         // Parentheses - open/close grouping mode
         case AC::PAREN_OPEN:  insert_group(true);  break;
@@ -935,28 +952,37 @@ void Expression::insert_function( const operators::I_Operator& func ) {
     // Reset decimal position when inserting function
     m_decimal_position = 0;
 
-    // If cursor is on a placeholder, replace with function with placeholder argument
+    // If cursor is on a placeholder, replace with function with placeholder argument(s)
     if (cursor_node->kind() == ast::Node_Kind::PLACEHOLDER) {
         std::vector<ast::Node::ptr_t> args;
-        if (func.operand_count() > 0) {
+        for (int i = 0; i < func.operand_count(); ++i) {
             args.push_back(std::make_unique<ast::Placeholder_Node>());
         }
         auto new_node = func.create_node(std::move(args));
         replace_node_at_cursor(std::move(new_node));
         if (func.operand_count() > 0) {
-            m_cursor_path.push(0); // Move cursor to argument placeholder
+            m_cursor_path.push(0); // Move cursor to first argument placeholder
         }
         // For constants (0 operands), cursor stays at root
     }
-    // If cursor is on a number, create function with number as argument
+    // If cursor is on a number, create function with number as first argument
     else if (cursor_node->kind() == ast::Node_Kind::NUMBER) {
         auto* number_node = static_cast<ast::Number_Node*>(cursor_node);
         double value = number_node->value();
         std::vector<ast::Node::ptr_t> args;
         args.push_back(std::make_unique<ast::Number_Node>(value));
+        // For multi-argument functions, add placeholders for remaining arguments
+        for (int i = 1; i < func.operand_count(); ++i) {
+            args.push_back(std::make_unique<ast::Placeholder_Node>());
+        }
         auto new_node = func.create_node(std::move(args));
         replace_node_at_cursor(std::move(new_node));
-        m_cursor_path.push(0); // Move cursor to argument
+        // Move cursor to second argument if multi-arg, otherwise stay on first argument
+        if (func.operand_count() > 1) {
+            m_cursor_path.push(1); // Move cursor to second argument placeholder
+        } else {
+            m_cursor_path.push(0); // Move cursor to first argument
+        }
     }
 }
 

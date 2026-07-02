@@ -96,8 +96,9 @@ Footer_Bar::~Footer_Bar() = default;
 void Footer_Bar::set_label(int slot, const std::string& label) {
     if (slot < 0 || slot >= SLOT_COUNT) return;
     auto& s = m_impl->slots[static_cast<std::size_t>(slot)];
-    if (s.sub_label) {
-        lv_label_set_text(s.sub_label, label.c_str());
+    if (s.key_label) {
+        lv_label_set_text(s.key_label, label.c_str());
+        lv_obj_align(s.key_label, LV_ALIGN_CENTER, 0, 0);
     }
 }
 

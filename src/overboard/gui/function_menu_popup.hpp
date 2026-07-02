@@ -28,20 +28,23 @@ namespace ovb::gui {
  * @brief Menu item for function popup
  */
 struct Function_Menu_Item {
-    std::string         label;        ///< Display label
+    std::string         label;        ///< Display label (symbol or short name)
+    std::string         description;  ///< Human-readable description (e.g. "Factorial")
     core::Action_Code   action;       ///< Action to execute
     int                 key_index;    ///< Optional hotkey (keyboard display overlay), -1 = none
 
     /**
      * @brief Construct a menu item
-     * @param lbl Display label
-     * @param act Action to execute
+     * @param lbl   Display label
+     * @param desc  Human-readable description
+     * @param act   Action to execute
      * @param key_idx Optional hotkey (keyboard display overlay), -1 = none
      */
     Function_Menu_Item( std::string lbl,
+                        std::string desc,
                         core::Action_Code act,
                         int key_idx = -1 )
-        : label(std::move(lbl)), action(act), key_index(key_idx) {}
+        : label(std::move(lbl)), description(std::move(desc)), action(act), key_index(key_idx) {}
 };
 
 /**

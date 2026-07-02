@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.10.0] - 2026-07-02
+
+### Added
+- **Stats popup** in Status page (F2): displays CPU temperature, storage usage, battery, and USB/BT status via `I_System_Info`
+- **`SDL_System_Info`** implementation: Linux thermal zones, `statvfs` storage stats, mock battery/USB on macOS
+- **`build_popup_overlay()`** helper on `Calculator_App`: centralises digit-key overlay construction, eliminating duplication between the action-code and `Input_Key` F-key paths
+- **Custom keymap label for ANS key**: shows "Ans" in the calculator keymap overlay while retaining "Home" as the physical key label in `keyboard.json`
+- **Font refactor**: replaced `lv_font_superscript.c` (Geneva 16px) with `lv_font_superscript_bold.c` (SF-Pro-Text-Bold 12px, bpp4) and `lv_font_superscript_regular.c` (Arial Unicode 12px, bpp4); added `scripts/generate_fonts.sh`
+
+### Fixed
+- **Factorial evaluation** (`8!`): `Factorial_Node::simplify()` now folds to `Number_Node` when the operand is numeric, matching the `Binary_Op_Node` constant-folding pattern; previously returned the expression string unchanged
+- **Keymap overlay during popups**: `Key_Mapping_Info::apply_top_overlay()` now resets all key labels to their regular layer values before applying overlay keys (passthrough), preventing the keymap display from going blank when a popup is open
+
+### Tests
+- Added `Ast_Simplify` tests for `Factorial_Node::simplify()`: numeric fold, zero, and constant-operand truncation cases
+
 ## [0.9.0] - 2026-06-28
 
 ### Added

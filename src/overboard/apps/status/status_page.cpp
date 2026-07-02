@@ -11,6 +11,7 @@
 #include <atomic>
 #include <chrono>
 #include <ctime>
+#include <cstdint>
 #include <iomanip>
 #include <mutex>
 #include <optional>
@@ -32,21 +33,26 @@ namespace ovb::gui {
 /*            Impl             */
 /*******************************/
 struct Status_Page::Impl {
-    Impl(const core::Layer_Manager& l, std::shared_ptr<core::Settings_Manager> s, Dismiss_Cb cb)
-        : layers(l), settings(s), on_dismiss(std::move(cb)) {}
+    Impl(const core::Layer_Manager& l,
+         std::shared_ptr<core::Settings_Manager> s,
+         Dismiss_Cb cb,
+         std::shared_ptr<hal::I_System_Info> si)
+        : layers(l), settings(s), on_dismiss(std::move(cb)), system_info(std::move(si)) {}
 
     const core::Layer_Manager&              layers;
     std::shared_ptr<core::Settings_Manager> settings;
     Dismiss_Cb                              on_dismiss;
-    lv_obj_t*                    container  = nullptr;
+    std::shared_ptr<hal::I_System_Info>     system_info;
+    lv_obj_t*                    container   = nullptr;
     lv_timer_t*                  clock_timer = nullptr;
     lv_timer_t*                  solar_timer = nullptr;
     lv_obj_t*                    about_popup = nullptr;
+    lv_obj_t*                    stats_popup = nullptr;
     std::unique_ptr<Header_Bar>  header;
     std::unique_ptr<Footer_Bar>  footer;
-    std::unique_ptr<widgets::Analog_Clock> analog_clock;
+    std::unique_ptr<widgets::Analog_Clock>  analog_clock;
     std::unique_ptr<widgets::Digital_Clock> digital_clock;
-    std::unique_ptr<widgets::Solar_Info>   solar_info;
+    std::unique_ptr<widgets::Solar_Info>    solar_info;
     bool                         dismissed  = false;
 
     /// @brief Pending location resolved from background thread
@@ -57,10 +63,11 @@ struct Status_Page::Impl {
 /*******************************/
 /*          Constructor        */
 /*******************************/
-Status_Page::Status_Page( const core::Layer_Manager& layers,
+Status_Page::Status_Page( const core::Layer_Manager&              layers,
                           std::shared_ptr<core::Settings_Manager> settings,
-                          Dismiss_Cb on_dismiss )
-    : m_impl(std::make_unique<Impl>(layers, settings, std::move(on_dismiss))) {}
+                          Dismiss_Cb                              on_dismiss,
+                          std::shared_ptr<hal::I_System_Info>     system_info )
+    : m_impl(std::make_unique<Impl>(layers, settings, std::move(on_dismiss), std::move(system_info))) {}
 
 /*******************************/
 /*          Destructor         */
@@ -186,8 +193,12 @@ void Status_Page::activate(lv_obj_t* parent) {
         }
     }, solar_update_ms, m_impl.get());
 
-    // Footer bar — decorative only, navigation via ESCAPE
+    // Footer bar
     m_impl->footer = std::make_unique<Footer_Bar>(m_impl->container, width);
+    m_impl->footer->set_label(0, "About");
+    if (m_impl->system_info) {
+        m_impl->footer->set_label(1, "Stats");
+    }
     lv_obj_align(m_impl->footer->get_obj(), LV_ALIGN_BOTTOM_MID, 0, 0);
 }
 
@@ -196,6 +207,7 @@ void Status_Page::activate(lv_obj_t* parent) {
 /*******************************/
 void Status_Page::deactivate() {
     LOG_DEBUG("Status_Page: deactivating");
+    hide_stats_popup();
     hide_about_popup();
     if (m_impl->clock_timer) {
         lv_timer_del(m_impl->clock_timer);
@@ -217,8 +229,12 @@ void Status_Page::deactivate() {
 /*        Handle Input         */
 /*******************************/
 bool Status_Page::handle_input(core::Action_Code action) {
-    // ESC closes About popup if open, otherwise dismisses status page
+    // ESC closes any open popup, otherwise dismisses status page
     if (action == core::Action_Code::ESCAPE) {
+        if (m_impl->stats_popup) {
+            hide_stats_popup();
+            return true;
+        }
         if (m_impl->about_popup) {
             hide_about_popup();
             return true;
@@ -234,6 +250,11 @@ bool Status_Page::handle_input(core::Action_Code action) {
         show_about_popup();
     }
 
+    // F2 shows Stats popup
+    if (action == core::Action_Code::FUNC_2 && m_impl->system_info) {
+        show_stats_popup();
+    }
+
     return true;
 }
 
@@ -241,8 +262,12 @@ bool Status_Page::handle_input(core::Action_Code action) {
 /*       Handle Input Key      */
 /*******************************/
 bool Status_Page::handle_input_key(core::Input_Key key) {
-    // ESCAPE from standard keyboard closes About popup if open, otherwise dismisses status page
+    // ESCAPE closes any open popup, otherwise dismisses status page
     if (key == core::Input_Key::ESCAPE) {
+        if (m_impl->stats_popup) {
+            hide_stats_popup();
+            return true;
+        }
         if (m_impl->about_popup) {
             hide_about_popup();
             return true;
@@ -257,6 +282,12 @@ bool Status_Page::handle_input_key(core::Input_Key key) {
     // F1 shows About popup
     if (key == core::Input_Key::F1) {
         show_about_popup();
+        return true;
+    }
+
+    // F2 shows Stats popup
+    if (key == core::Input_Key::F2 && m_impl->system_info) {
+        show_stats_popup();
         return true;
     }
 
@@ -326,6 +357,110 @@ void Status_Page::hide_about_popup() {
     if (m_impl->about_popup) {
         lv_obj_del(m_impl->about_popup);
         m_impl->about_popup = nullptr;
+    }
+}
+
+/*******************************/
+/*       Show Stats Popup      */
+/*******************************/
+void Status_Page::show_stats_popup() {
+    if (m_impl->stats_popup) {
+        lv_obj_del(m_impl->stats_popup);
+        m_impl->stats_popup = nullptr;
+    }
+
+    const hal::System_Info info = m_impl->system_info->get_info();
+
+    // Build display rows
+    struct Row { std::string label; std::string value; };
+    std::vector<Row> rows;
+
+    // CPU temperature
+    if (info.cpu_temp_c.has_value()) {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(1) << *info.cpu_temp_c << " \xC2\xB0" "C";
+        rows.push_back({"CPU Temp", oss.str()});
+    } else {
+        rows.push_back({"CPU Temp", "N/A"});
+    }
+
+    // Storage
+    if (info.storage.has_value()) {
+        const auto& st = *info.storage;
+        auto to_gb = [](uint64_t bytes) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(1)
+                << (static_cast<double>(bytes) / (1024.0 * 1024.0 * 1024.0)) << " GB";
+            return oss.str();
+        };
+        rows.push_back({"Storage Used",  to_gb(st.used_bytes)});
+        rows.push_back({"Storage Free",  to_gb(st.free_bytes)});
+        rows.push_back({"Storage Total", to_gb(st.total_bytes)});
+    } else {
+        rows.push_back({"Storage", "N/A"});
+    }
+
+    // Battery
+    if (info.battery_percent.has_value()) {
+        rows.push_back({"Battery", std::to_string(*info.battery_percent) + "%"});
+    } else if (m_impl->system_info->has_battery()) {
+        rows.push_back({"Battery", "N/A"});
+    }
+
+    // Size popup to content
+    constexpr int ROW_HEIGHT    { 22 };
+    constexpr int POPUP_PADDING { 12 };
+    constexpr int TITLE_HEIGHT  { 32 };
+    constexpr int FOOTER_HEIGHT { 24 };
+    constexpr int POPUP_WIDTH   { 300 };
+    const int popup_height = TITLE_HEIGHT
+                           + static_cast<int>(rows.size()) * ROW_HEIGHT
+                           + FOOTER_HEIGHT
+                           + POPUP_PADDING * 2;
+
+    m_impl->stats_popup = lv_obj_create(lv_screen_active());
+    lv_obj_set_size(m_impl->stats_popup, POPUP_WIDTH, popup_height);
+    lv_obj_center(m_impl->stats_popup);
+    lv_obj_set_style_bg_color(m_impl->stats_popup, lvgl_color(LVGL_COLOR_BG_BEZEL), LV_PART_MAIN);
+    lv_obj_set_style_border_width(m_impl->stats_popup, 2, LV_PART_MAIN);
+    lv_obj_set_style_border_color(m_impl->stats_popup, lvgl_color(LVGL_COLOR_BORDER_MEDIUM), LV_PART_MAIN);
+    lv_obj_set_style_radius(m_impl->stats_popup, 8, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(m_impl->stats_popup, POPUP_PADDING, LV_PART_MAIN);
+
+    // Title
+    lv_obj_t* title = lv_label_create(m_impl->stats_popup);
+    lv_label_set_text(title, "System Stats");
+    lv_obj_set_style_text_font(title, LVGL_FONT_DEFAULT, LV_PART_MAIN);
+    lv_obj_set_style_text_color(title, lvgl_color(LVGL_COLOR_TEXT_PRIMARY), LV_PART_MAIN);
+    lv_obj_align(title, LV_ALIGN_TOP_MID, 0, 0);
+
+    // Rows
+    int y = TITLE_HEIGHT;
+    for (const auto& row : rows) {
+        lv_obj_t* lbl = lv_label_create(m_impl->stats_popup);
+        const std::string text = row.label + ": " + row.value;
+        lv_label_set_text(lbl, text.c_str());
+        lv_obj_set_style_text_font(lbl, LVGL_FONT_SMALL, LV_PART_MAIN);
+        lv_obj_set_style_text_color(lbl, lvgl_color(LVGL_COLOR_TEXT_SECONDARY), LV_PART_MAIN);
+        lv_obj_set_pos(lbl, 0, y);
+        y += ROW_HEIGHT;
+    }
+
+    // Close instruction
+    lv_obj_t* close_lbl = lv_label_create(m_impl->stats_popup);
+    lv_label_set_text(close_lbl, "Press ESC to close");
+    lv_obj_set_style_text_font(close_lbl, LVGL_FONT_SMALL, LV_PART_MAIN);
+    lv_obj_set_style_text_color(close_lbl, lvgl_color(LVGL_COLOR_TEXT_MUTED), LV_PART_MAIN);
+    lv_obj_align(close_lbl, LV_ALIGN_BOTTOM_MID, 0, 0);
+}
+
+/*******************************/
+/*       Hide Stats Popup      */
+/*******************************/
+void Status_Page::hide_stats_popup() {
+    if (m_impl->stats_popup) {
+        lv_obj_del(m_impl->stats_popup);
+        m_impl->stats_popup = nullptr;
     }
 }
 

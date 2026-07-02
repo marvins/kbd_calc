@@ -115,6 +115,128 @@ class Atan : public Function {
 };
 
 /**
+ * @brief Cotangent function
+ */
+class Cot : public Function {
+    public:
+        Cot() : Function("cot") {}
+};
+
+/**
+ * @brief Arc-cotangent function
+ */
+class Acot : public Function {
+    public:
+        Acot() : Function("acot") {}
+};
+
+/**
+ * @brief Secant function
+ */
+class Sec : public Function {
+    public:
+        Sec() : Function("sec") {}
+};
+
+/**
+ * @brief Cosecant function
+ */
+class Csc : public Function {
+    public:
+        Csc() : Function("csc") {}
+};
+
+/**
+ * @brief Hyperbolic sine function
+ */
+class Sinh : public Function {
+    public:
+        Sinh() : Function("sinh") {}
+};
+
+/**
+ * @brief Hyperbolic cosine function
+ */
+class Cosh : public Function {
+    public:
+        Cosh() : Function("cosh") {}
+};
+
+/**
+ * @brief Hyperbolic tangent function
+ */
+class Tanh : public Function {
+    public:
+        Tanh() : Function("tanh") {}
+};
+
+/**
+ * @brief Inverse hyperbolic sine function
+ */
+class Asinh : public Function {
+    public:
+        Asinh() : Function("asinh") {}
+};
+
+/**
+ * @brief Inverse hyperbolic cosine function
+ */
+class Acosh : public Function {
+    public:
+        Acosh() : Function("acosh") {}
+};
+
+/**
+ * @brief Inverse hyperbolic tangent function
+ */
+class Atanh : public Function {
+    public:
+        Atanh() : Function("atanh") {}
+};
+
+/**
+ * @brief Hyperbolic cotangent function
+ */
+class Coth : public Function {
+    public:
+        Coth() : Function("coth") {}
+};
+
+/**
+ * @brief Hyperbolic secant function
+ */
+class Sech : public Function {
+    public:
+        Sech() : Function("sech") {}
+};
+
+/**
+ * @brief Hyperbolic cosecant function
+ */
+class Csch : public Function {
+    public:
+        Csch() : Function("csch") {}
+};
+
+/**
+ * @brief Two-argument arctangent function
+ */
+class Atan2 : public I_Operator {
+    public:
+        int operand_count() const override { return 2; }
+        std::string_view symbol() const override { return "atan2"; }
+        int precedence() const override { return 5; }
+        bool right_associative() const override { return false; }
+
+        ast::Node::ptr_t create_node(std::vector<ast::Node::ptr_t> operands) const override {
+            if (operands.size() < 2) {
+                return nullptr;
+            }
+            return std::make_unique<ast::Function_Node>("atan2", std::move(operands));
+        }
+};
+
+/**
  * @brief Logarithm (base 10) function
  */
 class Log : public Function {
@@ -391,6 +513,127 @@ class Power_2 : public I_Operator {
             auto left = std::move(operands[0]);
             auto right = std::make_unique<ast::Number_Node>(2.0);
             return std::make_unique<ast::Binary_Op_Node>(ast::Binary_Op::POWER, std::move(left), std::move(right));
+        }
+};
+
+/**
+ * @brief Power-3 operator (x^3)
+ */
+class Power_3 : public I_Operator {
+
+    public:
+
+        /**
+         * @brief Return the number of operands (1 for unary operators)
+         */
+        int operand_count() const override { return 1; }
+
+        /**
+         * @brief Return the symbol for the power-3 operator
+         */
+        std::string_view symbol() const override { return "^3"; }
+
+        /**
+         * @brief Return the precedence of the power-3 operator
+         */
+        int precedence() const override { return 5; }
+
+        /**
+         * @brief Return whether the power-3 operator is right associative
+         */
+        bool right_associative() const override { return false; }
+
+        /**
+         * @brief Create a binary operation node for power-3
+         */
+        ast::Node::ptr_t create_node(std::vector<ast::Node::ptr_t> operands) const override {
+            if (operands.empty()) {
+                return nullptr;
+            }
+            auto left = std::move(operands[0]);
+            auto right = std::make_unique<ast::Number_Node>(3.0);
+            return std::make_unique<ast::Binary_Op_Node>(ast::Binary_Op::POWER, std::move(left), std::move(right));
+        }
+};
+
+/**
+ * @brief Cube root operator (cbrt(x))
+ */
+class Cube_Root : public I_Operator {
+
+    public:
+
+        /**
+         * @brief Return the number of operands (1 for unary operators)
+         */
+        int operand_count() const override { return 1; }
+
+        /**
+         * @brief Return the symbol for the cube root operator
+         */
+        std::string_view symbol() const override { return "cbrt"; }
+
+        /**
+         * @brief Return the precedence of the cube root operator
+         */
+        int precedence() const override { return 5; }
+
+        /**
+         * @brief Return whether the cube root operator is right associative
+         */
+        bool right_associative() const override { return false; }
+
+        /**
+         * @brief Create a function node for cube root
+         */
+        ast::Node::ptr_t create_node(std::vector<ast::Node::ptr_t> operands) const override {
+            if (operands.empty()) {
+                return nullptr;
+            }
+            std::vector<ast::Node::ptr_t> args;
+            args.push_back(std::move(operands[0]));
+            return std::make_unique<ast::Function_Node>("cbrt", std::move(args));
+        }
+};
+
+/**
+ * @brief Nth root operator (nthroot(x, n))
+ */
+class Nth_Root : public I_Operator {
+
+    public:
+
+        /**
+         * @brief Return the number of operands (2 for nth root)
+         */
+        int operand_count() const override { return 2; }
+
+        /**
+         * @brief Return the symbol for the nth root operator
+         */
+        std::string_view symbol() const override { return "nthroot"; }
+
+        /**
+         * @brief Return the precedence of the nth root operator
+         */
+        int precedence() const override { return 5; }
+
+        /**
+         * @brief Return whether the nth root operator is right associative
+         */
+        bool right_associative() const override { return false; }
+
+        /**
+         * @brief Create a function node for nth root
+         */
+        ast::Node::ptr_t create_node(std::vector<ast::Node::ptr_t> operands) const override {
+            if (operands.size() < 2) {
+                return nullptr;
+            }
+            std::vector<ast::Node::ptr_t> args;
+            args.push_back(std::move(operands[0]));
+            args.push_back(std::move(operands[1]));
+            return std::make_unique<ast::Function_Node>("nthroot", std::move(args));
         }
 };
 

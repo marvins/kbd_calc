@@ -20,15 +20,12 @@
 
 namespace ovb::hal::sdl {
 
-// Module logger
-static ovb::log::Stdout_Logger s_logger(ovb::log::Log_Level::Debug);
-
 /****************************/
 /*     Constructor          */
 /****************************/
 SDL_System_Info::SDL_System_Info() {
-    s_logger.debug("SDL_System_Info initialized (macOS={}, Linux={})",
-                   std::to_string(is_macos), std::to_string(is_linux));
+    LOG_DEBUG("SDL_System_Info initialized (macOS=", std::to_string(is_macos),
+              ", Linux=", std::to_string(is_linux), ")");
 }
 
 /****************************/
@@ -130,7 +127,7 @@ std::optional<System_Info::Storage> SDL_System_Info::read_storage() {
 
     // Get current working directory filesystem stats
     if (statvfs(".", &stat) != 0) {
-        s_logger.warning("Failed to get storage stats: {}", std::strerror(errno));
+        LOG_WARN("SDL_System_Info: failed to get storage stats: ", std::strerror(errno));
         return std::nullopt;
     }
 

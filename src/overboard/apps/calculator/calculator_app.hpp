@@ -24,6 +24,7 @@
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/core/settings_manager.hpp>
 #include <overboard/gui/footer_bar.hpp>
+#include <overboard/gui/function_menu_popup.hpp>
 #include <overboard/gui/header_bar.hpp>
 #include <overboard/gui/i_app.hpp>
 #include <overboard/math/calc_engine.hpp>
@@ -38,11 +39,10 @@ inline constexpr int F_KEY_POPUP_COUNT = 10;
  */
 enum class Popup_Menu : int {
     Alg      = 0,  // F1: Algebraic operations (reciprocal, square, power, sqrt)
-    Trig     = 1,  // F2: Trigonometric functions (sin, cos, tan, etc.)
+    Trig     = 1,  // F2: Trigonometric and hyperbolic functions (sin, cos, tan, sinh, cosh, etc.)
     Const    = 2,  // F3: Mathematical constants (π, e, φ, τ)
-    Memory   = 3,  // F4: Available for future use
-    Advanced = 4,  // F5: Available for future use
-    // F6-F10: Reserved for future menus
+    Advanced = 3,  // F4: Available for future use
+    // F5-F10: Reserved for future menus
 };
 
 /**
@@ -148,6 +148,9 @@ class Calculator_App : public I_App {
         std::string get_custom_label(int key_index) const override;
 
     private:
+
+        /// @brief Build overlay key descriptors mapping digit keys to popup items
+        std::vector<I_Panel::Overlay_Key_Desc> build_popup_overlay(const Function_Menu_Popup& popup) const;
 
         struct Impl;
         std::unique_ptr<Impl> m_impl;

@@ -51,7 +51,8 @@ set(GUI_SOURCES
     src/overboard/gui/app_view.cpp
     src/overboard/gui/lcd_section.cpp
     src/overboard/gui/math_canvas.cpp
-    src/overboard/gui/lv_font_superscript.c
+    src/overboard/gui/lv_font_superscript_regular.c
+    src/overboard/gui/lv_font_superscript_bold.c
 )
 
 # PicoCalc HAL sources

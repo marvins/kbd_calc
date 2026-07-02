@@ -15,8 +15,9 @@
 #include <overboard/gui/lvgl_theme.hpp>
 #include <overboard/log/stdout_logger.hpp>
 
-// External font declaration
-LV_FONT_DECLARE(lv_font_superscript);
+// External font declarations
+LV_FONT_DECLARE(lv_font_superscript_bold);
+LV_FONT_DECLARE(lv_font_superscript_regular);
 
 namespace ovb::gui {
 
@@ -78,21 +79,26 @@ void Function_Menu_Popup::show() {
 
     // Create modal container - position flush with footer bar
     m_impl->container = lv_obj_create(m_impl->parent);
-    constexpr int ITEM_HEIGHT { 35 };
-    constexpr int LIST_PADDING { 16 };
-    constexpr int MAX_LIST_HEIGHT { 150 };
-    constexpr int CONTAINER_PADDING { 16 };
+    constexpr int ITEM_HEIGHT { 28 };
     constexpr int FOOTER_BAR_HEIGHT { 28 };
     constexpr int TITLE_HEIGHT { 30 };
+    constexpr int CONTAINER_PADDING { 4 };
 
-    int item_count = static_cast<int>(m_impl->items.size());
-    int list_height = std::min(MAX_LIST_HEIGHT, item_count * ITEM_HEIGHT + LIST_PADDING);
-    lv_obj_set_size(m_impl->container, LV_PCT(70), list_height + TITLE_HEIGHT + CONTAINER_PADDING);
+    // Always use 80% of available height for consistent popup size
+    int parent_height = lv_obj_get_height(m_impl->parent);
+    int available_height = parent_height - FOOTER_BAR_HEIGHT;
+    int container_height = (available_height * 4) / 5;  // 80% of available
+
+    // List takes up all remaining space after title
+    int list_height = container_height - TITLE_HEIGHT;
+
+    lv_obj_set_size(m_impl->container, LV_PCT(70), container_height);
     lv_obj_align(m_impl->container, LV_ALIGN_BOTTOM_MID, 0, -FOOTER_BAR_HEIGHT);
     lv_obj_set_style_bg_color(m_impl->container, lvgl_color(LVGL_COLOR_BG_BEZEL), LV_PART_MAIN);
     lv_obj_set_style_border_color(m_impl->container, lvgl_color(LVGL_COLOR_ACCENT_BLUE), LV_PART_MAIN);
     lv_obj_set_style_border_width(m_impl->container, 2, LV_PART_MAIN);
     lv_obj_set_style_radius(m_impl->container, 8, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(m_impl->container, 0, LV_PART_MAIN);
 
     // Title label - small region at top
     lv_obj_t* title_label = lv_label_create(m_impl->container);
@@ -107,27 +113,36 @@ void Function_Menu_Popup::show() {
     lv_obj_set_size(m_impl->list, LV_PCT(100), list_height);
     lv_obj_set_pos(m_impl->list, 0, TITLE_HEIGHT);
     lv_obj_set_flex_flow(m_impl->list, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_style_pad_all(m_impl->list, 8, LV_PART_MAIN);
+    lv_obj_set_flex_align(m_impl->list, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+    lv_obj_set_style_pad_all(m_impl->list, CONTAINER_PADDING, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(m_impl->list, 0, LV_PART_MAIN);
     lv_obj_set_style_bg_color(m_impl->list, lvgl_color(LVGL_COLOR_BG_BEZEL), LV_PART_MAIN);
     lv_obj_set_style_border_width(m_impl->list, 0, LV_PART_MAIN);
     lv_obj_set_scroll_dir(m_impl->list, LV_DIR_VER);  // Enable vertical scrolling
     lv_obj_set_scrollbar_mode(m_impl->list, LV_SCROLLBAR_MODE_AUTO);
+    lv_obj_clear_flag(m_impl->list, LV_OBJ_FLAG_SCROLL_ELASTIC);
 
     // Add menu items with numbered shortcuts
     m_impl->item_labels.clear();
     for (size_t i = 0; i < m_impl->items.size(); ++i) {
+        const auto& menu_item = m_impl->items[i];
         lv_obj_t* item = lv_label_create(m_impl->list);
-        std::string numbered_label = std::to_string(i + 1) + ") " + m_impl->items[i].label;
-        lv_label_set_text(item, numbered_label.c_str());
+        std::string row = std::to_string(i + 1) + ") " + menu_item.label;
+        if (!menu_item.description.empty()) {
+            row += " - " + menu_item.description;
+        }
+        lv_label_set_text(item, row.c_str());
+        lv_obj_set_height(item, ITEM_HEIGHT);
+        lv_obj_set_width(item, LV_PCT(100));
 
-        // Use custom font for math symbols
-        if (font::requires_custom_font(m_impl->items[i].label)) {
-            lv_obj_set_style_text_font(item, &lv_font_superscript, LV_PART_MAIN);
+        // Use bold custom font for math symbols, bold default otherwise
+        if (font::requires_custom_font(menu_item.label)) {
+            lv_obj_set_style_text_font(item, &lv_font_superscript_bold, LV_PART_MAIN);
         } else {
-            lv_obj_set_style_text_font(item, LVGL_FONT_DEFAULT, LV_PART_MAIN);
+            lv_obj_set_style_text_font(item, LVGL_FONT_SMALL, LV_PART_MAIN);
         }
 
-        lv_obj_set_style_pad_all(item, 8, LV_PART_MAIN);
+        lv_obj_set_style_pad_all(item, 4, LV_PART_MAIN);
 
         // Highlight selected item
         if (i == static_cast<size_t>(m_impl->selected_index)) {
@@ -285,19 +300,26 @@ void Function_Menu_Popup::render() {
     lv_obj_clean(m_impl->list);
     m_impl->item_labels.clear();
 
+    constexpr int ITEM_HEIGHT { 28 };
     for (size_t i = 0; i < m_impl->items.size(); ++i) {
+        const auto& menu_item = m_impl->items[i];
         lv_obj_t* item = lv_label_create(m_impl->list);
-        std::string numbered_label = std::to_string(i + 1) + ") " + m_impl->items[i].label;
-        lv_label_set_text(item, numbered_label.c_str());
+        std::string row = std::to_string(i + 1) + ") " + menu_item.label;
+        if (!menu_item.description.empty()) {
+            row += " - " + menu_item.description;
+        }
+        lv_label_set_text(item, row.c_str());
+        lv_obj_set_height(item, ITEM_HEIGHT);
+        lv_obj_set_width(item, LV_PCT(100));
 
-        // Use custom font for math symbols
-        if (font::requires_custom_font(m_impl->items[i].label)) {
-            lv_obj_set_style_text_font(item, &lv_font_superscript, LV_PART_MAIN);
+        // Use bold custom font for math symbols, bold default otherwise
+        if (font::requires_custom_font(menu_item.label)) {
+            lv_obj_set_style_text_font(item, &lv_font_superscript_bold, LV_PART_MAIN);
         } else {
-            lv_obj_set_style_text_font(item, LVGL_FONT_DEFAULT, LV_PART_MAIN);
+            lv_obj_set_style_text_font(item, LVGL_FONT_SMALL, LV_PART_MAIN);
         }
 
-        lv_obj_set_style_pad_all(item, 8, LV_PART_MAIN);
+        lv_obj_set_style_pad_all(item, 4, LV_PART_MAIN);
 
         // Highlight selected item
         if (i == static_cast<size_t>(m_impl->selected_index)) {

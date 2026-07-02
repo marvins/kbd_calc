@@ -52,10 +52,25 @@ Action_Code string_to_action_code(const std::string& str) {
     if (str == "ACOS")             return Action_Code::ACOS;
     if (str == "ATAN")             return Action_Code::ATAN;
     if (str == "ATAN2")            return Action_Code::ATAN2;
+    if (str == "COT")              return Action_Code::COT;
+    if (str == "ACOT")             return Action_Code::ACOT;
+    if (str == "SEC")              return Action_Code::SEC;
+    if (str == "CSC")              return Action_Code::CSC;
+    if (str == "SINH")             return Action_Code::SINH;
+    if (str == "COSH")             return Action_Code::COSH;
+    if (str == "TANH")             return Action_Code::TANH;
+    if (str == "ASINH")            return Action_Code::ASINH;
+    if (str == "ACOSH")            return Action_Code::ACOSH;
+    if (str == "ATANH")            return Action_Code::ATANH;
+    if (str == "COTH")             return Action_Code::COTH;
+    if (str == "SECH")             return Action_Code::SECH;
+    if (str == "CSCH")             return Action_Code::CSCH;
     if (str == "LOG")              return Action_Code::LOG;
     if (str == "LN")               return Action_Code::LN;
     if (str == "EXP")              return Action_Code::EXP;
     if (str == "SQRT")             return Action_Code::SQRT;
+    if (str == "CUBE_ROOT")        return Action_Code::CUBE_ROOT;
+    if (str == "NTH_ROOT")         return Action_Code::NTH_ROOT;
     if (str == "POWER_2")          return Action_Code::POWER_2;
     if (str == "POWER_3")          return Action_Code::POWER_3;
     if (str == "POWER_N")          return Action_Code::POWER_N;
@@ -191,10 +206,25 @@ std::string action_code_to_display(Action_Code code) {
         case Action_Code::ACOS:             return "acos";
         case Action_Code::ATAN:             return "atan";
         case Action_Code::ATAN2:            return "atan2";
+        case Action_Code::COT:              return "cot";
+        case Action_Code::ACOT:             return "acot";
+        case Action_Code::SEC:              return "sec";
+        case Action_Code::CSC:              return "csc";
+        case Action_Code::SINH:             return "sinh";
+        case Action_Code::COSH:             return "cosh";
+        case Action_Code::TANH:             return "tanh";
+        case Action_Code::ASINH:            return "asinh";
+        case Action_Code::ACOSH:            return "acosh";
+        case Action_Code::ATANH:            return "atanh";
+        case Action_Code::COTH:             return "coth";
+        case Action_Code::SECH:             return "sech";
+        case Action_Code::CSCH:             return "csch";
         case Action_Code::LOG:              return "log";
         case Action_Code::LN:               return "ln";
         case Action_Code::EXP:              return "e^x";
         case Action_Code::SQRT:             return "\xE2\x88\x9A";  // √
+        case Action_Code::CUBE_ROOT:        return "\xE2\x88\x9B";  // ∛
+        case Action_Code::NTH_ROOT:         return "nroot";
         case Action_Code::POWER_2:          return "x\xC2\xB2";   // x²
         case Action_Code::POWER_3:          return "x\xC2\xB3";   // x³
         case Action_Code::POWER_N:          return "x^n";
@@ -316,10 +346,25 @@ std::string action_code_to_string(Action_Code code) {
         case Action_Code::ACOS:             return "ACOS";
         case Action_Code::ATAN:             return "ATAN";
         case Action_Code::ATAN2:            return "ATAN2";
+        case Action_Code::COT:              return "COT";
+        case Action_Code::ACOT:             return "ACOT";
+        case Action_Code::SEC:              return "SEC";
+        case Action_Code::CSC:              return "CSC";
+        case Action_Code::SINH:             return "SINH";
+        case Action_Code::COSH:             return "COSH";
+        case Action_Code::TANH:             return "TANH";
+        case Action_Code::ASINH:            return "ASINH";
+        case Action_Code::ACOSH:            return "ACOSH";
+        case Action_Code::ATANH:            return "ATANH";
+        case Action_Code::COTH:             return "COTH";
+        case Action_Code::SECH:             return "SECH";
+        case Action_Code::CSCH:             return "CSCH";
         case Action_Code::LOG:              return "LOG";
         case Action_Code::LN:               return "LN";
         case Action_Code::EXP:              return "EXP";
         case Action_Code::SQRT:             return "SQRT";
+        case Action_Code::CUBE_ROOT:        return "CUBE_ROOT";
+        case Action_Code::NTH_ROOT:         return "NTH_ROOT";
         case Action_Code::POWER_2:          return "POWER_2";
         case Action_Code::POWER_3:          return "POWER_3";
         case Action_Code::POWER_N:          return "POWER_N";

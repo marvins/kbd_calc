@@ -19,6 +19,7 @@
 #include <overboard/apps/status/status_page.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/gui/app_registry.hpp>
+#include <overboard/hal/sdl/system_info.hpp>
 #include <overboard/math/calc_engine.hpp>
 
 namespace ovb::apps {
@@ -54,12 +55,13 @@ inline void register_all_apps(
 
     // Status - shown first in menu
     // ESCAPE returns to menu (pop)
+    auto system_info = std::make_shared<hal::sdl::SDL_System_Info>();
     registry.register_app(
         "Status", LV_SYMBOL_FILE, priority++, 's',
-        [&layers, &panels, settings]() mutable {
+        [&layers, &panels, settings, system_info]() mutable {
             return std::make_shared<gui::Status_Page>(layers, settings, [&panels]() {
                 panels.pop();
-            });
+            }, system_info);
         });
 
     // Calculator - second in menu

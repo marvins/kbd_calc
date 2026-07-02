@@ -329,6 +329,28 @@ TEST(Ast_Simplify, Function_With_Constant_Arg_Folds_If_Integer_Result) {
     EXPECT_EQ(s->to_string(), "0");
 }
 
+TEST(Ast_Simplify, Factorial_Numeric_Operand_Folds_To_Number) {
+    auto n = std::make_unique<Factorial_Node>(std::make_unique<Number_Node>(8.0));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
+    EXPECT_DOUBLE_EQ(s->eval(), 40320.0);
+}
+
+TEST(Ast_Simplify, Factorial_Zero_Folds_To_One) {
+    auto n = std::make_unique<Factorial_Node>(std::make_unique<Number_Node>(0.0));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
+    EXPECT_DOUBLE_EQ(s->eval(), 1.0);
+}
+
+TEST(Ast_Simplify, Factorial_With_Constant_Folds_Via_Truncation) {
+    // pi truncates to 3, so pi! = 3! = 6 — folds to a Number_Node
+    auto n = std::make_unique<Factorial_Node>(std::make_unique<Constant_Node>(Constant_Id::PI));
+    auto s = n->simplify();
+    EXPECT_EQ(s->kind(), Node_Kind::NUMBER);
+    EXPECT_DOUBLE_EQ(s->eval(), 6.0);
+}
+
 TEST(Ast_Simplify, Binary_Stays_Symbolic_With_Numeric_And_Constant) {
     // 2 * pi — one side is a constant, cannot fold
     auto n = std::make_unique<Binary_Op_Node>(

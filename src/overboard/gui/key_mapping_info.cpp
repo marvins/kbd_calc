@@ -147,7 +147,7 @@ void Key_Mapping_Info::build_keys(lv_obj_t* parent) {
 
         // Use custom font for math symbols
         if (font::requires_custom_font(action_code)) {
-            lv_obj_set_style_text_font(lbl, &lv_font_superscript, LV_PART_MAIN);
+            lv_obj_set_style_text_font(lbl, &lv_font_superscript_bold, LV_PART_MAIN);
         }
 
         lv_obj_align(lbl, LV_ALIGN_CENTER, 0, 0);
@@ -181,7 +181,7 @@ void Key_Mapping_Info::update_layer() {
 
         // Use custom font for math symbols
         if (font::requires_custom_font(layer.keys[i])) {
-            lv_obj_set_style_text_font(m_key_labels[i], &lv_font_superscript, LV_PART_MAIN);
+            lv_obj_set_style_text_font(m_key_labels[i], &lv_font_superscript_bold, LV_PART_MAIN);
         } else {
             lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_SMALL, LV_PART_MAIN);
         }
@@ -241,15 +241,21 @@ void Key_Mapping_Info::apply_top_overlay() {
     // Update header to show overlay title
     lv_label_set_text(m_header_label, frame.title.c_str());
 
-    // Clear all key labels first
+    // Reset all keys to their regular layer labels first (passthrough)
+    const auto& layer = m_layers.current_layer();
     for (std::size_t i = 0; i < key_count; ++i) {
         if (!m_key_labels[i]) continue;
-        lv_label_set_text(m_key_labels[i], "");
-        lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_DEFAULT, LV_PART_MAIN);
-        lv_obj_add_flag(m_key_labels[i], LV_OBJ_FLAG_HIDDEN);
+        const std::string text = get_key_label(static_cast<int>(i), layer.keys[i]);
+        lv_label_set_text(m_key_labels[i], text.c_str());
+        lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_SMALL, LV_PART_MAIN);
+        if (text.empty()) {
+            lv_obj_add_flag(m_key_labels[i], LV_OBJ_FLAG_HIDDEN);
+        } else {
+            lv_obj_clear_flag(m_key_labels[i], LV_OBJ_FLAG_HIDDEN);
+        }
     }
 
-    // Set overlay key labels
+    // Set overlay key labels (overrides passthrough for matched keys)
     for (const auto& key : frame.keys) {
         if (key.key_index >= 0 && key.key_index < static_cast<int>(key_count)) {
             lv_obj_t* label = m_key_labels[static_cast<size_t>(key.key_index)];
@@ -259,7 +265,7 @@ void Key_Mapping_Info::apply_top_overlay() {
 
                 // Use custom font for math symbols
                 if (font::requires_custom_font(key.label)) {
-                    lv_obj_set_style_text_font(label, &lv_font_superscript, LV_PART_MAIN);
+                    lv_obj_set_style_text_font(label, &lv_font_superscript_bold, LV_PART_MAIN);
                 } else {
                     lv_obj_set_style_text_font(label, LVGL_FONT_SMALL, LV_PART_MAIN);
                 }

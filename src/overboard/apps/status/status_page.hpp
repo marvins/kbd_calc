@@ -24,6 +24,7 @@
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/header_bar.hpp>
 #include <overboard/gui/i_app.hpp>
+#include <overboard/hal/i_system_info.hpp>
 
 namespace ovb::gui {
 
@@ -42,13 +43,15 @@ class Status_Page : public I_App {
 
         /**
          * @brief Construct the status page
-         * @param layers     Layer manager (used to show layer count)
-         * @param settings   Application settings manager
-         * @param on_dismiss Callback fired on first keypress
+         * @param layers      Layer manager (used to show layer count)
+         * @param settings    Application settings manager
+         * @param on_dismiss  Callback fired on first keypress
+         * @param system_info Optional platform system info provider
          */
-        Status_Page(const core::Layer_Manager& layers,
-                   std::shared_ptr<core::Settings_Manager> settings,
-                   Dismiss_Cb on_dismiss);
+        Status_Page( const core::Layer_Manager&              layers,
+                     std::shared_ptr<core::Settings_Manager> settings,
+                     Dismiss_Cb                              on_dismiss,
+                     std::shared_ptr<hal::I_System_Info>     system_info = nullptr );
 
         /**
          * @brief Destructor
@@ -116,6 +119,12 @@ class Status_Page : public I_App {
 
         /// @brief Hide the About popup
         void hide_about_popup();
+
+        /// @brief Show the Stats popup (CPU temp, storage)
+        void show_stats_popup();
+
+        /// @brief Hide the Stats popup
+        void hide_stats_popup();
 
         /// @brief Implementation details
         struct Impl;

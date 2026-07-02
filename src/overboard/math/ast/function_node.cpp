@@ -21,18 +21,52 @@ namespace ovb::math::ast {
 /*         Evaluate        */
 /***************************/
 double Function_Node::eval() const {
+    // TODO(Phase 1): Replace this fixed if-chain with a registered function table.
+    //   Approach: define a static std::unordered_map<std::string, std::function<double(double)>>
+    //   populated once at startup (or constexpr where possible), then dispatch via lookup.
+    //   This would make adding new functions trivial and eliminate the parallel maintenance
+    //   burden between eval(), to_latex(), and the parser's function recognition logic.
     if (m_args.empty()) return std::numeric_limits<double>::quiet_NaN();
     double a = m_args[0]->eval();
     if (m_name == "sin")  return std::sin(a);
     if (m_name == "cos")  return std::cos(a);
     if (m_name == "tan")  return std::tan(a);
+    if (m_name == "cot")  return 1.0 / std::tan(a);
+    if (m_name == "sec")  return 1.0 / std::cos(a);
+    if (m_name == "csc")  return 1.0 / std::sin(a);
     if (m_name == "asin") return std::asin(a);
     if (m_name == "acos") return std::acos(a);
     if (m_name == "atan") return std::atan(a);
+    if (m_name == "acot") return std::atan(1.0 / a);
+    if (m_name == "sinh") return std::sinh(a);
+    if (m_name == "cosh") return std::cosh(a);
+    if (m_name == "tanh") return std::tanh(a);
+    if (m_name == "asinh") return std::asinh(a);
+    if (m_name == "acosh") return std::acosh(a);
+    if (m_name == "atanh") return std::atanh(a);
+    if (m_name == "coth") return 1.0 / std::tanh(a);
+    if (m_name == "sech") return 1.0 / std::cosh(a);
+    if (m_name == "csch") return 1.0 / std::sinh(a);
     if (m_name == "log")  return std::log10(a);
     if (m_name == "ln")   return std::log(a);
     if (m_name == "exp")  return std::exp(a);
     if (m_name == "sqrt") return std::sqrt(a);
+    if (m_name == "cbrt") return std::cbrt(a);
+    if (m_name == "abs")  return std::abs(a);
+    if (m_name == "pow") {
+        if (m_args.size() < 2) return std::numeric_limits<double>::quiet_NaN();
+        return std::pow(a, m_args[1]->eval());
+    }
+    if (m_name == "nthroot") {
+        if (m_args.size() < 2) return std::numeric_limits<double>::quiet_NaN();
+        return std::pow(a, 1.0 / m_args[1]->eval());
+    }
+    if (m_name == "atan2") {
+        if (m_args.size() < 2) return std::numeric_limits<double>::quiet_NaN();
+        double y = a;  // First argument is y
+        double x = m_args[1]->eval();  // Second argument is x
+        return std::atan2(y, x);
+    }
     if (m_name == "mod") {
         if (m_args.size() < 2) return std::numeric_limits<double>::quiet_NaN();
         double b = m_args[1]->eval();

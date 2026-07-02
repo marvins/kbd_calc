@@ -132,8 +132,11 @@ void Calculator_App::activate(lv_obj_t* parent) {
     m_impl->lcd->build(lcd_parent, width, lcd_h);
     LOG_DEBUG("Calculator_App: LCD_Section built");
 
-    // Footer bar — decorative only, navigation via ESCAPE
+    // Footer bar
     m_impl->footer = std::make_unique<Footer_Bar>(m_impl->container, width);
+    m_impl->footer->set_label(0, "Alg");
+    m_impl->footer->set_label(1, "Trig");
+    m_impl->footer->set_label(2, "Const");
 
     // Callback for all function menu selections
     auto menu_callback = [this](core::Action_Code action) {
@@ -145,11 +148,15 @@ void Calculator_App::activate(lv_obj_t* parent) {
 
     // F1: Alg menu
     std::vector<Function_Menu_Item> alg_items = {
-        {"1/x",   core::Action_Code::RECIPROCAL},
-        {"x^2",   core::Action_Code::POWER_2},
-        {"x^y",   core::Action_Code::POWER_N},
-        {"sqrt",  core::Action_Code::SQRT},
-        {"nroot", core::Action_Code::NONE}
+        {"1/x",           "Inverse",       core::Action_Code::RECIPROCAL},
+        {"x\xC2\xB2",     "Square",        core::Action_Code::POWER_2},
+        {"x\xC2\xB3",     "Cube",          core::Action_Code::POWER_3},
+        {"x^y",           "Power",         core::Action_Code::POWER_N},
+        {"abs",           "Absolute Value",core::Action_Code::ABS},
+        {"n!",            "Factorial",     core::Action_Code::FACTORIAL},
+        {"\xE2\x88\x9A",  "Square Root",   core::Action_Code::SQRT},
+        {"\xE2\x88\x9B",  "Cube Root",     core::Action_Code::CUBE_ROOT},
+        {"nroot",         "Nth Root",      core::Action_Code::NTH_ROOT}
     };
     LOG_DEBUG("Calculator_App: alg_items.size()=" + std::to_string(alg_items.size()) + " before creating popup");
     LOG_DEBUG("Calculator_App: creating Alg popup");
@@ -157,17 +164,28 @@ void Calculator_App::activate(lv_obj_t* parent) {
         std::make_unique<Function_Menu_Popup>(m_impl->container, "Alg", alg_items, menu_callback);
     LOG_DEBUG("Calculator_App: Alg popup created");
 
-    // F2: Trig menu
+    // F2: Trig menu (includes hyperbolic functions)
     std::vector<Function_Menu_Item> trig_items = {
-        {"Sin",   core::Action_Code::SIN},
-        {"Cos",   core::Action_Code::COS},
-        {"Tan",   core::Action_Code::TAN},
-        {"Atan2", core::Action_Code::NONE},
-        {"ASin",  core::Action_Code::ASIN},
-        {"ACos",  core::Action_Code::ACOS},
-        {"ATan",  core::Action_Code::ATAN},
-        {"Sec",   core::Action_Code::NONE},
-        {"Cosec", core::Action_Code::NONE}
+        {"Sin",   "Sine",             core::Action_Code::SIN},
+        {"Cos",   "Cosine",           core::Action_Code::COS},
+        {"Tan",   "Tangent",          core::Action_Code::TAN},
+        {"Cot",   "Cotangent",        core::Action_Code::COT},
+        {"Sec",   "Secant",           core::Action_Code::SEC},
+        {"Csc",   "Cosecant",         core::Action_Code::CSC},
+        {"Sinh",  "Hyp. Sine",        core::Action_Code::SINH},
+        {"Cosh",  "Hyp. Cosine",      core::Action_Code::COSH},
+        {"Tanh",  "Hyp. Tangent",     core::Action_Code::TANH},
+        {"Coth",  "Hyp. Cotangent",   core::Action_Code::COTH},
+        {"Sech",  "Hyp. Secant",      core::Action_Code::SECH},
+        {"Csch",  "Hyp. Cosecant",    core::Action_Code::CSCH},
+        {"ASin",  "Inverse Sine",     core::Action_Code::ASIN},
+        {"ACos",  "Inverse Cosine",   core::Action_Code::ACOS},
+        {"ATan",  "Inverse Tangent",  core::Action_Code::ATAN},
+        {"ACot",  "Inverse Cotangent",core::Action_Code::ACOT},
+        {"Atan2", "Angle (y, x)",     core::Action_Code::ATAN2},
+        {"ASinh", "Inv. Hyp. Sine",   core::Action_Code::ASINH},
+        {"ACosh", "Inv. Hyp. Cosine", core::Action_Code::ACOSH},
+        {"ATanh", "Inv. Hyp. Tangent",core::Action_Code::ATANH}
     };
     LOG_DEBUG("Calculator_App: trig_items.size()=" + std::to_string(trig_items.size()) + " before creating popup");
     LOG_DEBUG("Calculator_App: creating Trig popup");
@@ -177,10 +195,10 @@ void Calculator_App::activate(lv_obj_t* parent) {
 
     // F3: Constants menu
     std::vector<Function_Menu_Item> const_items = {
-        {"\u03c0", core::Action_Code::PI},
-        {"e",      core::Action_Code::EULER},
-        {"\u03c6", core::Action_Code::PHI},
-        {"\u03c4", core::Action_Code::TAU},
+        {"\u03c0", "Pi",          core::Action_Code::PI},
+        {"e",      "Euler",       core::Action_Code::EULER},
+        {"\u03c6", "Golden Ratio",core::Action_Code::PHI},
+        {"\u03c4", "Tau",         core::Action_Code::TAU},
     };
     LOG_DEBUG("Calculator_App: creating Const popup");
     m_impl->f_key_popups[static_cast<int>(Popup_Menu::Const)] =
@@ -251,13 +269,7 @@ bool Calculator_App::handle_input(core::Action_Code action) {
                 m_impl->active_popup = popup.get();
                 popup->show();
                 if (m_impl->on_overlay_push) {
-                    std::vector<I_Panel::Overlay_Key_Desc> descs;
-                    for (const auto& item : popup->items()) {
-                        if (item.key_index >= 0) {
-                            descs.push_back({item.key_index, item.label, item.action});
-                        }
-                    }
-                    m_impl->on_overlay_push(popup->title(), descs);
+                    m_impl->on_overlay_push(popup->title(), build_popup_overlay(*popup));
                 }
             }
             return true;
@@ -356,31 +368,8 @@ bool Calculator_App::handle_input_key(core::Input_Key key) {
 
                     // Push keyboard overlay with numbered shortcuts
                     if (m_impl->on_overlay_push) {
-                        // Find key indices for digits 1-9 from current layer
-                        static constexpr std::array<core::Action_Code, 9> DIGIT_ACTIONS {
-                            core::Action_Code::DIGIT_1, core::Action_Code::DIGIT_2,
-                            core::Action_Code::DIGIT_3, core::Action_Code::DIGIT_4,
-                            core::Action_Code::DIGIT_5, core::Action_Code::DIGIT_6,
-                            core::Action_Code::DIGIT_7, core::Action_Code::DIGIT_8,
-                            core::Action_Code::DIGIT_9,
-                        };
-                        const auto& layer_keys = m_impl->layers.current_layer().keys;
-                        const auto& items = popup->items();
-                        std::vector<Overlay_Key_Desc> overlay_keys;
-                        for (size_t i = 0; i < items.size() && i < DIGIT_ACTIONS.size(); ++i) {
-                            // Find which key index has this digit action
-                            for (size_t k = 0; k < layer_keys.size(); ++k) {
-                                if (layer_keys[k] == DIGIT_ACTIONS[i]) {
-                                    overlay_keys.push_back({
-                                        static_cast<int>(k),
-                                        std::to_string(i + 1) + ")" + items[i].label,
-                                        items[i].action
-                                    });
-                                    break;
-                                }
-                            }
-                        }
-                        m_impl->on_overlay_push(popup->title(), overlay_keys);
+                        m_impl->on_overlay_push( popup->title(),
+                                                 build_popup_overlay( *popup ) );
                     }
                     return true;
                 }
@@ -481,6 +470,7 @@ std::string Calculator_App::get_custom_label(int key_index) const {
         return "";
     }
     switch (layer.keys[static_cast<std::size_t>(key_index)]) {
+        case core::Action_Code::ANS:    return "Ans";
         case core::Action_Code::FUNC_1: return "Alg";
         case core::Action_Code::FUNC_2: return "Trig";
         case core::Action_Code::FUNC_3: return "Const";
@@ -488,6 +478,36 @@ std::string Calculator_App::get_custom_label(int key_index) const {
         case core::Action_Code::FUNC_5: return "F5";
         default: return "";
     }
+}
+
+/******************************************/
+/*        Build Popup Overlay             */
+/******************************************/
+std::vector<I_Panel::Overlay_Key_Desc>
+Calculator_App::build_popup_overlay(const Function_Menu_Popup& popup) const {
+    static constexpr std::array<core::Action_Code, 9> DIGIT_ACTIONS {
+        core::Action_Code::DIGIT_1, core::Action_Code::DIGIT_2,
+        core::Action_Code::DIGIT_3, core::Action_Code::DIGIT_4,
+        core::Action_Code::DIGIT_5, core::Action_Code::DIGIT_6,
+        core::Action_Code::DIGIT_7, core::Action_Code::DIGIT_8,
+        core::Action_Code::DIGIT_9,
+    };
+    const auto& layer_keys = m_impl->layers.current_layer().keys;
+    const auto& items      = popup.items();
+    std::vector<Overlay_Key_Desc> overlay_keys;
+    for (size_t i = 0; i < items.size() && i < DIGIT_ACTIONS.size(); ++i) {
+        for (size_t k = 0; k < layer_keys.size(); ++k) {
+            if (layer_keys[k] == DIGIT_ACTIONS[i]) {
+                overlay_keys.push_back({
+                    static_cast<int>(k),
+                    std::to_string(i + 1) + ") " + items[i].label,
+                    items[i].action
+                });
+                break;
+            }
+        }
+    }
+    return overlay_keys;
 }
 
 } // namespace ovb::gui

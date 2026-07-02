@@ -77,6 +77,7 @@ set(HARDWARE_SOURCES
     src/overboard/hal/sdl/keymap.cpp
     src/overboard/hal/sdl/keyboard_window.cpp
     src/overboard/hal/sdl/settings_store.cpp
+    src/overboard/hal/sdl/system_info.cpp
     src/overboard/hal/settings_store_factory.cpp
     src/overboard/hal/settings_tree.cpp
 )

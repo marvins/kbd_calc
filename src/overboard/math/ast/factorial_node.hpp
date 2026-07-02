@@ -8,12 +8,14 @@
 #pragma once
 
 // C++ Standard Libraries
+#include <cmath>
 #include <limits>
 #include <memory>
 #include <string>
 
 // Project Libraries
 #include <overboard/math/ast/node.hpp>
+#include <overboard/math/ast/number_node.hpp>
 
 namespace ovb::math::ast {
 
@@ -83,7 +85,12 @@ class Factorial_Node : public Node {
          * @return Node::ptr_t Simplified factorial node
          */
         Node::ptr_t simplify() const override {
-            return std::make_unique<Factorial_Node>(m_operand->simplify());
+            Node::ptr_t simplified_operand = m_operand->simplify();
+            const double result = Factorial_Node(simplified_operand->clone()).eval();
+            if (!std::isnan(result) && std::abs(result - std::floor(result)) < 1e-10 && result < 1e15) {
+                return std::make_unique<Number_Node>(result);
+            }
+            return std::make_unique<Factorial_Node>(std::move(simplified_operand));
         }
 
         /**

@@ -165,7 +165,7 @@ void Keyboard_Display::build_keys(lv_obj_t* parent) {
             action_code == core::Action_Code::POWER_3 ||
             action_code == core::Action_Code::POWER_N ||
             action_code == core::Action_Code::SQRT) {
-            lv_obj_set_style_text_font(lbl, &lv_font_superscript, LV_PART_MAIN);
+            lv_obj_set_style_text_font(lbl, &lv_font_superscript_bold, LV_PART_MAIN);
         }
 
         lv_obj_align(lbl, LV_ALIGN_CENTER, 0, 0);
@@ -220,7 +220,9 @@ void Keyboard_Display::update_layer() {
 
         // Use custom font for math symbols
         if (font::requires_custom_font(layer.keys[i])) {
-            lv_obj_set_style_text_font(m_key_labels[i], &lv_font_superscript, LV_PART_MAIN);
+            lv_obj_set_style_text_font( m_key_labels[i],
+                                        &lv_font_superscript_bold,
+                                        LV_PART_MAIN );
         } else {
             lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_SMALL, LV_PART_MAIN);
         }

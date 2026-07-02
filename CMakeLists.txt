@@ -114,7 +114,8 @@ set(GUI_SOURCES
     src/overboard/gui/key_mapping_info.cpp
     src/overboard/gui/keyboard_display.cpp
     src/overboard/gui/lcd_section.cpp
-    src/overboard/gui/lv_font_superscript.c
+    src/overboard/gui/lv_font_superscript_regular.c
+    src/overboard/gui/lv_font_superscript_bold.c
     src/overboard/gui/math_canvas.cpp
     src/overboard/gui/panel_manager.cpp
 )
@@ -268,6 +269,7 @@ if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STRE
         test/math/layout/test_layout_engine.cpp
         test/math/test_calc_engine.cpp
         test/math/test_expression.cpp
+        test/math/test_trig_functions.cpp
         test/core/test_layout.cpp
         test/core/test_action_code.cpp
         test/core/test_input_key.cpp
