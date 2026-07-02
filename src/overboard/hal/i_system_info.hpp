@@ -11,6 +11,7 @@
 #pragma once
 
 // C++ Standard Libraries
+#include <cstdint>
 #include <optional>
 #include <string>
 

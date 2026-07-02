@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.11.0] - 2026-07-02
+
+### Added
+- **Documentation build system**: Doxygen for C++ API docs and Jupyter Book (MyST) for narrative documentation
+- **GitHub Actions workflow** for automated documentation build and deployment to GitHub Pages
+- **`scripts/build_docs.sh`**: unified build script with options for full build, Doxygen-only, serve, clean, and logging
+- **`scripts/create_venv.sh`**: script for creating Python virtual environment with documentation dependencies
+- **`docs/Doxyfile`**: Doxygen configuration for C++ API documentation generation
+- **`docs/myst.yml`**: MyST project configuration with navigation structure
+- **`docs/images/logo.png`**: project logo for documentation
+- **API Reference link** in documentation navigation pointing to Doxygen output
+
+### Changed
+- **Build script logging**: added `-l/--log` option to redirect all output to a log file
+- **Build script clean flag**: `-c/--clean` now works as a flag that can be combined with other modes
+
 ## [0.10.1] - 2026-07-02
 
 ### Fixed
