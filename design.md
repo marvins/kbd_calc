@@ -17,7 +17,7 @@ A custom mechanical keyboard that replaces the traditional numpad with a dedicat
 - Standard keycap compatibility (Cherry profile, SA, GMK, etc.)
 
 ### Controller
-- **RP2040** — QMK-compatible
+- **RP2350** — QMK-compatible
 - **USB-C** connector on the keyboard body (standardized)
 
 ### PCB
@@ -59,12 +59,12 @@ A custom mechanical keyboard that replaces the traditional numpad with a dedicat
 - Dedicated keys: digits 0–9, `+` `-` `×` `÷`, `=`, `C` / `AC`, `.`, optional `(` `)`, `%`, `√`, `M+` / `MR`
 
 ### Microcontroller
-- **RP2040** — dual-core, native USB HID, inexpensive
-- **Firmware language**: MicroPython or C++
+- **RP2350** — dual-core, native USB HID, inexpensive
+- **Firmware language**: C++23
 - **USB-C** port on the module (standardized; also used for the pogo-pin docked path via internal hub IC)
 
 ### Firmware Responsibilities
-1. Scan key matrix (using PIO on RP2040 or standard GPIO)
+1. Scan key matrix (using PIO on RP2350 or standard GPIO)
 2. Evaluate arithmetic expressions (floating point, operator precedence, memory registers)
 3. Drive display over SPI or I²C
 4. **USB HID mode**: optionally act as a USB numpad — send keystrokes to host when `=` is pressed, type the result into whatever application is focused
@@ -104,22 +104,22 @@ A custom mechanical keyboard that replaces the traditional numpad with a dedicat
 
 ## Software Architecture
 
-The firmware is written in C++23 and targets two platforms: an **SDL desktop simulator** for development and the **RP2350 embedded target** (MF34) for production. A layered architecture keeps platform-specific code isolated from portable logic.
+The firmware is written in C++23 and targets multiple platforms: an **SDL desktop simulator** for development, **PicoCalc** (RP2350) and **Pi Zero** for production hardware, and a **TH33** keyboard configuration for the macropad. A layered architecture keeps platform-specific code isolated from portable logic.
 
 ### Layer Overview
 
-```
-┌─────────────────────────────────────────────────┐
-│                  apps/                          │  Application entry points
-├─────────────────────────────────────────────────┤
-│                  gui/                           │  LVGL widget management (platform-agnostic)
-├─────────────────────────────────────────────────┤
-│   hal/  (interfaces + platform implementations) │  Hardware abstraction
-├──────────────────┬──────────────────────────────┤
-│   hal/sdl/       │   hal/kn34/                  │  Platform-specific drivers
-├──────────────────┴──────────────────────────────┤
-│   core/ · math/ · font/ · io/ · log/            │  Portable domain logic
-└─────────────────────────────────────────────────┘
+```mermaid
+block-beta
+    columns 1
+    apps["apps/\nApplication entry points"]
+    gui["gui/\nLVGL widget management (platform-agnostic)"]
+    block:hal_block:3
+        sdl["hal/sdl/"]
+        picocalc["hal/picocalc/"]
+        pi_zero["hal/pi_zero/"]
+    end
+    hal_iface["hal/ interfaces\nHardware abstraction"]
+    portable["core/ · math/ · font/ · io/ · log/\nPortable domain logic"]
 ```
 
 ### Module Breakdown
@@ -149,13 +149,15 @@ The firmware is written in C++23 and targets two platforms: an **SDL desktop sim
 - `App_Factory` — constructs the correct `I_App` implementation for the active target
 
 **`src/overboard/hal/sdl/`** — SDL simulator platform
-- `Display` — owns the SDL window and LVGL display handle; exposes `screen()` for GUI attachment
-- `SDL_App` — SDL lifecycle, event loop, owns both `Display` (HAL) and `App_View` (GUI)
+- `SDL_Display` — owns the SDL window and LVGL display handle; exposes `screen()` for GUI attachment
+- `SDL_App` — SDL lifecycle, event loop, owns both `SDL_Display` (HAL) and `App_View` (GUI)
 - `SDL_Input` — SDL event pump → `Key_Event` queue
-- `SDL_Keymap` — maps SDL scancodes to calculator key indices
 
-**`src/overboard/hal/kn34/`** — RP2350 embedded target (stub, pending hardware bring-up)
-- `MF34_App`, `MF34_Display` — implement the HAL interfaces with TODO stubs
+**`src/overboard/hal/picocalc/`** — RP2350 PicoCalc embedded target
+- ILI9488 SPI display driver (320×320), I2C keyboard driver (STM32 controller), `PicoCalc_App` lifecycle
+
+**`src/overboard/hal/pi_zero/`** — Pi Zero embedded target
+- Framebuffer display, GPIO/USB keyboard input, `Pi_Zero_App` lifecycle
 
 **`src/overboard/gui/`** — LVGL widget management, platform-agnostic
 - `App_View` — root GUI object; owns `LCD_Section` + `Keyboard_View`; implements `I_Display`
@@ -170,11 +172,11 @@ The firmware is written in C++23 and targets two platforms: an **SDL desktop sim
 |-------|---------------|--------------------|
 | `core/`, `math/`, `font/` | each other | `hal/`, `gui/`, platform headers |
 | `hal/` interfaces | `core/` | `gui/`, platform headers |
-| `hal/sdl/`, `hal/kn34/` | `hal/` interfaces, `core/`, `gui/` | each other |
-| `gui/` | `hal/` interfaces, `core/`, `math/` | `hal/sdl/`, `hal/kn34/` |
+| `hal/sdl/`, `hal/picocalc/`, `hal/pi_zero/` | `hal/` interfaces, `core/`, `gui/` | each other |
+| `gui/` | `hal/` interfaces, `core/`, `math/` | `hal/sdl/`, `hal/picocalc/`, `hal/pi_zero/` |
 | `apps/` | everything | — |
 
-The key invariant: **`gui/` does not depend on any specific HAL implementation**. The SDL window driver (`hal/sdl/Display`) exposes an `lv_obj_t* screen()` that `App_View` uses to attach widgets — this is the only coupling point between HAL and GUI.
+The key invariant: **`gui/` does not depend on any specific HAL implementation**. The SDL window driver (`hal/sdl/SDL_Display`) exposes an `lv_obj_t* screen()` that `App_View` uses to attach widgets — this is the only coupling point between HAL and GUI.
 
 ### Display Architecture
 
@@ -190,10 +192,10 @@ The physical display is treated as a single unified unit (400 × 800 px):
 │  └────────────────┘  │
 ├──────────────────────┤  ← Keyboard_View (400 × 300)
 │  Layer header        │    LVGL button grid
-│  [  7 ][  8 ][  9 ] │
-│  [  4 ][  5 ][  6 ] │
-│  [  1 ][  2 ][  3 ] │
-│  [  0 ][ . ][ = ]  │
+│  [  7 ][  8 ][  9 ]  │
+│  [  4 ][  5 ][  6 ]  │
+│  [  1 ][  2 ][  3 ]  │
+│  [  0 ][  . ][  = ]  │
 └──────────────────────┘
 ```
 
@@ -203,10 +205,7 @@ The HAL creates the window and provides the LVGL root screen. `App_View` then at
 
 ## Open Questions
 
-- [ ] Single unified PCB vs. two PCBs connected by flex/cable?
 - [ ] Wired only, or add BLE (nice!nano / nRF52840) to keyboard half?
-- [ ] Scientific calculator functions (trig, log) or basic four-function?
-- [ ] Expression history scroll on display?
 - [ ] Backlighting on calculator keys? (6×6mm TACT switches not RGB-compatible; would need separate LEDs)
 - [ ] Pogo-pin count and pinout (minimum 4: GND, VBUS, D+, D−; add 2 more for UART/I²C if desired)
 - [ ] Keycap material and legend method (snap-on cap, 3D-printed SLS nylon, laser-cut acrylic)?

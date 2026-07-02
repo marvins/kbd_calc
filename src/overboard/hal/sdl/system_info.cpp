@@ -96,7 +96,7 @@ std::optional<float> SDL_System_Info::read_cpu_temp() {
             int temp_millidegrees;
             temp_file >> temp_millidegrees;
             if (temp_file.good()) {
-                return temp_millidegrees / 1000.0f;  // Convert to Celsius
+                return static_cast<float>(temp_millidegrees) / 1000.0f;  // Convert to Celsius
             }
         }
 
@@ -106,7 +106,7 @@ std::optional<float> SDL_System_Info::read_cpu_temp() {
             int temp_millidegrees;
             temp_file >> temp_millidegrees;
             if (temp_file.good()) {
-                return temp_millidegrees / 1000.0f;
+                return static_cast<float>(temp_millidegrees) / 1000.0f;
             }
         }
     }

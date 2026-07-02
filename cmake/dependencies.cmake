@@ -16,10 +16,12 @@ target_compile_options(project_warnings INTERFACE
     -Wdouble-promotion
     -Wformat=2
     -Wimplicit-fallthrough
-    # Explicit float conversion warnings (GCC-specific, more aggressive in GCC 10+)
+    # Explicit float conversion warnings
     $<$<CXX_COMPILER_ID:GNU>:-Wfloat-conversion>
-    # Clang equivalent
+    # Clang: -Wfloat-conversion covers most cases but -Wimplicit-int-float-conversion
+    # is a separate Clang-only flag not implied by -Wfloat-conversion
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-Wfloat-conversion>
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>>:-Wimplicit-int-float-conversion>
     # C++-only warnings
     $<$<COMPILE_LANGUAGE:CXX>:-Wnon-virtual-dtor>
     $<$<COMPILE_LANGUAGE:CXX>:-Wold-style-cast>
