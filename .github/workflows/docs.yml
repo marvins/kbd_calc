@@ -42,10 +42,15 @@ jobs:
           source venv/bin/activate
           ./scripts/build_docs.sh
 
+      - name: Copy Doxygen into static site
+        run: |
+          mkdir -p docs/_build/html/api
+          cp -r docs/_build/api/html docs/_build/html/api/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/_build/
+          path: docs/_build/html/
 
   deploy:
     environment:
