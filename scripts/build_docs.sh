@@ -131,8 +131,8 @@ build_doxygen() {
 build_jupyter_book() {
     info "Building Jupyter Book documentation..."
     cd "$DOCS_DIR"
-    "$VENV_DIR/bin/jupyter-book" build
-    info "Jupyter Book output: $BUILD_DIR/"
+    "$VENV_DIR/bin/jupyter-book" build --html
+    info "Jupyter Book output: $BUILD_DIR/html/"
 }
 
 #---------------------------------------------------------------------------
@@ -215,8 +215,8 @@ main() {
             build_doxygen
             build_jupyter_book
             info "Documentation build complete."
-            info "  Narrative docs: $BUILD_DIR/"
-            info "  API reference:  $BUILD_DIR/api/html/index.html"
+            info "  Narrative docs: $BUILD_DIR/html/"
+            info "  API reference:  $BUILD_DIR/html/api/html/index.html"
             ;;
         *)
             echo "Usage: $0 [--local|--doxygen-only|--serve|--clean|-c] [-l|--log <path>]"
