@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.12.1] - 2026-07-05
+
+### Fixed
+- **GitHub Pages BASE_URL**: set `BASE_URL=/overboard` in CI workflow to fix broken navigation links on deployed site
+- **Doxygen footer**: added link back to main documentation from API reference pages
+- **CI build failure on Ubuntu**: added SDL2 include directories to `calc_tests` target to resolve LVGL private header dependencies
+- **Doxygen logo size**: halved logo image to reduce visual footprint in API documentation
+
+---
+
 ## [0.12.0] - 2026-07-05
 
 ### Added
