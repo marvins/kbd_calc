@@ -258,6 +258,11 @@ if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
     target_link_libraries(render_layout PRIVATE nlohmann_json PNG::PNG project_warnings)
 endif()
 
+# ── Packaging (Pi Zero only) ──────────────────────────────────────────────────────
+if(TARGET_DEVICE STREQUAL "ZERO")
+    include(cmake/packaging.cmake)
+endif()
+
 # ── Tests (shared) ────────────────────────────────────────────────────────────────
 # Tests only for simulator targets (gtest doesn't build for embedded ARM or Pi Zero)
 if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO") )

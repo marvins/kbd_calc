@@ -4,9 +4,7 @@
 #
 # Usage:
 #   ./scripts/build_docs.sh                  # Full build (Doxygen + Jupyter Book)
-#   ./scripts/build_docs.sh --local          # Build + start local preview server
 #   ./scripts/build_docs.sh --doxygen-only   # Only regenerate Doxygen API docs
-#   ./scripts/build_docs.sh --serve          # Full build + start preview server
 #   ./scripts/build_docs.sh --clean|-c       # Remove all build artifacts
 #   ./scripts/build_docs.sh -l|--log <path>  # Write output to log file
 #
@@ -131,17 +129,8 @@ build_doxygen() {
 build_jupyter_book() {
     info "Building Jupyter Book documentation..."
     cd "$DOCS_DIR"
-    "$VENV_DIR/bin/jupyter-book" build --html
+    "$VENV_DIR/bin/jupyter-book" build --html --ci
     info "Jupyter Book output: $BUILD_DIR/html/"
-}
-
-#---------------------------------------------------------------------------
-# Start local preview server
-#---------------------------------------------------------------------------
-start_preview() {
-    info "Starting local preview server..."
-    cd "$DOCS_DIR"
-    "$VENV_DIR/bin/jupyter-book" start
 }
 
 #---------------------------------------------------------------------------
@@ -171,7 +160,7 @@ main() {
                 clean_first=true
                 shift
                 ;;
-            --doxygen-only|--local|--serve)
+            --doxygen-only)
                 mode="$1"
                 shift
                 ;;
@@ -198,28 +187,20 @@ main() {
             check_prerequisites
             build_doxygen
             ;;
-        --local)
-            check_prerequisites
-            build_doxygen
-            start_preview
-            ;;
-        --serve)
-            check_prerequisites
-            build_doxygen
-            build_jupyter_book
-            info "Documentation build complete. Starting preview server..."
-            start_preview
-            ;;
         full|"")
             check_prerequisites
             build_doxygen
             build_jupyter_book
+            info "Copying Doxygen into static site..."
+            mkdir -p "$BUILD_DIR/html/api"
+            cp -r "$BUILD_DIR/api/html" "$BUILD_DIR/html/api/"
             info "Documentation build complete."
             info "  Narrative docs: $BUILD_DIR/html/"
             info "  API reference:  $BUILD_DIR/html/api/html/index.html"
+            info "  Index:          $BUILD_DIR/html/index.html"
             ;;
         *)
-            echo "Usage: $0 [--local|--doxygen-only|--serve|--clean|-c] [-l|--log <path>]"
+            echo "Usage: $0 [--doxygen-only|--clean|-c] [-l|--log <path>]"
             exit 1
             ;;
     esac

@@ -67,7 +67,9 @@ std::optional<T> Settings_Tree::get(const std::string& path) const {
 // Explicit instantiations
 template std::optional<bool>        Settings_Tree::get<bool>(const std::string&) const;
 template std::optional<int>         Settings_Tree::get<int>(const std::string&) const;
+template std::optional<uint32_t>   Settings_Tree::get<uint32_t>(const std::string&) const;
 template std::optional<float>       Settings_Tree::get<float>(const std::string&) const;
+template std::optional<double>      Settings_Tree::get<double>(const std::string&) const;
 template std::optional<std::string> Settings_Tree::get<std::string>(const std::string&) const;
 template std::optional<std::filesystem::path> Settings_Tree::get<std::filesystem::path>(const std::string&) const;
 

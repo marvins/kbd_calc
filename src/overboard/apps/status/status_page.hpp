@@ -44,14 +44,14 @@ class Status_Page : public I_App {
         /**
          * @brief Construct the status page
          * @param layers      Layer manager (used to show layer count)
+         * @param system_info System info provider
          * @param settings    Application settings manager
          * @param on_dismiss  Callback fired on first keypress
-         * @param system_info Optional platform system info provider
          */
         Status_Page( const core::Layer_Manager&              layers,
+                     hal::I_System_Info&                     system_info,
                      std::shared_ptr<core::Settings_Manager> settings,
-                     Dismiss_Cb                              on_dismiss,
-                     std::shared_ptr<hal::I_System_Info>     system_info = nullptr );
+                     Dismiss_Cb                              on_dismiss = {} );
 
         /**
          * @brief Destructor
@@ -111,6 +111,7 @@ class Status_Page : public I_App {
          * @return 's' for Status
          */
         char menu_hotkey() const override { return 's'; }
+
 
     private:
 

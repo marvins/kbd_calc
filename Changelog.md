@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.12.0] - 2026-07-05
+
+### Added
+- **Pi Zero packaging**: Debian postinst/prerm scripts, systemd service, and udev rules for DRM device access
+- **TH33 EpoMaker layout JSON**: `epomaker_th33.layout.json` for VIA-style configuration
+- **TH33 function key remapping**: top-row keys (Tab, Bsp, F1, F2, F3) now send FUNC_1–FUNC_5; Layer 2 sends FUNC_6–FUNC_10
+- **System info API extensions**: `cpu_architecture()`, `serial_number()`, and `hostname()` added to `I_System_Info` with SDL, Pi Zero, and PicoCalc implementations
+- **Settings page integration**: `I_System_Info` passed to `Settings_Page` for board information display
+- **F-Key Context design**: documented context-driven F1–F5 popup system with Core Math, Number Theory, Statistics, and Units & Conversions contexts
+
+### Changed
+- `I_System_Info`: extended API with `cpu_architecture()`, `serial_number()`, `hostname()`
+- `Settings_Page`: now accepts `I_System_Info`
+- `App_Menu`: navigation and priority handling
+- `Status_Page`: widget layout and clock sizing
+- `Solar_Info`: calculation and progress reporting
+- `Function_Menu_Popup`: F-key action dispatch
+
+### Fixed
+- **Calculator crash on exit**: `Calculator_App` destructor now calls `deactivate()` to clean up LVGL objects and timers before destruction
+- **Header bar timer safety**: added `m_destroying` flag to prevent refresh timer callbacks from accessing deleted objects
+- **Pi Zero system info**: fixed storage and thermal reporting for the Pi Zero platform
+- **SDL system info**: improved storage stats and CPU temperature reporting on macOS/Linux
+
+---
+
 ## [0.11.0] - 2026-07-02
 
 ### Added

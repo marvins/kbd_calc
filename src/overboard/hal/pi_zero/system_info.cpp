@@ -14,6 +14,7 @@
 #include <cerrno>
 #include <cstring>
 #include <fstream>
+#include <sstream>
 
 // Project Libraries
 #include <overboard/log/stdout_logger.hpp>
@@ -55,7 +56,7 @@ System_Info PiZero_System_Info::get_info() {
     System_Info info;
 
     if (!m_initialized) {
-        s_logger.warning("get_info() called before init()");
+        LOG_WARN("get_info() called before init()");
         return info;
     }
 
@@ -70,6 +71,7 @@ System_Info PiZero_System_Info::get_info() {
     info.storage    = read_storage();
     info.usb        = read_usb();
     info.bluetooth  = read_bluetooth();
+    info.wifi       = read_wifi();
 
     return info;
 }
@@ -110,6 +112,13 @@ bool PiZero_System_Info::has_bluetooth() const {
     return m_has_bt;
 }
 
+/************************************/
+/*       Check if WiFi Present      */
+/************************************/
+bool PiZero_System_Info::has_wifi() const {
+    return access("/sys/class/net/wlan0", F_OK) == 0;
+}
+
 /****************************/
 /*     Read CPU Temp        */
 /****************************/
@@ -123,7 +132,7 @@ std::optional<float> PiZero_System_Info::read_cpu_temp() {
     temp_file >> temp_millidegrees;
 
     if (temp_file.good()) {
-        return temp_millidegrees / 1000.0f;
+        return static_cast<float>(temp_millidegrees) / 1000.0f;
     }
 
     return std::nullopt;
@@ -154,7 +163,7 @@ std::optional<PiZero_System_Info::Battery_Info> PiZero_System_Info::read_battery
             int voltage_uv;
             volt_file >> voltage_uv;
             if (volt_file.good()) {
-                info.voltage_v = voltage_uv / 1000000.0f;
+                info.voltage_v = static_cast<float>(voltage_uv) / 1000000.0f;
             }
         }
 
@@ -178,7 +187,7 @@ std::optional<System_Info::Storage> PiZero_System_Info::read_storage() {
 
     // Get root filesystem stats
     if (statvfs("/", &stat) != 0) {
-        s_logger.warning("Failed to get storage stats: {}", std::strerror(errno));
+        LOG_WARN("Failed to get storage stats: ", std::strerror(errno));
         return std::nullopt;
     }
 
@@ -200,6 +209,49 @@ std::optional<System_Info::USB_Status> PiZero_System_Info::read_usb() {
     System_Info::USB_Status status;
     status.connected = true;   // TODO: Detect actual USB connection
     status.host_mode = false;  // Pi Zero is typically gadget mode
+    return status;
+}
+
+/****************************/
+/*       Read WiFi          */
+/****************************/
+std::optional<System_Info::WiFi_Status> PiZero_System_Info::read_wifi() {
+    const char* const operstate_path = "/sys/class/net/wlan0/operstate";
+    if (access(operstate_path, R_OK) != 0) {
+        return std::nullopt;
+    }
+
+    System_Info::WiFi_Status status;
+    status.signal_dbm = 0;
+
+    // Check interface operational state
+    std::ifstream operstate(operstate_path);
+    std::string state;
+    operstate >> state;
+    status.connected = (state == "up");
+
+    // Read SSID from /proc/net/wireless SSID column via iwgetid output file
+    // Fallback: check /sys/class/net/wlan0/wireless/link for signal
+    if (status.connected) {
+        // Try to read SSID from sysfs phy80211 or /proc/net/wireless
+        std::ifstream wireless("/proc/net/wireless");
+        std::string line;
+        std::getline(wireless, line); // header line 1
+        std::getline(wireless, line); // header line 2
+        if (std::getline(wireless, line)) {
+            // Format: "wlan0: status link level noise ..."
+            std::istringstream iss(line);
+            std::string iface;
+            int link_quality;
+            int signal_dbm_raw;
+            int noise;
+            iss >> iface >> link_quality >> signal_dbm_raw >> noise;
+            if (iss) {
+                status.signal_dbm = signal_dbm_raw;
+            }
+        }
+    }
+
     return status;
 }
 

@@ -19,7 +19,7 @@
 #include <SDL2/SDL.h>
 #pragma GCC diagnostic pop
 #include <lvgl.h>
-#include <lvgl/src/drivers/sdl/lv_sdl_window.h>
+#include <lvgl/drivers/sdl/lv_sdl_window.h>
 
 namespace ovb::hal::sdl {
 

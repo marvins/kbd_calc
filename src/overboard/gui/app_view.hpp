@@ -26,6 +26,7 @@
 #include <overboard/core/settings_manager.hpp>
 #include <overboard/gui/panel_manager.hpp>
 #include <overboard/hal/i_display.hpp>
+#include <overboard/hal/i_system_info.hpp>
 #include <overboard/math/calc_engine.hpp>
 
 namespace ovb::gui {
@@ -53,7 +54,8 @@ class App_View : public hal::I_Display {
                   const core::Grid_Layout&                layout,
                   math::Calc_Engine&                      engine,
                   core::Layer_Manager&                    layers,
-                  std::shared_ptr<core::Settings_Manager> settings );
+                  std::shared_ptr<core::Settings_Manager> settings,
+                  hal::I_System_Info&                     system_info );
 
         /**
          * @brief Destructor

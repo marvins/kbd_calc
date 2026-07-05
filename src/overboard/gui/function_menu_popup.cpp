@@ -120,7 +120,8 @@ void Function_Menu_Popup::show() {
     lv_obj_set_style_border_width(m_impl->list, 0, LV_PART_MAIN);
     lv_obj_set_scroll_dir(m_impl->list, LV_DIR_VER);  // Enable vertical scrolling
     lv_obj_set_scrollbar_mode(m_impl->list, LV_SCROLLBAR_MODE_AUTO);
-    lv_obj_clear_flag(m_impl->list, LV_OBJ_FLAG_SCROLL_ELASTIC);
+    lv_obj_set_scroll_snap_x(m_impl->list, LV_SCROLL_SNAP_NONE);
+    lv_obj_set_scroll_snap_y(m_impl->list, LV_SCROLL_SNAP_NONE);
 
     // Add menu items with numbered shortcuts
     m_impl->item_labels.clear();

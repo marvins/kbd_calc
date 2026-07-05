@@ -1,0 +1,55 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        # Create dedicated system user if it doesn't exist
+        if ! id -u overboard > /dev/null 2>&1; then
+            adduser --system \
+                    --group \
+                    --no-create-home \
+                    --home /var/lib/overboard \
+                    --gecos "Overboard Calculator" \
+                    overboard
+        fi
+
+        # Create home directory for the service user
+        mkdir -p /var/lib/overboard
+        chown overboard:overboard /var/lib/overboard
+        chmod 750 /var/lib/overboard
+
+        # Add overboard user to 'video' group for DRM/display access
+        if getent group video > /dev/null 2>&1; then
+            usermod -aG video overboard
+        fi
+
+        # Add overboard user to 'input' group for evdev keyboard access
+        if getent group input > /dev/null 2>&1; then
+            usermod -aG input overboard
+        fi
+
+        # Reload udev rules
+        if command -v udevadm > /dev/null 2>&1; then
+            udevadm control --reload-rules
+            udevadm trigger --subsystem-match=drm
+            udevadm trigger --subsystem-match=input
+        fi
+
+        # Enable and start the service
+        if command -v systemctl > /dev/null 2>&1 && systemctl is-system-running --quiet 2>/dev/null; then
+            systemctl daemon-reload
+            systemctl enable overboard.service
+            systemctl start overboard.service || true
+        fi
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+
+    *)
+        echo "postinst called with unknown argument '$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

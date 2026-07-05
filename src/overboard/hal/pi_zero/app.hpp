@@ -25,8 +25,10 @@
 #include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/hal/i_app.hpp>
+#include <overboard/hal/i_system_info.hpp>
 #include <overboard/hal/pi_zero/display_drm.hpp>
 #include <overboard/hal/pi_zero/input_linux.hpp>
+#include <overboard/hal/pi_zero/system_info.hpp>
 #include <overboard/math/calc_engine.hpp>
 
 namespace ovb::hal::pi_zero {
@@ -127,6 +129,9 @@ class PiZero_App : public I_App {
 
         /// @brief LVGL application view (LCD + key mapping info panel)
         std::unique_ptr<gui::App_View>    m_view;
+
+        /// @brief System info provider
+        std::unique_ptr<PiZero_System_Info> m_system_info;
 
         /// @brief Linux input handler
         std::unique_ptr<Linux_Input>      m_input;

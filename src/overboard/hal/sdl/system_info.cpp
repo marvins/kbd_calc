@@ -6,6 +6,7 @@
  * @brief   SDL platform system information implementation
  */
 #include "system_info.hpp"
+#include "os_utils.hpp"
 
 // C++ Standard Libraries
 #include <sys/statvfs.h>
@@ -48,8 +49,31 @@ System_Info SDL_System_Info::get_info() {
     // USB - not meaningfully queryable in SDL context
     info.usb = std::nullopt;
 
-    // Bluetooth - could use IOBluetooth on macOS, but complex
-    info.bluetooth = std::nullopt;
+    // Bluetooth - use OS utilities
+    if (has_bluetooth()) {
+        System_Info::BT_Status bt;
+        bt.powered = true;
+        bt.connected = get_bluetooth_connected();
+        info.bluetooth = bt;
+    } else {
+        info.bluetooth = std::nullopt;
+    }
+
+    // WiFi - use OS utilities
+    if (has_wifi()) {
+        auto wifi_status = get_wifi_status();
+        if (wifi_status) {
+            System_Info::WiFi_Status wifi;
+            wifi.connected = wifi_status->connected;
+            wifi.ssid = wifi_status->ssid;
+            wifi.signal_dbm = wifi_status->signal_strength;  // Convert percentage to dBm approximation
+            info.wifi = wifi;
+        } else {
+            info.wifi = std::nullopt;
+        }
+    } else {
+        info.wifi = std::nullopt;
+    }
 
     return info;
 }
@@ -67,22 +91,41 @@ bool SDL_System_Info::has_cpu_temp() const {
     return false;
 }
 
+/************************************************/
+/*          Check if Battery is available       */
+/************************************************/
 bool SDL_System_Info::has_battery() const {
     // Most development machines don't expose battery in a standard way
     // macOS laptops have battery but querying requires IOKit
     return false;
 }
 
+/************************************************/
+/*          Check if Storage is available       */
+/************************************************/
 bool SDL_System_Info::has_storage() const {
     return true;  // statvfs works everywhere
 }
 
+/************************************************/
+/*          Check if USB is available           */
+/************************************************/
 bool SDL_System_Info::has_usb() const {
     return false;  // Not queryable in SDL context
 }
 
+/************************************************/
+/*          Check if Bluetooth is available     */
+/************************************************/
 bool SDL_System_Info::has_bluetooth() const {
-    return false;  // Would require platform-specific APIs
+    return ovb::hal::sdl::has_bluetooth();
+}
+
+/************************************************/
+/*          Check if Wifi is available          */
+/************************************************/
+bool SDL_System_Info::has_wifi() const {
+    return ovb::hal::sdl::has_wifi();
 }
 
 /****************************/

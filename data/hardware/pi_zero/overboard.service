@@ -1,0 +1,28 @@
+[Unit]
+Description=Overboard Calculator Application
+Documentation=https://terminus-geospatial.github.io/overboard/
+After=local-fs.target udev.service
+Wants=local-fs.target
+
+[Service]
+Type=simple
+User=overboard
+Group=overboard
+
+# Allow DRM access (membership in 'video' group is set by postinst)
+SupplementaryGroups=video input
+
+ExecStart=/usr/bin/calc_app --layout /usr/share/overboard/configs/th33
+Restart=on-failure
+RestartSec=5s
+
+# Keep stdout/stderr in the journal
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=overboard
+
+# Minimal environment — no display server needed (DRM direct)
+Environment=HOME=/var/lib/overboard
+
+[Install]
+WantedBy=multi-user.target

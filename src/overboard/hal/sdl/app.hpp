@@ -27,9 +27,11 @@
 #include <overboard/gui/keyboard_display.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/hal/i_app.hpp>
+#include <overboard/hal/i_system_info.hpp>
 #include <overboard/hal/sdl/display.hpp>
 #include <overboard/hal/sdl/input.hpp>
 #include <overboard/hal/sdl/keyboard_window.hpp>
+#include <overboard/hal/sdl/system_info.hpp>
 #include <overboard/math/calc_engine.hpp>
 
 namespace ovb::hal::sdl {
@@ -139,6 +141,9 @@ class SDL_App : public I_App {
 
         /// @brief LVGL application view (LCD + key mapping info panel)
         std::unique_ptr<gui::App_View> m_view;
+
+        /// @brief System info provider
+        std::unique_ptr<SDL_System_Info> m_system_info;
 
         /// @brief SDL input for the calculator
         std::unique_ptr<SDL_Input>   m_input;

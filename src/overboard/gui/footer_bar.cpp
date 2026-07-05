@@ -48,7 +48,7 @@ Footer_Bar::Footer_Bar(lv_obj_t* parent, int width)
     lv_obj_set_style_border_width(m_impl->bar, 1, LV_PART_MAIN);
     lv_obj_set_style_pad_all(m_impl->bar, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(m_impl->bar, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(m_impl->bar, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(m_impl->bar, false);
 
     const int slot_w = width / SLOT_COUNT;
 

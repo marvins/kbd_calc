@@ -35,6 +35,10 @@ decimal_places = 6
 
 # UI settings
 [ui]
+# App to show on startup instead of the menu.
+# Options: "menu", "status", "calculator", "settings"
+default_app = "status"
+
 # Highlight color for the focused/cursor node in the expression canvas
 # Specified as a 24-bit RGB hex integer (e.g. 0xD8E8F8 = light blue-gray)
 cursor_highlight_color = 14215416  # 0xD8E8F8

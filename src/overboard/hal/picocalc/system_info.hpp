@@ -66,6 +66,11 @@ class PicoCalc_System_Info : public I_System_Info {
         bool has_bluetooth() const override;
 
         /**
+         * @brief Check if WiFi status is available
+         */
+        bool has_wifi() const override;
+
+        /**
          * @brief Initialize I2C and sensors
          */
         bool init();

@@ -67,21 +67,40 @@ bool PicoCalc_System_Info::has_cpu_temp() const {
     return m_initialized;  // RP2350 always has temp sensor
 }
 
+/***************************************************/
+/*          Check if Battery is available          */
+/***************************************************/
 bool PicoCalc_System_Info::has_battery() const {
     return m_initialized;  // MAX17048 should be present on PicoCalc
 }
 
+/***************************************************/
+/*          Check if Storage is available          */
+/***************************************************/
 bool PicoCalc_System_Info::has_storage() const {
     return m_initialized;  // SD card slot always present
 }
 
+/***************************************************/
+/*          Check if USB is available              */
+/***************************************************/
 bool PicoCalc_System_Info::has_usb() const {
     return m_initialized;  // USB always present
 }
 
+/***************************************************/
+/*          Check if Bluetooth is available        */
+/***************************************************/
 bool PicoCalc_System_Info::has_bluetooth() const {
     // TODO: Detect if BT module installed
     return false;
+}
+
+/*************************************************/
+/*          Check if Wifi is available           */
+/*************************************************/
+bool PicoCalc_System_Info::has_wifi() const {
+    return false;  // PicoCalc has no WiFi hardware
 }
 
 /****************************/

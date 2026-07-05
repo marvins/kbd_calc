@@ -64,10 +64,11 @@ class Calculator_App : public I_App {
          * @param on_back  Optional callback fired when user navigates back (F1)
          * @param settings Optional settings manager for runtime configuration
          */
-        Calculator_App(math::Calc_Engine&                      engine,
-                       core::Layer_Manager&                    layers,
-                       Back_Cb                                 on_back  = {},
-                       std::shared_ptr<core::Settings_Manager> settings = nullptr);
+        Calculator_App( math::Calc_Engine&                      engine,
+                        core::Layer_Manager&                    layers,
+                        hal::I_System_Info&                     system_info,
+                        Back_Cb                                 on_back  = {},
+                        std::shared_ptr<core::Settings_Manager> settings = nullptr );
 
         /**
          * @brief Set keyboard overlay callbacks for popup hotkey display

@@ -1,0 +1,9 @@
+# udev rules for Overboard DRM display access
+# Grants the 'video' group read/write access to DRM and input devices
+# so that calc_app can run without root privileges.
+
+# DRM devices (display output via KMS/DRM)
+SUBSYSTEM=="drm", GROUP="video", MODE="0660"
+
+# Input event devices (keyboard/evdev)
+SUBSYSTEM=="input", GROUP="input", MODE="0660"

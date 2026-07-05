@@ -72,7 +72,7 @@ void LCD_Section::build(lv_obj_t* parent, int avail_w, int avail_h) {
     lv_obj_set_style_shadow_opa(m_bezel, LV_OPA_20, LV_PART_MAIN);
     lv_obj_set_style_shadow_spread(m_bezel, 1, LV_PART_MAIN);
     lv_obj_set_scrollbar_mode(m_bezel, LV_SCROLLBAR_MODE_OFF);
-    lv_obj_clear_flag(m_bezel, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(m_bezel, false);
 
     // History table - positioned above current entry
     m_table = lv_table_create(m_bezel);
@@ -134,7 +134,7 @@ void LCD_Section::build(lv_obj_t* parent, int avail_w, int avail_h) {
     lv_obj_set_style_border_opa(result_debug, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(result_debug, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_radius(result_debug, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(result_debug, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(result_debug, false);
 #else
     lv_obj_set_style_border_width(m_preview_canvas, 1, LV_PART_MAIN);
     lv_obj_set_style_border_color(m_preview_canvas, lvgl_color(LVGL_COLOR_BORDER_MEDIUM), LV_PART_MAIN);
