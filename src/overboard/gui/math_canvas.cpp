@@ -9,10 +9,7 @@
 
 // C++ Standard Libraries
 #include <algorithm>
-#include <functional>
-#include <iostream>
 #include <string>
-#include <vector>
 
 // Third-Party Libraries
 #include <lvgl.h>
@@ -22,6 +19,186 @@
 #include <overboard/math/layout/box.hpp>
 
 namespace ovb::gui {
+
+namespace {
+
+/*****************************/
+/*         Make Area         */
+/*****************************/
+inline lv_area_t make_area(int x1, int y1, int x2, int y2) {
+    return { static_cast<int32_t>(x1),
+             static_cast<int32_t>(y1),
+             static_cast<int32_t>(x2),
+             static_cast<int32_t>(y2) };
+}
+
+/*****************************/
+/*        Draw Cursor        */
+/*****************************/
+static void draw_cursor( lv_layer_t&                      layer,
+                         const math::layout::Layout_Box&  b,
+                         int                              x,
+                         int                              y,
+                         uint32_t                         color )
+{
+    lv_draw_rect_dsc_t hl_dsc;
+    lv_draw_rect_dsc_init(&hl_dsc);
+    hl_dsc.bg_color = lvgl_color(color);
+    hl_dsc.bg_opa   = LV_OPA_COVER;
+    hl_dsc.radius   = 2;
+    const lv_area_t area = make_area(x - 1, y - 1, x + b.size.x + 1, y + b.size.y + 1);
+    lv_draw_rect(&layer, &hl_dsc, &area);
+}
+
+/*****************************/
+/*         Draw Atom         */
+/*****************************/
+static void draw_atom( lv_layer_t&                      layer,
+                       const math::layout::Layout_Box&  b,
+                       int                              x,
+                       int                              y )
+{
+    lv_draw_label_dsc_t label_dsc;
+    lv_draw_label_dsc_init(&label_dsc);
+    label_dsc.color      = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
+    label_dsc.font       = LVGL_FONT_DEFAULT;
+    label_dsc.opa        = LV_OPA_COVER;
+    label_dsc.text       = b.text.c_str();
+    label_dsc.text_local = 1;
+    lv_area_t coords = make_area(x, y, x + b.size.x, y + b.size.y);
+    lv_draw_label(&layer, &label_dsc, &coords);
+}
+
+/*********************************/
+/*      Draw Placeholder         */
+/*********************************/
+static void draw_placeholder( lv_layer_t& layer,
+                               int         x,
+                               int         y,
+                               int         w,
+                               int         h )
+{
+    lv_draw_rect_dsc_t rect_dsc;
+    lv_draw_rect_dsc_init(&rect_dsc);
+    rect_dsc.bg_color     = lvgl_color(LVGL_COLOR_BG_CANVAS);
+    rect_dsc.bg_opa       = LV_OPA_COVER;
+    rect_dsc.border_color = lvgl_color(LVGL_COLOR_BORDER_MEDIUM);
+    rect_dsc.border_opa   = LV_OPA_COVER;
+    rect_dsc.border_width = 1;
+    lv_area_t coords = make_area(x, y, x + w, y + h);
+    lv_draw_rect(&layer, &rect_dsc, &coords);
+}
+
+/*********************************/
+/*      Draw Fraction Bar        */
+/*********************************/
+static void draw_fraction_bar( lv_layer_t&                      layer,
+                               const math::layout::Layout_Box&  b,
+                               int                              x,
+                               int                              y )
+{
+    const auto& num   = b.children[0];
+    int bar_y         = y + num.size.y + 2;
+    int bar_width     = std::max(num.size.x, b.children[1].size.x);
+
+    lv_draw_rect_dsc_t rect_dsc;
+    lv_draw_rect_dsc_init(&rect_dsc);
+    rect_dsc.bg_color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
+    rect_dsc.bg_opa   = LV_OPA_COVER;
+    lv_area_t bar_coords = make_area( x + (b.size.x - bar_width) / 2,
+                                      bar_y,
+                                      x + (b.size.x + bar_width) / 2,
+                                      bar_y + 2 );
+    lv_draw_rect(&layer, &rect_dsc, &bar_coords);
+}
+
+/*****************************/
+/*        Draw Sqrt          */
+/*****************************/
+static void draw_sqrt( lv_layer_t&                      layer,
+                       const math::layout::Layout_Box&  b,
+                       int                              x,
+                       int                              y )
+{
+    const int symbol_width = 2 * static_cast<int>(b.scale);
+    const int top_pad      = 2 * static_cast<int>(b.scale);
+    const int text_offset  = 2;
+
+    // Horizontal bar over the argument
+    lv_draw_rect_dsc_t rect_dsc;
+    lv_draw_rect_dsc_init(&rect_dsc);
+    rect_dsc.bg_color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
+    rect_dsc.bg_opa   = LV_OPA_COVER;
+    lv_area_t bar_coords = make_area( x + symbol_width, y + top_pad,
+                                      x + b.size.x,     y + top_pad + 2 );
+    lv_draw_rect(&layer, &rect_dsc, &bar_coords);
+
+    // √ symbol — vertical line and diagonal tick
+    lv_draw_line_dsc_t line_dsc;
+    lv_draw_line_dsc_init(&line_dsc);
+    line_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
+    line_dsc.width = 1;
+    line_dsc.opa   = LV_OPA_COVER;
+
+    line_dsc.p1 = { static_cast<lv_value_precise_t>(x + 1), static_cast<lv_value_precise_t>(y + top_pad) };
+    line_dsc.p2 = { static_cast<lv_value_precise_t>(x + 1), static_cast<lv_value_precise_t>(y + b.size.y - text_offset) };
+    lv_draw_line(&layer, &line_dsc);
+
+    line_dsc.p1 = { static_cast<lv_value_precise_t>(x + 1),            static_cast<lv_value_precise_t>(y + b.size.y - text_offset) };
+    line_dsc.p2 = { static_cast<lv_value_precise_t>(x + symbol_width), static_cast<lv_value_precise_t>(y + top_pad) };
+    lv_draw_line(&layer, &line_dsc);
+}
+
+/*****************************/
+/*       Box Renderer        */
+/*****************************/
+struct Box_Renderer {
+    lv_layer_t&            layer;
+    const math::ast::Node* cursor_node;
+    uint32_t               cursor_color;
+    int                    scroll_x;
+    int                    scroll_y;
+
+    void draw(const math::layout::Layout_Box& b) const {
+        const int x = b.pos.x + scroll_x;
+        const int y = b.pos.y + scroll_y;
+
+        if (cursor_node && b.node_ptr == cursor_node && b.size.x > 0 && b.size.y > 0) {
+            draw_cursor(layer, b, x, y, cursor_color);
+        }
+
+        switch (b.kind) {
+            case math::layout::Box_Kind::ATOM:
+                if (!b.text.empty()) {
+                    draw_atom(layer, b, x, y);
+                } else {
+                    draw_placeholder(layer, x, y, b.size.x, b.size.y);
+                }
+                break;
+
+            case math::layout::Box_Kind::FRACTION:
+                if (b.children.size() == 2) {
+                    draw_fraction_bar(layer, b, x, y);
+                }
+                break;
+
+            case math::layout::Box_Kind::SQRT:
+                if (!b.children.empty()) {
+                    draw_sqrt(layer, b, x, y);
+                }
+                break;
+
+            default:
+                break;
+        }
+
+        for (const auto& child : b.children) {
+            draw(child);
+        }
+    }
+};
+
+} // anonymous namespace
 
 /************************************/
 /*       Draw Math To Canvas        */
@@ -46,9 +223,7 @@ bool draw_math_to_canvas( lv_obj_t*                     canvas,
     lv_draw_rect_dsc_init(&bg_dsc);
     bg_dsc.bg_color = lvgl_color(LVGL_COLOR_BG_CANVAS);
     bg_dsc.bg_opa   = LV_OPA_COVER;
-    const lv_area_t bg_area = { 0, 0,
-        static_cast<int32_t>(width  - 1),
-        static_cast<int32_t>(height - 1) };
+    const lv_area_t bg_area = make_area(0, 0, width - 1, height - 1);
     lv_draw_rect(&layer, &bg_dsc, &bg_area);
 
     if (!ast) {
@@ -56,9 +231,8 @@ bool draw_math_to_canvas( lv_obj_t*                     canvas,
         return false;
     }
 
-    // Build layout from AST (upper left)
+    // Build layout from AST and position within canvas
     auto box = layout_engine.build(ast.get());
-    // Measure and center in canvas (original behavior)
     layout_engine.prepare(box, {width, height});
 
     // Calculate scroll offset to keep cursor in view
@@ -67,134 +241,12 @@ bool draw_math_to_canvas( lv_obj_t*                     canvas,
     if (cursor_node) {
         auto cursor_pos = layout_engine.find_node_position(box, cursor_node);
         if (cursor_pos) {
-            // Scroll to keep cursor in center of canvas
-            scroll_x = (width / 2) - cursor_pos->x;
+            scroll_x = (width  / 2) - cursor_pos->x;
             scroll_y = (height / 2) - cursor_pos->y;
         }
     }
 
-    // Draw boxes recursively with scroll offset
-    std::function<void(const math::layout::Layout_Box&, int, int)> draw_box;
-    draw_box = [&](const math::layout::Layout_Box& b, int offset_x, int offset_y) {
-            int x = b.pos.x + offset_x + scroll_x;
-            int y = b.pos.y + offset_y + scroll_y;
-
-            // Draw cursor highlight behind the focused node
-            if (cursor_node && b.node_ptr == cursor_node && b.size.x > 0 && b.size.y > 0) {
-                lv_draw_rect_dsc_t hl_dsc;
-                lv_draw_rect_dsc_init(&hl_dsc);
-                hl_dsc.bg_color = lvgl_color(cursor_highlight_color);
-                hl_dsc.bg_opa   = LV_OPA_COVER;
-                hl_dsc.radius   = 2;
-                const lv_area_t hl_area = {
-                    static_cast<int32_t>(x - 1),
-                    static_cast<int32_t>(y - 1),
-                    static_cast<int32_t>(x + b.size.x + 1),
-                    static_cast<int32_t>(y + b.size.y + 1)
-                };
-                lv_draw_rect(&layer, &hl_dsc, &hl_area);
-            }
-
-            if (b.kind == math::layout::Box_Kind::ATOM) {
-                if (!b.text.empty()) {
-                    lv_draw_label_dsc_t label_dsc;
-                    lv_draw_label_dsc_init(&label_dsc);
-                    label_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
-                    label_dsc.font  = LVGL_FONT_DEFAULT;
-                    label_dsc.opa   = LV_OPA_COVER;
-
-                    lv_area_t coords = {
-                        static_cast<int32_t>(x),
-                        static_cast<int32_t>(y),
-                        static_cast<int32_t>(x + b.size.x),
-                        static_cast<int32_t>(y + b.size.y)
-                    };
-                    label_dsc.text       = b.text.c_str();
-                    label_dsc.text_local = 1;
-                    lv_draw_label(&layer, &label_dsc, &coords);
-                } else {
-                    // Draw placeholder outline box
-                    lv_draw_rect_dsc_t rect_dsc;
-                    lv_draw_rect_dsc_init(&rect_dsc);
-                    rect_dsc.bg_color = lvgl_color(LVGL_COLOR_BG_CANVAS);
-                    rect_dsc.bg_opa   = LV_OPA_COVER;
-                    rect_dsc.border_color = lvgl_color(LVGL_COLOR_BORDER_MEDIUM);
-                    rect_dsc.border_opa   = LV_OPA_COVER;
-                    rect_dsc.border_width = 1;
-
-                    lv_area_t coords = {
-                        static_cast<int32_t>(x),
-                        static_cast<int32_t>(y),
-                        static_cast<int32_t>(x + b.size.x),
-                        static_cast<int32_t>(y + b.size.y)
-                    };
-                    lv_draw_rect(&layer, &rect_dsc, &coords);
-                }
-            }
-
-            if (b.kind == math::layout::Box_Kind::FRACTION && b.children.size() == 2) {
-                const auto& num = b.children[0];
-                const auto& den = b.children[1];
-                int bar_y     = y + num.size.y + 2;
-                int bar_width = std::max(num.size.x, den.size.x);
-
-                lv_draw_rect_dsc_t rect_dsc;
-                lv_draw_rect_dsc_init(&rect_dsc);
-                rect_dsc.bg_color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
-                rect_dsc.bg_opa   = LV_OPA_COVER;
-
-                lv_area_t bar_coords = {
-                    static_cast<int32_t>(x + (b.size.x - bar_width) / 2),
-                    static_cast<int32_t>(bar_y),
-                    static_cast<int32_t>(x + (b.size.x + bar_width) / 2),
-                    static_cast<int32_t>(bar_y + 2)
-                };
-                lv_draw_rect(&layer, &rect_dsc, &bar_coords);
-            }
-
-            if (b.kind == math::layout::Box_Kind::SQRT && !b.children.empty()) {
-                int symbol_width = 2 * static_cast<int>(b.scale);
-                int top_pad = 2 * static_cast<int>(b.scale);
-                int text_offset = 2;
-
-                // Draw horizontal bar over the argument
-                lv_draw_rect_dsc_t rect_dsc;
-                lv_draw_rect_dsc_init(&rect_dsc);
-                rect_dsc.bg_color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
-                rect_dsc.bg_opa   = LV_OPA_COVER;
-
-                lv_area_t bar_coords = {
-                    static_cast<int32_t>(x + symbol_width),
-                    static_cast<int32_t>(y + top_pad),
-                    static_cast<int32_t>(x + b.size.x),
-                    static_cast<int32_t>(y + top_pad + 2)
-                };
-                lv_draw_rect(&layer, &rect_dsc, &bar_coords);
-
-                // Draw √ symbol (vertical line and tick)
-                lv_draw_line_dsc_t line_dsc;
-                lv_draw_line_dsc_init(&line_dsc);
-                line_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
-                line_dsc.width = 1;
-                line_dsc.opa   = LV_OPA_COVER;
-
-                // Vertical line
-                line_dsc.p1 = { static_cast<lv_value_precise_t>(x + 1), static_cast<lv_value_precise_t>(y + top_pad) };
-                line_dsc.p2 = { static_cast<lv_value_precise_t>(x + 1), static_cast<lv_value_precise_t>(y + b.size.y - text_offset) };
-                lv_draw_line(&layer, &line_dsc);
-
-                // Tick mark (diagonal)
-                line_dsc.p1 = { static_cast<lv_value_precise_t>(x + 1), static_cast<lv_value_precise_t>(y + b.size.y - text_offset) };
-                line_dsc.p2 = { static_cast<lv_value_precise_t>(x + symbol_width), static_cast<lv_value_precise_t>(y + top_pad) };
-                lv_draw_line(&layer, &line_dsc);
-            }
-
-            for (const auto& child : b.children) {
-                draw_box(child, offset_x, offset_y);
-            }
-        };
-
-        draw_box(box, 0, 0);
+    Box_Renderer{ layer, cursor_node, cursor_highlight_color, scroll_x, scroll_y }.draw(box);
 
     // Draw result in lower right if present
     if (!result_str.empty()) {
@@ -203,15 +255,10 @@ bool draw_math_to_canvas( lv_obj_t*                     canvas,
         result_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
         result_dsc.font  = LVGL_FONT_DEFAULT;
         result_dsc.opa   = LV_OPA_COVER;
+        result_dsc.text  = result_str.c_str();
 
-        // Result in lower right
-        lv_area_t result_coords = {
-            static_cast<int32_t>(width / 2),   // Start at 50% width
-            static_cast<int32_t>(height / 2),  // Start at 50% height
-            static_cast<int32_t>(width - 10),
-            static_cast<int32_t>(height - 10)
-        };
-        result_dsc.text = result_str.c_str();
+        lv_area_t result_coords = make_area( width / 2, height / 2,
+                                             width - 10, height - 10 );
         lv_draw_label(&layer, &result_dsc, &result_coords);
     }
 

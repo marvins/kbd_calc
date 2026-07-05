@@ -4,10 +4,10 @@
 
 Goal: Refactor the monolithic draw lambda in `math_canvas.cpp` for better maintainability and performance.
 
-- [ ] Extract per-kind draw functions — split the 120-line lambda into named static helpers (`draw_atom`, `draw_placeholder`, `draw_fraction_bar`, `draw_sqrt`)
-- [ ] Add `make_area` inline helper — eliminate repeated `lv_area_t` construction with `static_cast<int32_t>` noise
-- [ ] Replace `std::function` with local recursive struct — zero-cost recursion without heap allocation
-- [ ] Remove `offset_x / offset_y` parameters — `layout()` already sets absolute positions, offsets are always `0, 0`
+- [x] Extract per-kind draw functions — split the 120-line lambda into named static helpers (`draw_atom`, `draw_placeholder`, `draw_fraction_bar`, `draw_sqrt`)
+- [x] Add `make_area` inline helper — eliminate repeated `lv_area_t` construction with `static_cast<int32_t>` noise
+- [x] Replace `std::function` with local recursive struct — zero-cost recursion without heap allocation
+- [x] Remove `offset_x / offset_y` parameters — `layout()` already sets absolute positions, offsets are always `0, 0`
 - [ ] Derive canvas size internally — query `lv_obj_get_width/height(canvas)` instead of passing `width`/`height` parameters
 - [ ] Move result string rendering into layout tree — currently drawn with hardcoded offsets, should be a proper layout region
 
@@ -19,15 +19,7 @@ Goal: Get the calculator working end-to-end for basic arithmetic and algebra.
 
 **New Operations:**
 
-*Roots & Powers:*
-- [x] `factorial(n)` or `n!` — factorial function (already exists)
-- [x] `cbrt(x)` — cube root (∛x)
-- [x] `nthroot(x, n)` — nth root (ⁿ√x)
-- [x] `x^3` — cube power (already exists as POWER_3)
-- [x] `x^y` — general power function (POWER_N)
-
 *Absolute Value & Sign:*
-- [x] `abs(x)` — absolute value (|x|)
 - [ ] `sign(x)` — sign function (returns -1, 0, or 1)
 
 *Rounding & Truncation:*
@@ -156,14 +148,14 @@ Goal: F1–F10 on PicoCalc shows a popup anchored to the footer slot, with pagin
 Goal: PgUp/PgDn cycles through named contexts, each defining what F1–F5 do and their labels in the footer bar. Each F-key opens a popup menu with context-specific items.
 
 **Core Context Infrastructure:**
-- [ ] Define `F_Key_Context` struct with name, 5 footer labels, and 5 popup item lists
-- [ ] Add `m_contexts` vector and `m_active_context` index to `Calculator_App`
-- [ ] Implement `cycle_context(int delta)` and `apply_context()` in `Calculator_App`
-- [ ] Wire PgUp/PgDn to `cycle_context()` while calculator is active
+- [x] Define `F_Key_Context` struct with name, 5 footer labels, and 5 popup item lists
+- [x] Add `m_contexts` vector and `m_active_context` index to `Calculator_App`
+- [x] Implement `cycle_context(int delta)` and `apply_context()` in `Calculator_App`
+- [x] Wire PgUp/PgDn to `cycle_context()` while calculator is active
 - [ ] Update footer bar to show context name and page indicator (e.g. "Core Math 1/4")
 
 **Context Definitions (Default Layer):**
-- [ ] Core Math context: F1=Alg, F2=Trig, F3=Const, F4=Log, F5=Round
+- [x] Core Math context: F1=Alg, F2=Trig, F3=Const, F4=Log, F5=Round
 - [ ] Number Theory context: F1=Factor, F2=Divis, F3=Mod, F4=Base, F5=Comb
 - [ ] Statistics context: F1=Avg, F2=Spread, F3=Dist, F4=Fit, F5=Misc
 - [ ] Units & Conversions context: F1=Len, F2=Mass, F3=Temp, F4=Area, F5=Speed

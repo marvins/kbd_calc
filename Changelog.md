@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.13.0] - 2026-07-05
+
+### Added
+- **Calculator**:
+  - F-Key Context system: `F_Key_Context` struct with 5 footer labels and popup item lists; `Calculator_App` holds `m_contexts` vector and `m_active_context` index
+  - `cycle_context()` / `apply_context()`: PgUp/PgDn cycles contexts, rebuilding popups and updating footer labels
+  - Core Math context: Alg (F1), Trig (F2), Const (F3), Log (F4), Round (F5) — replaces hardcoded 3-popup layout
+  - `get_custom_label()` context-awareness: keyboard overlay labels reflect active context's footer labels
+
+### Changed
+- `math_canvas.cpp`: refactored monolithic `draw_box` lambda into named static helpers (`draw_atom`, `draw_placeholder`, `draw_fraction_bar`, `draw_sqrt`, `draw_cursor`) and `Box_Renderer` recursive struct; replaced `std::function` with zero-cost recursion; added `make_area()` helper; removed `offset_x`/`offset_y` parameters
+
+### Removed
+- `Popup_Menu` enum — superseded by the context system
+
+---
+
 ## [0.12.1] - 2026-07-05
 
 ### Fixed
