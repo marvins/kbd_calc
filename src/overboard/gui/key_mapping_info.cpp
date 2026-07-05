@@ -38,7 +38,7 @@ Key_Mapping_Info::Key_Mapping_Info( lv_obj_t*                      parent,
     lv_obj_set_style_border_width(m_container, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(m_container, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(m_container, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(m_container, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(m_container, false);
 
     LOG_TRACE("Key_Mapping_Info: Creating header bar");
     // Header bar: layer name
@@ -49,7 +49,7 @@ Key_Mapping_Info::Key_Mapping_Info( lv_obj_t*                      parent,
     lv_obj_set_style_border_width(header, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(header, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(header, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(header, false);
 
     m_header_label = lv_label_create(header);
     const std::string layer_text = "Layer: " + std::string(m_layers.current_layer().name);
@@ -137,9 +137,9 @@ void Key_Mapping_Info::build_keys(lv_obj_t* parent) {
 
         // Hide label if no text to display
         if (text.empty()) {
-            lv_obj_add_flag(lbl, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_hidden(lbl, true);
         } else {
-            lv_obj_clear_flag(lbl, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_hidden(lbl, false);
         }
 
         LOG_TRACE("Key_Mapping_Info::build_keys: Label text set for key " + std::to_string(i));
@@ -188,9 +188,9 @@ void Key_Mapping_Info::update_layer() {
 
         // Show/hide label based on whether there's text
         if (text.empty()) {
-            lv_obj_add_flag(m_key_labels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_hidden(m_key_labels[i], true);
         } else {
-            lv_obj_clear_flag(m_key_labels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_hidden(m_key_labels[i], false);
         }
     }
     LOG_DEBUG("Key_Mapping_Info::update_layer: complete");
@@ -249,9 +249,9 @@ void Key_Mapping_Info::apply_top_overlay() {
         lv_label_set_text(m_key_labels[i], text.c_str());
         lv_obj_set_style_text_font(m_key_labels[i], LVGL_FONT_SMALL, LV_PART_MAIN);
         if (text.empty()) {
-            lv_obj_add_flag(m_key_labels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_hidden(m_key_labels[i], true);
         } else {
-            lv_obj_clear_flag(m_key_labels[i], LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_hidden(m_key_labels[i], false);
         }
     }
 
@@ -261,7 +261,7 @@ void Key_Mapping_Info::apply_top_overlay() {
             lv_obj_t* label = m_key_labels[static_cast<size_t>(key.key_index)];
             if (label) {
                 lv_label_set_text(label, key.label.c_str());
-                lv_obj_clear_flag(label, LV_OBJ_FLAG_HIDDEN);
+                lv_obj_set_hidden(label, false);
 
                 // Use custom font for math symbols
                 if (font::requires_custom_font(key.label)) {

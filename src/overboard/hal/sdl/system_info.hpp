@@ -60,6 +60,11 @@ class SDL_System_Info : public I_System_Info {
          */
         bool has_bluetooth() const override;
 
+        /**
+         * @brief Check if WiFi status is available
+         */
+        bool has_wifi() const override;
+
     private:
         /**
          * @brief Read CPU temperature (platform-specific)

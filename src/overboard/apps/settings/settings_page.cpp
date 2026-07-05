@@ -199,11 +199,14 @@ void Settings_Page::update_save_button_state() {
     }
 }
 
+
 /*******************************/
 /*          Constructor        */
 /*******************************/
-Settings_Page::Settings_Page(std::shared_ptr<core::Settings_Manager> settings, Back_Cb on_back)
-    : m_settings(settings), m_on_back(std::move(on_back)) {}
+Settings_Page::Settings_Page(hal::I_System_Info& system_info,
+                     std::shared_ptr<core::Settings_Manager> settings,
+                     Back_Cb on_back)
+    : m_settings(settings), m_system_info(system_info), m_on_back(std::move(on_back)) {}
 
 /*******************************/
 /*          Destructor         */
@@ -222,13 +225,15 @@ void Settings_Page::activate(lv_obj_t* parent) {
     lv_obj_set_style_bg_color(m_container, lvgl_color(LVGL_COLOR_BG_SCREEN), LV_PART_MAIN);
     lv_obj_set_style_border_width(m_container, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(m_container, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(m_container, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(m_container, false);
 
     // Use explicit dimensions - parent may not be laid out yet
     const int width = hal::LCD_WIDTH;
 
     // Header bar
-    m_header = std::make_unique<Header_Bar>(m_container, width);
+    m_header = std::make_unique<Header_Bar>( m_container,
+                                             width,
+                                             m_system_info );
     m_header->set_app_name("Settings");
 
     // Button bar (Save / Reload)

@@ -23,6 +23,7 @@
 #include <overboard/core/settings_manager.hpp>
 #include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
+#include <overboard/hal/pi_zero/system_info.hpp>
 #include <overboard/hal/settings_store_factory.hpp>
 #include <overboard/io/keyboard_config.hpp>
 #include <overboard/log/stdout_logger.hpp>
@@ -101,13 +102,16 @@ bool PiZero_App::init() {
     auto settings_store = Settings_Store_Factory::create();
     auto settings = std::make_shared<core::Settings_Manager>(std::move(settings_store));
 
-    // Create main application view
+    // Create system info and main application view
+    m_system_info = std::make_unique<PiZero_System_Info>();
+    m_system_info->init();
     m_view = std::make_unique<gui::App_View>(
         m_display->screen(),
         m_layout,
         m_engine,
         m_layers,
-        settings
+        settings,
+        *m_system_info
     );
 
     // Create input handler (try common keyboard devices)

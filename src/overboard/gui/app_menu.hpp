@@ -50,12 +50,14 @@ class App_Menu : public I_Panel {
          * @brief Construct the menu panel
          * @param apps Apps to own and register with Panel_Manager
          * @param panels Panel_Manager to register apps with
+         * @param system_info System info provider
          * @param items List of menu items from App_Registry
          * @param on_select Callback fired when user selects an app (passes panel_index)
          * @param initial_selection Index of item to pre-select
          */
         App_Menu( std::vector<std::shared_ptr<I_App>> apps,
                   Panel_Manager& panels,
+                  hal::I_System_Info& system_info,
                   std::vector<Menu_Item> items,
                   Select_Cb on_select,
                   int initial_selection = 0 );
@@ -113,7 +115,7 @@ class App_Menu : public I_Panel {
          * @param key_index The key index
          * @return "Sel" for key 28 (Enter key), empty for others
          */
-        std::string get_custom_label(int key_index) const override;
+        std::string get_custom_label( int key_index ) const override;
 
     private:
 
@@ -121,34 +123,37 @@ class App_Menu : public I_Panel {
         void select_current();
 
         /// @brief Owned apps
-        std::vector<std::shared_ptr<I_App>> apps;
+        std::vector<std::shared_ptr<I_App>> m_apps;
 
         /// @brief Panel indices from Panel_Manager
-        std::vector<int>                   panel_indices;
+        std::vector<int>                   m_panel_indices;
 
         /// @brief Menu items
-        std::vector<Menu_Item>             menu_items;
+        std::vector<Menu_Item>             m_menu_items;
 
         /// @brief Select callback
-        Select_Cb                          on_select;
+        Select_Cb                          m_on_select;
 
         /// @brief Initial selection index
-        int                                initial_selection;
+        int                                m_initial_selection;
+
+        /// @brief System info provider
+        hal::I_System_Info&                m_system_info;
 
         /// @brief Container object
-        lv_obj_t*                          container  = nullptr;
+        lv_obj_t*                          m_container  = nullptr;
 
         /// @brief Header bar
-        std::unique_ptr<Header_Bar>        header;
+        std::unique_ptr<Header_Bar>        m_header;
 
         /// @brief Footer bar
-        std::unique_ptr<Footer_Bar>        footer;
+        std::unique_ptr<Footer_Bar>        m_footer;
 
         /// @brief List object
-        lv_obj_t*                          list       = nullptr;
+        lv_obj_t*                          m_list       = nullptr;
 
         /// @brief Selected index
-        int                                selected   = 0;
+        int                                m_selected   = 0;
 };
 
 } // namespace ovb::gui

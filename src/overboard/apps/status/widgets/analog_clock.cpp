@@ -42,7 +42,7 @@ void Analog_Clock::create(lv_obj_t* parent) {
     lv_obj_set_style_border_color(m_circle_bg, lv_color_hex(0x000000), LV_PART_MAIN);
     lv_obj_set_style_border_side(m_circle_bg, LV_BORDER_SIDE_FULL, LV_PART_MAIN);
     lv_obj_set_style_pad_all(m_circle_bg, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(m_circle_bg, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(m_circle_bg, false);
 
     // Hour ticks (12 thick ticks at 5-minute intervals)
     const float center = CLOCK_SIZE / 2.0f;
@@ -105,7 +105,7 @@ void Analog_Clock::create(lv_obj_t* parent) {
     lv_obj_set_style_radius(cap, 6, LV_PART_MAIN);
     lv_obj_set_style_bg_color(cap, lv_color_hex(0x000000), LV_PART_MAIN);
     lv_obj_set_style_border_width(cap, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(cap, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(cap, false);
 
     // Hour hand line
     m_hour_needle = lv_line_create(m_circle_bg);

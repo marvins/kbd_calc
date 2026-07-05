@@ -8,7 +8,7 @@ trigger: always_on
 - **Classes**: `Snake_Case` with first letter of each word capitalised — e.g. `Layer_Manager`, `Calc_Engine`
 - **Acronyms in class names**: stay fully uppercase — e.g. `SDL_Display`, `I2C_Driver`, `USB_Hub`
 - **Files**: `snake_case.cpp` / `snake_case.hpp`
-- **Member variables**: `snake_case_` (trailing underscore)
+- **Member variables**: `m_var_name` (m_ prefix)
 - **Local variables / parameters**: `snake_case`
 - **Constants / `constexpr`**: `UPPER_CASE`
 - **Enums and enum values**: `Snake_Case` class enum, values `Snake_Case` — e.g. `Key_Event_Type::Press`
@@ -144,6 +144,14 @@ Within each include section, headers must be **alphabetized** unless there is a 
 
 - Use `std::optional`, `std::expected`, or error-code returns instead of throwing.
 - When calling third-party APIs that throw (e.g. `nlohmann::json::parse`), wrap them in `#ifdef TARGET_SDL` guards or use their non-throwing overloads (e.g. `json::parse(s, nullptr, false)` with `is_discarded()` check).
+
+## Logging
+Use the logging macros (`LOG_TRACE`, `LOG_DEBUG`, `LOG_INFO`, `LOG_WARN`, `LOG_ERROR`) for all logging. The logger does **not** support `{}` style format strings. Use comma-separated arguments for string concatenation:
+
+```cpp
+// Correct
+LOG_WARN("Failed to get storage stats: ", std::strerror(errno));
+```
 
 ## File Header / Include Order
 

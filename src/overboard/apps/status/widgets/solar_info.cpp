@@ -90,7 +90,7 @@ static void make_row_item(lv_obj_t* parent,
     lv_obj_set_style_border_width(row, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(row, 0, LV_PART_MAIN);
     lv_obj_set_size(row, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_clear_flag(row, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(row, false);
     lv_obj_set_layout(row, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(row, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(row, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -134,7 +134,7 @@ void Solar_Info::create(lv_obj_t* parent) {
     lv_obj_set_style_border_width(m_impl->container, 1, LV_PART_MAIN);
     lv_obj_set_style_radius(m_impl->container, 8, LV_PART_MAIN);
     lv_obj_set_style_pad_all(m_impl->container, 10, LV_PART_MAIN);
-    lv_obj_clear_flag(m_impl->container, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(m_impl->container, false);
 
     // Vertical flex layout for card contents
     lv_obj_set_layout(m_impl->container, LV_LAYOUT_FLEX);
@@ -155,7 +155,7 @@ void Solar_Info::create(lv_obj_t* parent) {
     lv_obj_set_style_bg_opa(arc_container, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(arc_container, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(arc_container, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(arc_container, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(arc_container, false);
 
     // Background arc (full day semicircle, grey)
     // Top semicircle: 180° (left/sunrise) → 360°/0° (right/sunset) going through 270° (top/noon)
@@ -169,8 +169,15 @@ void Solar_Info::create(lv_obj_t* parent) {
     lv_obj_set_style_arc_width(m_impl->arc_bg, ARC_LINE_WIDTH, LV_PART_MAIN);
     lv_obj_set_style_arc_color(m_impl->arc_bg, lv_color_hex(COLOR_ARC_FG), LV_PART_INDICATOR);
     lv_obj_set_style_arc_width(m_impl->arc_bg, ARC_LINE_WIDTH, LV_PART_INDICATOR);
+
+    // Disable events on the arc background
+    // TODO: Replace with lv_obj_add_event_cb when LVGL is updated
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     lv_obj_add_flag(m_impl->arc_bg, LV_OBJ_FLAG_EVENT_BUBBLE);
-    lv_obj_clear_flag(m_impl->arc_bg, LV_OBJ_FLAG_CLICKABLE);
+#pragma GCC diagnostic pop
+
+    lv_obj_set_clickable(m_impl->arc_bg, false);
     lv_obj_set_style_bg_opa(m_impl->arc_bg, LV_OPA_TRANSP, LV_PART_KNOB);
     lv_obj_set_style_pad_all(m_impl->arc_bg, 0, LV_PART_KNOB);
 
@@ -272,7 +279,7 @@ void Solar_Info::update(const std::tm& tm) {
             progress = (current_hour - solar.sunrise_hour) / day_len;
             progress = std::max(0.0, std::min(1.0, progress));
         }
-        
+
         std::ostringstream oss;
         oss << std::fixed << std::setprecision(2)
             << "Solar: current=" << current_hour
@@ -281,7 +288,7 @@ void Solar_Info::update(const std::tm& tm) {
             << ", sunset=" << solar.sunset_hour
             << std::setprecision(3) << ", progress=" << progress;
         LOG_DEBUG(oss.str());
-        
+
         lv_arc_set_value(m_impl->arc_bg, static_cast<int32_t>(progress * 100.0));
 
         // Sun dot position along the arc
@@ -292,7 +299,7 @@ void Solar_Info::update(const std::tm& tm) {
         // Map progress [0..1] to LVGL angle [180..360] (or [180..0] wrapping through 270)
         // In standard math: left=180°, top=90°, right=0°
         // progress=0 (sunrise): angle = 180° (left)
-        // progress=0.5 (noon): angle = 90° (top) 
+        // progress=0.5 (noon): angle = 90° (top)
         // progress=1.0 (sunset): angle = 0° (right)
         const float math_angle_deg = static_cast<float>(180.0 - progress * 180.0);
         const float math_angle_rad = math_angle_deg * 3.14159265f / 180.0f;
@@ -332,7 +339,12 @@ void Solar_Info::update(const std::tm& tm) {
 /*******************************/
 void Solar_Info::destroy() {
     if (m_impl->container) {
-        lv_obj_del(m_impl->container);
+        // Check if the object still has a valid parent before deleting
+        // This prevents segfaults during shutdown when the object tree is partially destroyed
+        lv_obj_t* parent = lv_obj_get_parent(m_impl->container);
+        if (parent) {
+            lv_obj_del(m_impl->container);
+        }
         m_impl->container   = nullptr;
         m_impl->title_label = nullptr;
         m_impl->arc_bg      = nullptr;

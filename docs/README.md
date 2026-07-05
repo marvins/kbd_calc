@@ -23,11 +23,6 @@ Font generation and integration for math typesetting, including superscript glyp
 ### [Tasks & Roadmap](tasks.md)
 Current development phases, active tasks, and future feature backlog organized by priority.
 
-## Implementation Details
-
-### [Math Canvas Refactor Ideas](math_canvas_refactor_ideas.md)
-Proposed improvements for the math rendering system.
-
 ## Quick Start
 
 1. **Understanding the system:** Start with [Architecture](architecture.md)

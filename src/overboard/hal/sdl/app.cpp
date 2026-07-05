@@ -26,8 +26,9 @@
 #include <overboard/core/settings_manager.hpp>
 #include <overboard/gui/app_view.hpp>
 #include <overboard/hal/display_config.hpp>
-#include <overboard/hal/sdl/keymap.hpp>
 #include <overboard/hal/sdl/input.hpp>
+#include <overboard/hal/sdl/keymap.hpp>
+#include <overboard/hal/sdl/system_info.hpp>
 #include <overboard/hal/settings_store_factory.hpp>
 #include <overboard/io/keyboard_config.hpp>
 #include <overboard/log/stdout_logger.hpp>
@@ -103,10 +104,16 @@ bool SDL_App::init() {
         auto settings_store = Settings_Store_Factory::create();
         auto settings = std::make_shared<core::Settings_Manager>(std::move(settings_store));
 
-        // Create GUI view and attach to LVGL screen
-        LOG_DEBUG("Creating App_View");
+        // Create system info and GUI view
+        LOG_DEBUG("Creating System_Info and App_View");
+        m_system_info = std::make_unique<SDL_System_Info>();
         m_view = std::make_unique<gui::App_View>(
-            m_display->screen(), m_layout, m_engine, m_layers, settings);
+            m_display->screen(),
+            m_layout,
+            m_engine,
+            m_layers,
+            settings,
+            *m_system_info);
         LOG_TRACE("App_View created successfully");
 
         // Build input_key -> key_index mapping from keyboard.json

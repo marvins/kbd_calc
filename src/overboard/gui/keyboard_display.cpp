@@ -39,7 +39,7 @@ Keyboard_Display::Keyboard_Display( lv_obj_t*                      parent,
     lv_obj_set_style_border_width(m_container, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(m_container, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(m_container, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(m_container, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(m_container, false);
 
     LOG_TRACE("Keyboard_Display: Creating header bar");
     // Header bar: layer name
@@ -50,7 +50,7 @@ Keyboard_Display::Keyboard_Display( lv_obj_t*                      parent,
     lv_obj_set_style_border_width(header, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(header, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(header, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(header, false);
 
     LOG_TRACE("Keyboard_Display: Creating header label");
     m_header_label = lv_label_create(header);
@@ -152,9 +152,9 @@ void Keyboard_Display::build_keys(lv_obj_t* parent) {
 
         // Hide label if no text to display
         if (text.empty()) {
-            lv_obj_add_flag(lbl, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_hidden(lbl, true);
         } else {
-            lv_obj_clear_flag(lbl, LV_OBJ_FLAG_HIDDEN);
+            lv_obj_set_hidden(lbl, false);
         }
 
         LOG_TRACE("build_keys: Label text set for key " + std::to_string(i));
@@ -184,7 +184,7 @@ void Keyboard_Display::set_click_callback(Click_Callback cb) {
     m_click_cb = std::move(cb);
     for (lv_obj_t* rect : m_key_rects) {
         if (!rect) continue;
-        lv_obj_add_flag(rect, LV_OBJ_FLAG_CLICKABLE);
+        lv_obj_set_clickable(rect, true);
         lv_obj_add_event_cb(rect, on_btn_clicked, LV_EVENT_CLICKED, this);
     }
 }

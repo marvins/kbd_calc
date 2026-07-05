@@ -34,7 +34,7 @@ void Digital_Clock::create(lv_obj_t* parent) {
     lv_obj_set_style_bg_opa(m_container, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(m_container, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(m_container, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(m_container, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(m_container, false);
 
     // Use flex layout to stack labels vertically
     lv_obj_set_layout(m_container, LV_LAYOUT_FLEX);

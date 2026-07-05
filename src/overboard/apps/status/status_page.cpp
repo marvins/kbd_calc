@@ -33,16 +33,23 @@ namespace ovb::gui {
 /*            Impl             */
 /*******************************/
 struct Status_Page::Impl {
-    Impl(const core::Layer_Manager& l,
-         std::shared_ptr<core::Settings_Manager> s,
-         Dismiss_Cb cb,
-         std::shared_ptr<hal::I_System_Info> si)
-        : layers(l), settings(s), on_dismiss(std::move(cb)), system_info(std::move(si)) {}
+
+    /**
+     * @brief Constructor
+     */
+    Impl( const core::Layer_Manager&              l,
+          hal::I_System_Info&                     si,
+          std::shared_ptr<core::Settings_Manager> s,
+          Dismiss_Cb                              cb )
+         : layers(l),
+           system_info(si),
+           settings(s),
+           on_dismiss(std::move(cb)) {}
 
     const core::Layer_Manager&              layers;
+    hal::I_System_Info&                     system_info;
     std::shared_ptr<core::Settings_Manager> settings;
     Dismiss_Cb                              on_dismiss;
-    std::shared_ptr<hal::I_System_Info>     system_info;
     lv_obj_t*                    container   = nullptr;
     lv_timer_t*                  clock_timer = nullptr;
     lv_timer_t*                  solar_timer = nullptr;
@@ -64,10 +71,10 @@ struct Status_Page::Impl {
 /*          Constructor        */
 /*******************************/
 Status_Page::Status_Page( const core::Layer_Manager&              layers,
+                          hal::I_System_Info&                     system_info,
                           std::shared_ptr<core::Settings_Manager> settings,
-                          Dismiss_Cb                              on_dismiss,
-                          std::shared_ptr<hal::I_System_Info>     system_info )
-    : m_impl(std::make_unique<Impl>(layers, settings, std::move(on_dismiss), std::move(system_info))) {}
+                          Dismiss_Cb                              on_dismiss )
+    : m_impl(std::make_unique<Impl>(layers, system_info, settings, std::move(on_dismiss))) {}
 
 /*******************************/
 /*          Destructor         */
@@ -87,13 +94,15 @@ void Status_Page::activate(lv_obj_t* parent) {
     lv_obj_set_style_bg_color(m_impl->container, lvgl_color(LVGL_COLOR_BG_SCREEN), LV_PART_MAIN);
     lv_obj_set_style_border_width(m_impl->container, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(m_impl->container, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(m_impl->container, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(m_impl->container, false);
 
     // Use explicit dimensions - parent may not be laid out yet
     const int width = hal::LCD_WIDTH;
 
     // Header bar
-    m_impl->header = std::make_unique<Header_Bar>(m_impl->container, width);
+    m_impl->header = std::make_unique<Header_Bar>( m_impl->container,
+                                                   width,
+                                                   m_impl->system_info );
     m_impl->header->set_app_name("kbd_calc - Status");
     lv_obj_align(m_impl->header->get_obj(), LV_ALIGN_TOP_MID, 0, 0);
 
@@ -103,7 +112,7 @@ void Status_Page::activate(lv_obj_t* parent) {
     lv_obj_set_style_bg_opa(content, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(content, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(content, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(content, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(content, false);
     lv_obj_set_layout(content, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(content, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(content, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -116,7 +125,7 @@ void Status_Page::activate(lv_obj_t* parent) {
     lv_obj_set_style_bg_opa(clock_col, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_border_width(clock_col, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(clock_col, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(clock_col, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(clock_col, false);
     lv_obj_set_layout(clock_col, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(clock_col, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(clock_col, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
@@ -169,6 +178,10 @@ void Status_Page::activate(lv_obj_t* parent) {
         if (impl->digital_clock) {
             impl->digital_clock->update(tm_update);
         }
+
+        if (impl->header) {
+            impl->header->refresh();
+        }
     }, clock_update_ms, m_impl.get());
 
     // Separate timer for solar widget (slower update rate)
@@ -196,9 +209,7 @@ void Status_Page::activate(lv_obj_t* parent) {
     // Footer bar
     m_impl->footer = std::make_unique<Footer_Bar>(m_impl->container, width);
     m_impl->footer->set_label(0, "About");
-    if (m_impl->system_info) {
-        m_impl->footer->set_label(1, "Stats");
-    }
+    m_impl->footer->set_label(1, "Stats");
     lv_obj_align(m_impl->footer->get_obj(), LV_ALIGN_BOTTOM_MID, 0, 0);
 }
 
@@ -251,7 +262,7 @@ bool Status_Page::handle_input(core::Action_Code action) {
     }
 
     // F2 shows Stats popup
-    if (action == core::Action_Code::FUNC_2 && m_impl->system_info) {
+    if (action == core::Action_Code::FUNC_2) {
         show_stats_popup();
     }
 
@@ -286,7 +297,7 @@ bool Status_Page::handle_input_key(core::Input_Key key) {
     }
 
     // F2 shows Stats popup
-    if (key == core::Input_Key::F2 && m_impl->system_info) {
+    if (key == core::Input_Key::F2) {
         show_stats_popup();
         return true;
     }
@@ -369,7 +380,7 @@ void Status_Page::show_stats_popup() {
         m_impl->stats_popup = nullptr;
     }
 
-    const hal::System_Info info = m_impl->system_info->get_info();
+    const hal::System_Info info = m_impl->system_info.get_info();
 
     // Build display rows
     struct Row { std::string label; std::string value; };
@@ -403,7 +414,7 @@ void Status_Page::show_stats_popup() {
     // Battery
     if (info.battery_percent.has_value()) {
         rows.push_back({"Battery", std::to_string(*info.battery_percent) + "%"});
-    } else if (m_impl->system_info->has_battery()) {
+    } else if (m_impl->system_info.has_battery()) {
         rows.push_back({"Battery", "N/A"});
     }
 

@@ -1,5 +1,18 @@
 # Project Tasks
 
+## Phase 0: Math Canvas Cleanup
+
+Goal: Refactor the monolithic draw lambda in `math_canvas.cpp` for better maintainability and performance.
+
+- [ ] Extract per-kind draw functions — split the 120-line lambda into named static helpers (`draw_atom`, `draw_placeholder`, `draw_fraction_bar`, `draw_sqrt`)
+- [ ] Add `make_area` inline helper — eliminate repeated `lv_area_t` construction with `static_cast<int32_t>` noise
+- [ ] Replace `std::function` with local recursive struct — zero-cost recursion without heap allocation
+- [ ] Remove `offset_x / offset_y` parameters — `layout()` already sets absolute positions, offsets are always `0, 0`
+- [ ] Derive canvas size internally — query `lv_obj_get_width/height(canvas)` instead of passing `width`/`height` parameters
+- [ ] Move result string rendering into layout tree — currently drawn with hardcoded offsets, should be a proper layout region
+
+---
+
 ## Phase 1: Calculator — Basic Algebra  ← **NEXT**
 
 Goal: Get the calculator working end-to-end for basic arithmetic and algebra.
@@ -135,6 +148,40 @@ Goal: F1–F10 on PicoCalc shows a popup anchored to the footer slot, with pagin
   - [ ] Footer page navigation (PAGE_UP/PAGE_DOWN)
   - [ ] F6-F10 popup triggering on correct page
   - [ ] Page state persistence across popups and layers
+
+---
+
+## Phase 3.5: F-Key Contexts
+
+Goal: PgUp/PgDn cycles through named contexts, each defining what F1–F5 do and their labels in the footer bar. Each F-key opens a popup menu with context-specific items.
+
+**Core Context Infrastructure:**
+- [ ] Define `F_Key_Context` struct with name, 5 footer labels, and 5 popup item lists
+- [ ] Add `m_contexts` vector and `m_active_context` index to `Calculator_App`
+- [ ] Implement `cycle_context(int delta)` and `apply_context()` in `Calculator_App`
+- [ ] Wire PgUp/PgDn to `cycle_context()` while calculator is active
+- [ ] Update footer bar to show context name and page indicator (e.g. "Core Math 1/4")
+
+**Context Definitions (Default Layer):**
+- [ ] Core Math context: F1=Alg, F2=Trig, F3=Const, F4=Log, F5=Round
+- [ ] Number Theory context: F1=Factor, F2=Divis, F3=Mod, F4=Base, F5=Comb
+- [ ] Statistics context: F1=Avg, F2=Spread, F3=Dist, F4=Fit, F5=Misc
+- [ ] Units & Conversions context: F1=Len, F2=Mass, F3=Temp, F4=Area, F5=Speed
+
+**Popup Item Implementation:**
+- [ ] Core Math popups: Logarithms and Rounding items
+- [ ] Number Theory popups: factorize, is_prime, GCD, LCM, mod, base conversion, nCr, nPr
+- [ ] Statistics popups: mean, median, std dev, normal CDF, regression, sum/min/max
+- [ ] Units & Conversions popups: length, mass, temperature, area, speed conversions
+
+**Layer 2 (F6–F10):**
+- [ ] Define second-bank contexts for F6–F10 using the same physical keys on Layer 2
+- [ ] Ensure context switching works on Layer 2 independently or as a separate bank
+
+**UI / Polish:**
+- [ ] Footer labels update when context changes
+- [ ] Popup state resets safely when switching contexts
+- [ ] Add unit tests for context cycling and popup assignment
 
 ---
 

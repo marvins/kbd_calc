@@ -52,6 +52,14 @@ struct System_Info {
         std::string device_name;  // Empty if not connected
     };
     std::optional<BT_Status> bluetooth;
+
+    // WiFi status
+    struct WiFi_Status {
+        bool connected;         // True if interface is up and associated
+        std::string ssid;       // Associated SSID, empty if not connected
+        int signal_dbm;         // Signal strength in dBm (0 if unknown)
+    };
+    std::optional<WiFi_Status> wifi;
 };
 
 /**
@@ -102,6 +110,11 @@ class I_System_Info {
          * @brief Check if Bluetooth status is available
          */
         virtual bool has_bluetooth() const = 0;
+
+        /**
+         * @brief Check if WiFi status is available
+         */
+        virtual bool has_wifi() const = 0;
 };
 
 } // namespace ovb::hal

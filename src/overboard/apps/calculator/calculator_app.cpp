@@ -28,6 +28,12 @@ struct Calculator_App::Impl {
     /// @brief Layer manager
     core::Layer_Manager&                    layers;
 
+    /// @brief Settings manager
+    std::shared_ptr<core::Settings_Manager>  m_settings;
+
+    /// @brief System info provider
+    hal::I_System_Info&                     system_info;
+
     /// @brief Back callback
     Back_Cb                                 on_back;
 
@@ -52,9 +58,6 @@ struct Calculator_App::Impl {
     /// @brief Overlay pop callback
     I_Panel::Overlay_Pop_Cb                 on_overlay_pop;
 
-    /// @brief Settings manager
-    std::shared_ptr<core::Settings_Manager>  settings;
-
     /// @brief Container object
     lv_obj_t*                               container = nullptr;
 
@@ -67,9 +70,14 @@ struct Calculator_App::Impl {
      */
     Impl( math::Calc_Engine& e,
          core::Layer_Manager& l,
+         hal::I_System_Info& si,
          Back_Cb cb,
          std::shared_ptr<core::Settings_Manager> s)
-        : engine(e), layers(l), on_back(std::move(cb)), settings(std::move(s)) {}
+        : engine(e),
+          layers(l),
+          m_settings(std::move(s)),
+          system_info(si),
+          on_back(std::move(cb)) {}
 };
 
 /*******************************/
@@ -77,9 +85,14 @@ struct Calculator_App::Impl {
 /*******************************/
 Calculator_App::Calculator_App(math::Calc_Engine&                      engine,
                                core::Layer_Manager&                    layers,
+                               hal::I_System_Info&                     system_info,
                                Back_Cb                                 on_back,
                                std::shared_ptr<core::Settings_Manager> settings)
-    : m_impl(std::make_unique<Impl>(engine, layers, std::move(on_back), std::move(settings))) {}
+    : m_impl(std::make_unique<Impl>( engine,
+                                     layers,
+                                     system_info,
+                                     std::move(on_back),
+                                     std::move(settings) ) ) {}
 
 /*******************************/
 /*     Set Overlay Callbacks   */
@@ -89,11 +102,15 @@ void Calculator_App::set_overlay_callbacks(Overlay_Push_Cb push, Overlay_Pop_Cb 
     m_impl->on_overlay_pop  = std::move(pop);
 }
 
+
 /*******************************/
 /*          Destructor         */
 /*******************************/
 Calculator_App::~Calculator_App() {
     LOG_DEBUG("Calculator_App: destructor");
+    if (m_impl->container) {
+        deactivate();
+    }
 }
 
 /*******************************/
@@ -108,12 +125,14 @@ void Calculator_App::activate(lv_obj_t* parent) {
     lv_obj_set_style_pad_all(m_impl->container, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(m_impl->container, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(m_impl->container, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(m_impl->container, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(m_impl->container, false);
 
     const int width = lv_obj_get_width(parent);
 
     // Header bar
-    m_impl->header = std::make_unique<Header_Bar>(m_impl->container, width);
+    m_impl->header = std::make_unique<Header_Bar>( m_impl->container,
+                                                   width,
+                                                   m_impl->system_info );
     m_impl->header->set_app_name("Calculator");
 
     // LCD section (between header and footer)
@@ -124,16 +143,19 @@ void Calculator_App::activate(lv_obj_t* parent) {
     lv_obj_set_style_pad_all(lcd_parent, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(lcd_parent, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(lcd_parent, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(lcd_parent, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollable(lcd_parent, false);
 
     LOG_DEBUG("Calculator_App: creating LCD_Section");
-    m_impl->lcd = std::make_unique<LCD_Section>(m_impl->engine, m_impl->layers, m_impl->settings);
+    m_impl->lcd = std::make_unique<LCD_Section>( m_impl->engine,
+                                                 m_impl->layers,
+                                                 m_impl->m_settings );
     LOG_DEBUG("Calculator_App: building LCD_Section");
     m_impl->lcd->build(lcd_parent, width, lcd_h);
     LOG_DEBUG("Calculator_App: LCD_Section built");
 
     // Footer bar
-    m_impl->footer = std::make_unique<Footer_Bar>(m_impl->container, width);
+    m_impl->footer = std::make_unique<Footer_Bar>( m_impl->container,
+                                                   width );
     m_impl->footer->set_label(0, "Alg");
     m_impl->footer->set_label(1, "Trig");
     m_impl->footer->set_label(2, "Const");
@@ -187,10 +209,13 @@ void Calculator_App::activate(lv_obj_t* parent) {
         {"ACosh", "Inv. Hyp. Cosine", core::Action_Code::ACOSH},
         {"ATanh", "Inv. Hyp. Tangent",core::Action_Code::ATANH}
     };
-    LOG_DEBUG("Calculator_App: trig_items.size()=" + std::to_string(trig_items.size()) + " before creating popup");
+
     LOG_DEBUG("Calculator_App: creating Trig popup");
     m_impl->f_key_popups[static_cast<int>(Popup_Menu::Trig)] =
-        std::make_unique<Function_Menu_Popup>(m_impl->container, "Trig", trig_items, menu_callback);
+        std::make_unique<Function_Menu_Popup>( m_impl->container,
+                                               "Trig",
+                                               trig_items,
+                                               menu_callback );
     LOG_DEBUG("Calculator_App: Trig popup created");
 
     // F3: Constants menu
@@ -202,7 +227,10 @@ void Calculator_App::activate(lv_obj_t* parent) {
     };
     LOG_DEBUG("Calculator_App: creating Const popup");
     m_impl->f_key_popups[static_cast<int>(Popup_Menu::Const)] =
-        std::make_unique<Function_Menu_Popup>(m_impl->container, "Const", const_items, menu_callback);
+        std::make_unique<Function_Menu_Popup>( m_impl->container,
+                                               "Const",
+                                               const_items,
+                                               menu_callback );
     LOG_DEBUG("Calculator_App: Const popup created");
 
     // F4-F10: Available for future menus

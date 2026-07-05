@@ -13,3 +13,6 @@ site:
   # options:
   #   favicon: favicon.ico
   #   logo: site_logo.png
+  nav:
+    - title: API Reference
+      url: /api/html/index.html

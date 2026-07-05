@@ -63,6 +63,11 @@ class PiZero_System_Info : public I_System_Info {
         bool has_bluetooth() const override;
 
         /**
+         * @brief Check if WiFi status is available
+         */
+        bool has_wifi() const override;
+
+        /**
          * @brief Initialize - probe available sensors
          */
         bool init();
@@ -96,6 +101,11 @@ class PiZero_System_Info : public I_System_Info {
          * @brief Read Bluetooth status via hciconfig or bluetoothctl
          */
         std::optional<System_Info::BT_Status> read_bluetooth();
+
+        /**
+         * @brief Read WiFi status via sysfs operstate and iwgetid
+         */
+        std::optional<System_Info::WiFi_Status> read_wifi();
 
         bool m_initialized { false };
         bool m_has_battery { false };  // Detected at init

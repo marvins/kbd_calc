@@ -107,24 +107,24 @@ This layout matches the **KISNT MF34** macropad physical arrangement:
 ## Layer 0 — Basic
 
 <div class="keyboard-layout">
+  <div class="right-section-wrapper">
+    <div class="key-group-4x1"><kbd>Knob</kbd> <kbd>Esc</kbd> <kbd>F1</kbd> <kbd>F2</kbd></div>
+    <div class="right-section">
+      <kbd>Num</kbd> <kbd>/</kbd> <kbd>x</kbd> <kbd>-</kbd>
+      <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd style="grid-row: span 2;">+</kbd>
+      <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd>
+      <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
+      <kbd style="grid-column: span 2;">0</kbd> <kbd>.</kbd>
+    </div>
+  </div>
   <div class="left-section">
-    <div class="key-group"><kbd>Home</kbd> <kbd>&nbsp;</kbd> <kbd>BSP</kbd></div>
-    <div class="key-group-3x2"><kbd>TRG</kbd><kbd>CST</kbd><kbd>PgUp</kbd><kbd>ALG</kbd><kbd>Var</kbd><kbd>PgDn</kbd></div>
+    <div class="key-group"><kbd>F3</kbd><kbd>F4</kbd><kbd>F5</kbd></div>
+    <div class="key-group-3x2"><kbd>ANS</kbd><kbd>Home</kbd><kbd>PgUp</kbd><kbd>Del</kbd><kbd>End</kbd><kbd>PgDn</kbd></div>
     <div class="arrow-group">
       <kbd style="grid-area: up;">↑</kbd>
       <kbd style="grid-area: left;">←</kbd>
       <kbd style="grid-area: down;">↓</kbd>
       <kbd style="grid-area: right;">→</kbd>
-    </div>
-  </div>
-  <div class="right-section-wrapper">
-    <div class="key-group-4x1"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
-    <div class="right-section">
-      <kbd>(</kbd> <kbd>)</kbd> <kbd>=</kbd> <kbd>+/-</kbd>
-      <kbd>7</kbd> <kbd>8</kbd> <kbd>9</kbd> <kbd style="grid-row: span 2;">Aprx</kbd>
-      <kbd>4</kbd> <kbd>5</kbd> <kbd>6</kbd>
-      <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
-      <kbd style="grid-column: span 2;">0</kbd> <kbd>.</kbd>
     </div>
   </div>
 </div>
@@ -136,16 +136,6 @@ This layout matches the **KISNT MF34** macropad physical arrangement:
 Trigonometric and inverse trigonometric functions.
 
 <div class="keyboard-layout">
-  <div class="left-section">
-    <div class="key-group"><kbd>Home</kbd> <kbd>&nbsp;</kbd> <kbd>BSP</kbd></div>
-    <div class="key-group-3x2"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
-    <div class="arrow-group">
-      <kbd style="grid-area: up;">↑</kbd>
-      <kbd style="grid-area: left;">←</kbd>
-      <kbd style="grid-area: down;">↓</kbd>
-      <kbd style="grid-area: right;">→</kbd>
-    </div>
-  </div>
   <div class="right-section-wrapper">
     <div class="key-group-4x1"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
     <div class="right-section">
@@ -154,6 +144,16 @@ Trigonometric and inverse trigonometric functions.
       <kbd>asin</kbd> <kbd>acos</kbd> <kbd>atan</kbd>
       <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
       <kbd style="grid-column: span 2;">&nbsp;</kbd> <kbd>&nbsp;</kbd>
+    </div>
+  </div>
+  <div class="left-section">
+    <div class="key-group"><kbd>Home</kbd> <kbd>&nbsp;</kbd> <kbd>BSP</kbd></div>
+    <div class="key-group-3x2"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
+    <div class="arrow-group">
+      <kbd style="grid-area: up;">↑</kbd>
+      <kbd style="grid-area: left;">←</kbd>
+      <kbd style="grid-area: down;">↓</kbd>
+      <kbd style="grid-area: right;">→</kbd>
     </div>
   </div>
 </div>
@@ -165,16 +165,6 @@ Trigonometric and inverse trigonometric functions.
 Mathematical constants.
 
 <div class="keyboard-layout">
-  <div class="left-section">
-    <div class="key-group"><kbd>Home</kbd> <kbd>&nbsp;</kbd> <kbd>BSP</kbd></div>
-    <div class="key-group-3x2"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
-    <div class="arrow-group">
-      <kbd style="grid-area: up;">↑</kbd>
-      <kbd style="grid-area: left;">←</kbd>
-      <kbd style="grid-area: down;">↓</kbd>
-      <kbd style="grid-area: right;">→</kbd>
-    </div>
-  </div>
   <div class="right-section-wrapper">
     <div class="key-group-4x1"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
     <div class="right-section">
@@ -183,6 +173,16 @@ Mathematical constants.
       <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd>
       <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd>&nbsp;</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
       <kbd style="grid-column: span 2;">&nbsp;</kbd> <kbd>&nbsp;</kbd>
+    </div>
+  </div>
+  <div class="left-section">
+    <div class="key-group"><kbd>Home</kbd> <kbd>&nbsp;</kbd> <kbd>BSP</kbd></div>
+    <div class="key-group-3x2"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
+    <div class="arrow-group">
+      <kbd style="grid-area: up;">↑</kbd>
+      <kbd style="grid-area: left;">←</kbd>
+      <kbd style="grid-area: down;">↓</kbd>
+      <kbd style="grid-area: right;">→</kbd>
     </div>
   </div>
 </div>
@@ -194,16 +194,6 @@ Mathematical constants.
 Hexadecimal digits, bitwise operations, and bit-shift keys.
 
 <div class="keyboard-layout">
-  <div class="left-section">
-    <div class="key-group"><kbd>Home</kbd> <kbd>&nbsp;</kbd> <kbd>BSP</kbd></div>
-    <div class="key-group-3x2"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
-    <div class="arrow-group">
-      <kbd style="grid-area: up;">↑</kbd>
-      <kbd style="grid-area: left;">←</kbd>
-      <kbd style="grid-area: down;">↓</kbd>
-      <kbd style="grid-area: right;">→</kbd>
-    </div>
-  </div>
   <div class="right-section-wrapper">
     <div class="key-group-4x1"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
     <div class="right-section">
@@ -212,6 +202,16 @@ Hexadecimal digits, bitwise operations, and bit-shift keys.
       <kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd>
       <kbd>D</kbd> <kbd>E</kbd> <kbd>F</kbd> <kbd style="grid-row: span 2;">Eval</kbd>
       <kbd style="grid-column: span 2;">0</kbd> <kbd>.</kbd>
+    </div>
+  </div>
+  <div class="left-section">
+    <div class="key-group"><kbd>Home</kbd> <kbd>&nbsp;</kbd> <kbd>BSP</kbd></div>
+    <div class="key-group-3x2"><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd><kbd>&nbsp;</kbd></div>
+    <div class="arrow-group">
+      <kbd style="grid-area: up;">↑</kbd>
+      <kbd style="grid-area: left;">←</kbd>
+      <kbd style="grid-area: down;">↓</kbd>
+      <kbd style="grid-area: right;">→</kbd>
     </div>
   </div>
 </div>

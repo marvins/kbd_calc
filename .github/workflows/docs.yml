@@ -40,12 +40,7 @@ jobs:
       - name: Build documentation
         run: |
           source venv/bin/activate
-          ./scripts/build_docs.sh
-
-      - name: Copy Doxygen into static site
-        run: |
-          mkdir -p docs/_build/html/api
-          cp -r docs/_build/api/html docs/_build/html/api/
+          CI=true ./scripts/build_docs.sh
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

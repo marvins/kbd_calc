@@ -23,6 +23,7 @@
 // Project Libraries
 #include <overboard/core/action_code.hpp>
 #include <overboard/core/input_key.hpp>
+#include <overboard/hal/i_system_info.hpp>
 
 namespace ovb::gui {
 
