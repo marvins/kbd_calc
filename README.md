@@ -1,5 +1,6 @@
 # Overboard
 
+[![Build Status](https://github.com/Terminus-Geospatial/overboard/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/Terminus-Geospatial/overboard/actions/workflows/build-and-test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Macropad with on-board graphing calculator.
