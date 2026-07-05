@@ -40,7 +40,7 @@ jobs:
       - name: Build documentation
         run: |
           source venv/bin/activate
-          CI=true ./scripts/build_docs.sh
+          BASE_URL=/overboard CI=true ./scripts/build_docs.sh
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
