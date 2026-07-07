@@ -52,6 +52,9 @@ struct Calculator_App::Impl {
     /// @brief Currently visible popup
     Function_Menu_Popup*                    active_popup = nullptr;
 
+    /// @brief Dimension picker popup (matrix/vector construction)
+    std::unique_ptr<Dimension_Picker_Popup> dim_picker;
+
     /// @brief All available F-key contexts
     std::vector<F_Key_Context>              contexts;
 
@@ -180,7 +183,7 @@ void Calculator_App::activate(lv_obj_t* parent) {
     {
         F_Key_Context ctx;
         ctx.name = "Core Math";
-        ctx.labels = { "Alg", "Trig", "Const", "Log", "Round" };
+        ctx.labels = { "Alg", "Trig", "Const", "Matrix", "Mat Ops" };
         ctx.slots[0] = {
             {"1/x",          "Inverse",       core::Action_Code::RECIPROCAL},
             {"x\xC2\xB2",    "Square",        core::Action_Code::POWER_2},
@@ -220,15 +223,16 @@ void Calculator_App::activate(lv_obj_t* parent) {
             {"\u03c6", "Golden Ratio", core::Action_Code::PHI},
             {"\u03c4", "Tau",          core::Action_Code::TAU},
         };
-        ctx.slots[3] = {
-            {"log",  "Log base 10",   core::Action_Code::LOG},
-            {"ln",   "Natural Log",   core::Action_Code::LN},
-            {"exp",  "e^x",           core::Action_Code::EXP},
-        };
+        // F4: no popup — pressing F4 fires FUNC_4 which maps to NEW_MATRIX directly
+        ctx.slots[3] = {};
         ctx.slots[4] = {
-            {"ceil",  "Ceiling",   core::Action_Code::CEIL},
-            {"floor", "Floor",     core::Action_Code::FLOOR},
-            {"abs",   "Abs Value", core::Action_Code::ABS},
+            {"New Vec",  "New vector (zeros)",    core::Action_Code::NEW_VECTOR},
+            {"zeros",   "Zero-filled matrix",    core::Action_Code::MAT_ZEROS},
+            {"ones",    "Ones-filled matrix",    core::Action_Code::MAT_ONES},
+            {"eye",     "Identity matrix",       core::Action_Code::MAT_EYE},
+            {"transp",  "Transpose",             core::Action_Code::MAT_TRANSPOSE},
+            {"det",     "Determinant",           core::Action_Code::MAT_DET},
+            {"inv",     "Inverse",               core::Action_Code::MAT_INV},
         };
         m_impl->contexts.push_back(std::move(ctx));
     }
@@ -244,22 +248,37 @@ void Calculator_App::activate(lv_obj_t* parent) {
 void Calculator_App::deactivate() {
     LOG_DEBUG("Calculator_App: deactivating");
     m_impl->active_popup = nullptr;
+    if (m_impl->dim_picker) { m_impl->dim_picker->hide(); m_impl->dim_picker.reset(); }
     for (auto& popup : m_impl->f_key_popups) {
         popup.reset();
     }
+    // Delete the container first - LVGL recursively deletes all children
+    // This prevents corruption from deleting child objects individually
+    if (m_impl->container && lv_display_get_next(nullptr) != nullptr) {
+        lv_obj_del(m_impl->container);
+    }
+    m_impl->container = nullptr;
+    // Now reset the smart pointers - their LVGL objects are already deleted
     m_impl->footer.reset();
     m_impl->header.reset();
     m_impl->lcd.reset();
-    if (m_impl->container) {
-        lv_obj_del(m_impl->container);
-        m_impl->container = nullptr;
-    }
 }
 
 /*******************************/
 /*        Handle Input         */
 /*******************************/
 bool Calculator_App::handle_input(core::Action_Code action) {
+    // If the dimension picker is active, route all input to it first
+    if (m_impl->dim_picker) {
+        bool handled = m_impl->dim_picker->handle_input(action);
+        if (!m_impl->dim_picker->is_visible()) {
+            m_impl->dim_picker.reset();
+            if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
+            refresh();
+        }
+        if (handled) return true;
+    }
+
     // If a popup is active, route action codes to it first
     if (m_impl->active_popup) {
         bool handled = m_impl->active_popup->handle_input(action);
@@ -295,10 +314,42 @@ bool Calculator_App::handle_input(core::Action_Code action) {
         case core::Action_Code::GO_ALG_LAYER:
             m_impl->layers.set_layer(4);
             return true;
+        case core::Action_Code::NEW_MATRIX:
+            show_dimension_picker(true);
+            return true;
+        case core::Action_Code::NEW_VECTOR:
+            show_dimension_picker(false);
+            return true;
+        case core::Action_Code::MAT_ZEROS:
+            m_impl->engine.insert_matrix(2, 2);
+            refresh();
+            return true;
+        case core::Action_Code::MAT_ONES:
+            m_impl->engine.insert_matrix(2, 2);
+            refresh();
+            return true;
+        case core::Action_Code::MAT_EYE:
+            m_impl->engine.insert_vector(2);
+            refresh();
+            return true;
+        case core::Action_Code::MAT_TRANSPOSE:
+            m_impl->engine.handle_key(core::Action_Code::MAT_TRANSPOSE);
+            refresh();
+            return true;
+        case core::Action_Code::MAT_DET:
+            m_impl->engine.handle_key(core::Action_Code::MAT_DET);
+            refresh();
+            return true;
+        case core::Action_Code::MAT_INV:
+            m_impl->engine.handle_key(core::Action_Code::MAT_INV);
+            refresh();
+            return true;
+        case core::Action_Code::FUNC_4:
+            show_dimension_picker(true);
+            return true;
         case core::Action_Code::FUNC_1:
         case core::Action_Code::FUNC_2:
         case core::Action_Code::FUNC_3:
-        case core::Action_Code::FUNC_4:
         case core::Action_Code::FUNC_5: {
             const int popup_index = static_cast<int>(action) - static_cast<int>(core::Action_Code::FUNC_1);
             auto& popup = m_impl->f_key_popups[static_cast<std::size_t>(popup_index)];
@@ -586,6 +637,41 @@ Calculator_App::build_popup_overlay(const Function_Menu_Popup& popup) const {
         }
     }
     return overlay_keys;
+}
+
+/*******************************/
+/*    Show Dimension Picker    */
+/*******************************/
+void Calculator_App::show_dimension_picker(bool matrix_mode) {
+    // Dismiss any active function popup first
+    if (m_impl->active_popup) {
+        m_impl->active_popup->hide();
+        m_impl->active_popup = nullptr;
+        if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
+    }
+
+    if (!m_impl->container) return;
+
+    const std::string title = matrix_mode ? "New Matrix" : "New Vector";
+
+    m_impl->dim_picker = std::make_unique<Dimension_Picker_Popup>(
+        m_impl->container,
+        title,
+        [this, matrix_mode](int rows, int cols) {
+            if (matrix_mode) {
+                m_impl->engine.insert_matrix(rows, cols);
+            } else {
+                m_impl->engine.insert_vector(rows);
+            }
+            refresh();
+        },
+        matrix_mode  // show_cols = true for matrix, false for vector
+    );
+
+    m_impl->dim_picker->show();
+    if (m_impl->on_overlay_push) {
+        m_impl->on_overlay_push(title, {});
+    }
 }
 
 } // namespace ovb::gui

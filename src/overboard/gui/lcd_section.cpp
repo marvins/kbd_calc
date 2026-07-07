@@ -36,17 +36,20 @@ LCD_Section::LCD_Section(const math::Calc_Engine&                engine,
 LCD_Section::~LCD_Section() {
     LOG_DEBUG("LCD_Section: destructor");
     // Delete LVGL objects before m_canvas_buf is freed to prevent use-after-free
-    if (m_preview_canvas) {
-        lv_obj_del(m_preview_canvas);
-        m_preview_canvas = nullptr;
-    }
-    if (m_table) {
-        lv_obj_del(m_table);
-        m_table = nullptr;
-    }
-    if (m_bezel) {
-        lv_obj_del(m_bezel);
-        m_bezel = nullptr;
+    // Guard against shutdown - if display is torn down, skip LVGL deletion
+    if (lv_display_get_next(nullptr) != nullptr) {
+        if (m_preview_canvas) {
+            lv_obj_del(m_preview_canvas);
+            m_preview_canvas = nullptr;
+        }
+        if (m_table) {
+            lv_obj_del(m_table);
+            m_table = nullptr;
+        }
+        if (m_bezel) {
+            lv_obj_del(m_bezel);
+            m_bezel = nullptr;
+        }
     }
     LOG_DEBUG("LCD_Section: destructor complete");
 }

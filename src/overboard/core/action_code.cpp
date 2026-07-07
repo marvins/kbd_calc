@@ -292,6 +292,16 @@ std::string action_code_to_display(Action_Code code) {
         case Action_Code::CLEAR:            return "CLR";
         case Action_Code::ALL_CLEAR:        return "AC";
 
+        // Matrix / array construction
+        case Action_Code::NEW_VECTOR:       return "New Vec";
+        case Action_Code::NEW_MATRIX:       return "New Mat";
+        case Action_Code::MAT_ZEROS:        return "zeros";
+        case Action_Code::MAT_ONES:         return "ones";
+        case Action_Code::MAT_EYE:          return "eye";
+        case Action_Code::MAT_TRANSPOSE:    return "transp";
+        case Action_Code::MAT_DET:          return "det";
+        case Action_Code::MAT_INV:          return "inv";
+
         // Function keys
         case Action_Code::FUNC_1:           return "F1";
         case Action_Code::FUNC_2:           return "F2";
@@ -431,6 +441,16 @@ std::string action_code_to_string(Action_Code code) {
         case Action_Code::SPACE:           return "SPACE";
         case Action_Code::CLEAR:            return "CLEAR";
         case Action_Code::ALL_CLEAR:        return "ALL_CLEAR";
+
+        // Matrix / array construction
+        case Action_Code::NEW_VECTOR:       return "NEW_VECTOR";
+        case Action_Code::NEW_MATRIX:       return "NEW_MATRIX";
+        case Action_Code::MAT_ZEROS:        return "MAT_ZEROS";
+        case Action_Code::MAT_ONES:         return "MAT_ONES";
+        case Action_Code::MAT_EYE:          return "MAT_EYE";
+        case Action_Code::MAT_TRANSPOSE:    return "MAT_TRANSPOSE";
+        case Action_Code::MAT_DET:          return "MAT_DET";
+        case Action_Code::MAT_INV:          return "MAT_INV";
 
         // Function keys
         case Action_Code::FUNC_1:           return "FUNC_1";

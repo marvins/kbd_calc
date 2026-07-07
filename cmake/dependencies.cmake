@@ -67,8 +67,8 @@ if(TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO")
 endif()
 
 # ── GoogleTest (if tests enabled) ────────────────────────────────────────────────────
-# Only build tests for simulator targets, not embedded
-if(BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO"))
+# Only build tests for native simulator targets, not embedded or WASM
+if(BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO" OR TARGET_DEVICE STREQUAL "WASM"))
     add_subdirectory(thirdparty/gtest)
     enable_testing()
 endif()

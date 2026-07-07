@@ -172,11 +172,11 @@ void Function_Menu_Popup::show() {
 void Function_Menu_Popup::hide() {
     if (!m_impl->visible) return;
 
-    if (m_impl->container) {
+    if (m_impl->container && lv_display_get_next(nullptr) != nullptr) {
         lv_obj_del(m_impl->container);
-        m_impl->container = nullptr;
-        m_impl->list = nullptr;
     }
+    m_impl->container = nullptr;
+    m_impl->list = nullptr;
 
     m_impl->item_labels.clear();
     m_impl->visible = false;

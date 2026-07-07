@@ -150,6 +150,49 @@ static void draw_sqrt( lv_layer_t&                      layer,
 }
 
 /*****************************/
+/*       Draw Matrix         */
+/*****************************/
+static void draw_matrix( lv_layer_t&                      layer,
+                         const math::layout::Layout_Box&  b,
+                         int                              x,
+                         int                              y )
+{
+    constexpr int BRACKET_W    { 4 };  // total arm width in pixels
+    constexpr int SERIF_H      { 3 };  // length of horizontal top/bottom serifs
+    constexpr int BAR_THICKNESS{ 2 };  // line thickness
+
+    lv_draw_rect_dsc_t bar;
+    lv_draw_rect_dsc_init(&bar);
+    bar.bg_color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
+    bar.bg_opa   = LV_OPA_COVER;
+
+    const int h = b.size.y;
+    const int right_x = x + b.size.x - BRACKET_W;
+
+    // ── Left bracket ──
+    // Vertical bar
+    lv_area_t lv = make_area(x, y, x + BAR_THICKNESS, y + h);
+    lv_draw_rect(&layer, &bar, &lv);
+    // Top serif
+    lv_area_t lt = make_area(x, y, x + SERIF_H, y + BAR_THICKNESS);
+    lv_draw_rect(&layer, &bar, &lt);
+    // Bottom serif
+    lv_area_t lb = make_area(x, y + h - BAR_THICKNESS, x + SERIF_H, y + h);
+    lv_draw_rect(&layer, &bar, &lb);
+
+    // ── Right bracket ──
+    // Vertical bar
+    lv_area_t rv = make_area(right_x + BRACKET_W - BAR_THICKNESS, y, right_x + BRACKET_W, y + h);
+    lv_draw_rect(&layer, &bar, &rv);
+    // Top serif
+    lv_area_t rt = make_area(right_x + BRACKET_W - SERIF_H, y, right_x + BRACKET_W, y + BAR_THICKNESS);
+    lv_draw_rect(&layer, &bar, &rt);
+    // Bottom serif
+    lv_area_t rb = make_area(right_x + BRACKET_W - SERIF_H, y + h - BAR_THICKNESS, right_x + BRACKET_W, y + h);
+    lv_draw_rect(&layer, &bar, &rb);
+}
+
+/*****************************/
 /*       Box Renderer        */
 /*****************************/
 struct Box_Renderer {
@@ -186,6 +229,10 @@ struct Box_Renderer {
                 if (!b.children.empty()) {
                     draw_sqrt(layer, b, x, y);
                 }
+                break;
+
+            case math::layout::Box_Kind::MATRIX:
+                draw_matrix(layer, b, x, y);
                 break;
 
             default:

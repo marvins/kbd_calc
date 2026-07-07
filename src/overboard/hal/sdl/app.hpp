@@ -97,6 +97,12 @@ class SDL_App : public I_App {
          */
         void handle_direct_action(core::Input_Key key);
 
+        /**
+         * @brief Single frame update: pump events, handle input, render LVGL
+         * Used by the emscripten main loop on the WASM target.
+         */
+        void run_frame();
+
     private:
 
         /**
@@ -136,11 +142,13 @@ class SDL_App : public I_App {
         /// @brief Keyboard display widget (in separate window for PICOSDL)
         std::unique_ptr<gui::Keyboard_Display> m_keyboard_display;
 
+        /// @brief LVGL application view (LCD + key mapping info panel)
+        /// Declared after m_display so it is destroyed first (reverse order),
+        /// ensuring all LVGL objects are deleted while the display is still alive
+        std::unique_ptr<gui::App_View> m_view;
+
         /// @brief Key mapping info panel (in main window for SDL/PICOSDL)
         std::unique_ptr<gui::Key_Mapping_Info> m_key_mapping_info;
-
-        /// @brief LVGL application view (LCD + key mapping info panel)
-        std::unique_ptr<gui::App_View> m_view;
 
         /// @brief System info provider
         std::unique_ptr<SDL_System_Info> m_system_info;

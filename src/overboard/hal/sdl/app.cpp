@@ -19,6 +19,14 @@
 #pragma GCC diagnostic pop
 #include <lvgl.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+
+static void sdl_app_dummy_loop(void* /*arg*/) {
+    // No-op placeholder until run() installs the real loop
+}
+#endif
+
 // Project Libraries
 #include <overboard/core/action_code.hpp>
 #include <overboard/core/input_key.hpp>
@@ -49,6 +57,9 @@ SDL_App::SDL_App(const core::Grid_Layout& layout)
 /********************************/
 SDL_App::~SDL_App() {
     if (m_initialized) {
+        // Reset LVGL-owning members while display is still alive
+        m_key_mapping_info.reset();
+        m_view.reset();
         SDL_Quit();
     }
 }
@@ -92,6 +103,13 @@ bool SDL_App::init() {
     }
 
     m_initialized = true;
+
+#ifdef __EMSCRIPTEN__
+    // Install a no-op main loop now so SDL's renderer creation (which calls
+    // SDL_GL_SetSwapInterval -> emscripten_set_main_loop_timing) succeeds.
+    // simulate_infinite_loop=0 so init() continues; run() replaces this.
+    emscripten_set_main_loop_arg(sdl_app_dummy_loop, this, 0, 0);
+#endif
 
     try {
         // Create SDL window (HAL)
@@ -224,47 +242,59 @@ bool SDL_App::init() {
 /************************************/
 /*          Run the app             */
 /************************************/
-void SDL_App::run() {
-    LOG_DEBUG("SDL_App::run() started");
-    int loop_count = 0;
+static void sdl_app_run_frame(void* user_data) {
+    auto* app = static_cast<SDL_App*>(user_data);
+    app->run_frame();
+}
 
-    while (!m_should_quit && !m_input->should_quit()) {
+void SDL_App::run_frame() {
+    // Pump SDL events (handles keyboard and mouse hit-testing)
+    m_input->pump();
 
-        // Pump SDL events (handles keyboard and mouse hit-testing)
-        m_input->pump();
-
-        // Process keyboard events from SDL_Input
-        hal::Key_Event key_event;
-        while (m_input->poll(key_event)) {
-            if (key_event.type == hal::Key_Event_Type::Press) {
-                if (key_event.kind == hal::Key_Event_Kind::Action) {
-                    // Macropad: key_index -> action via layers
-                    handle_key(key_event.key_index);
-                } else if (key_event.kind == hal::Key_Event_Kind::Direct_Action) {
-                    // Standard keyboard: Input_Key -> Action_Code directly
-                    handle_direct_action(key_event.input_key);
-                } else {
-                    // Text input - panel handles refresh if consumed
-                    if (!m_view->handle_text(key_event.codepoint)) {
-                        m_view->refresh();
-                    }
+    // Process keyboard events from SDL_Input
+    hal::Key_Event key_event;
+    while (m_input->poll(key_event)) {
+        if (key_event.type == hal::Key_Event_Type::Press) {
+            if (key_event.kind == hal::Key_Event_Kind::Action) {
+                // Macropad: key_index -> action via layers
+                handle_key(key_event.key_index);
+            } else if (key_event.kind == hal::Key_Event_Kind::Direct_Action) {
+                // Standard keyboard: Input_Key -> Action_Code directly
+                handle_direct_action(key_event.input_key);
+            } else {
+                // Text input - panel handles refresh if consumed
+                if (!m_view->handle_text(key_event.codepoint)) {
+                    m_view->refresh();
                 }
             }
         }
+    }
 
-        // Track shift state for future mode system
-        // Note: Hardcoded Shift layer switching removed.
-        // Layer switching will be handled by the app mode system.
-        [[maybe_unused]] int current_shift_state = m_input->is_shift_pressed() ? 1 : 0;
+    // Track shift state for future mode system
+    // Note: Hardcoded Shift layer switching removed.
+    // Layer switching will be handled by the app mode system.
+    [[maybe_unused]] int current_shift_state = m_input->is_shift_pressed() ? 1 : 0;
 
-        lv_tick_inc(16);
-        m_view->render();
+    lv_tick_inc(16);
+    m_view->render();
+}
 
+void SDL_App::run() {
+    LOG_DEBUG("SDL_App::run() started");
+
+#ifdef __EMSCRIPTEN__
+    // Browser target: use emscripten main loop (no synchronous sleep)
+    emscripten_set_main_loop_arg(sdl_app_run_frame, this, 0, 1);
+#else
+    // Native target: blocking loop with SDL_Delay
+    int loop_count = 0;
+    while (!m_should_quit && !m_input->should_quit()) {
+        run_frame();
         SDL_Delay(16);
-
         loop_count++;
     }
     LOG_DEBUG("SDL_App::run() exiting, loop_count=" + std::to_string(loop_count));
+#endif
 }
 
 /************************************/

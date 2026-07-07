@@ -339,10 +339,7 @@ void Solar_Info::update(const std::tm& tm) {
 /*******************************/
 void Solar_Info::destroy() {
     if (m_impl->container) {
-        // Check if the object still has a valid parent before deleting
-        // This prevents segfaults during shutdown when the object tree is partially destroyed
-        lv_obj_t* parent = lv_obj_get_parent(m_impl->container);
-        if (parent) {
+        if (lv_display_get_next(nullptr) != nullptr) {
             lv_obj_del(m_impl->container);
         }
         m_impl->container   = nullptr;

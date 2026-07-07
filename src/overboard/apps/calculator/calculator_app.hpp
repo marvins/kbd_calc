@@ -25,6 +25,7 @@
 #include <overboard/core/input_key.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/core/settings_manager.hpp>
+#include <overboard/gui/dimension_picker_popup.hpp>
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/function_menu_popup.hpp>
 #include <overboard/gui/header_bar.hpp>
@@ -164,6 +165,9 @@ class Calculator_App : public I_App {
 
         /// @brief Apply the active context: rebuild popups and update footer labels
         void apply_context();
+
+        /// @brief Show the dimension picker for matrix or vector insertion
+        void show_dimension_picker(bool matrix_mode);
 
         struct Impl;
         std::unique_ptr<Impl> m_impl;

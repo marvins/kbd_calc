@@ -637,4 +637,81 @@ class Nth_Root : public I_Operator {
         }
 };
 
+/**
+ * @brief zeros(n) — 1D zero vector
+ */
+class Zeros_1D : public Function {
+    public:
+        Zeros_1D() : Function("zeros") {}
+        int operand_count() const override { return 1; }
+};
+
+/**
+ * @brief zeros(m, n) — 2D zero matrix
+ */
+class Zeros_2D : public I_Operator {
+    public:
+        int operand_count() const override { return 2; }
+        std::string_view symbol() const override { return "zeros"; }
+        int precedence() const override { return 5; }
+        bool right_associative() const override { return false; }
+        ast::Node::ptr_t create_node(std::vector<ast::Node::ptr_t> operands) const override {
+            if (operands.size() < 2) return nullptr;
+            std::vector<ast::Node::ptr_t> args;
+            args.push_back(std::move(operands[0]));
+            args.push_back(std::move(operands[1]));
+            return std::make_unique<ast::Function_Node>("zeros", std::move(args));
+        }
+};
+
+/**
+ * @brief ones(m, n) — 2D ones matrix
+ */
+class Ones_2D : public I_Operator {
+    public:
+        int operand_count() const override { return 2; }
+        std::string_view symbol() const override { return "ones"; }
+        int precedence() const override { return 5; }
+        bool right_associative() const override { return false; }
+        ast::Node::ptr_t create_node(std::vector<ast::Node::ptr_t> operands) const override {
+            if (operands.size() < 2) return nullptr;
+            std::vector<ast::Node::ptr_t> args;
+            args.push_back(std::move(operands[0]));
+            args.push_back(std::move(operands[1]));
+            return std::make_unique<ast::Function_Node>("ones", std::move(args));
+        }
+};
+
+/**
+ * @brief eye(n) — n×n identity matrix
+ */
+class Eye : public Function {
+    public:
+        Eye() : Function("eye") {}
+};
+
+/**
+ * @brief transpose(A) — matrix transpose
+ */
+class Transpose : public Function {
+    public:
+        Transpose() : Function("transpose") {}
+};
+
+/**
+ * @brief det(A) — matrix determinant
+ */
+class Det : public Function {
+    public:
+        Det() : Function("det") {}
+};
+
+/**
+ * @brief inv(A) — matrix inverse
+ */
+class Inv : public Function {
+    public:
+        Inv() : Function("inv") {}
+};
+
 } // namespace ovb::math::operators

@@ -15,7 +15,9 @@
 
 // Project Libraries
 #include <overboard/log/stdout_logger.hpp>
+#include <overboard/math/ast/function_node.hpp>
 #include <overboard/math/ast/number_node.hpp>
+#include <overboard/math/ast/placeholder_node.hpp>
 #include <overboard/math/parser.hpp>
 
 namespace ovb::math {
@@ -235,6 +237,31 @@ void Calc_Engine::evaluate() {
 /****************************/
 void Calc_Engine::toggle_math_layout() {
     m_state.use_math_layout = !m_state.use_math_layout;
+}
+
+/****************************/
+/*      Insert Matrix       */
+/****************************/
+void Calc_Engine::insert_matrix(int rows, int cols) {
+    // Build zeros(rows, cols) with numeric args
+    std::vector<ast::Node::ptr_t> args;
+    args.push_back(std::make_unique<ast::Number_Node>(static_cast<double>(rows)));
+    args.push_back(std::make_unique<ast::Number_Node>(static_cast<double>(cols)));
+    auto node = std::make_unique<ast::Function_Node>("zeros", std::move(args));
+    m_state.expression.insert_node(*node);
+    m_state.display_value = m_state.expression.render_string();
+}
+
+/****************************/
+/*      Insert Vector       */
+/****************************/
+void Calc_Engine::insert_vector(int n) {
+    // Build zeros(n) with a single numeric arg
+    std::vector<ast::Node::ptr_t> args;
+    args.push_back(std::make_unique<ast::Number_Node>(static_cast<double>(n)));
+    auto node = std::make_unique<ast::Function_Node>("zeros", std::move(args));
+    m_state.expression.insert_node(*node);
+    m_state.display_value = m_state.expression.render_string();
 }
 
 /******************************/

@@ -15,15 +15,22 @@ Macropad with on-board graphing calculator.
 
 ## Dependencies
 
-- CMake 3.16+
+- CMake 4.0+
 - SDL2
+- (Optional) Emscripten SDK for the WASM target
 
 ```bash
 # macOS
 brew install sdl2
+
+# Emscripten (for WASM)
+# Follow https://emscripten.org/docs/getting_started/downloads.html, then run:
+# ./emsdk install latest && ./emsdk activate latest
 ```
 
 ## Build
+
+### Native SDL simulator
 
 ```bash
 mkdir build && cd build
@@ -31,10 +38,30 @@ cmake .. -DSIMULATOR=ON
 make -j$(nproc)
 ```
 
+### WASM/Emscripten
+
+```bash
+# Activate Emscripten SDK in this shell
+source /path/to/emsdk/emsdk_env.sh
+
+mkdir build-wasm && cd build-wasm
+emcmake cmake .. -DTARGET_DEVICE=WASM
+emmake make -j$(nproc)
+
+# Launch in browser
+emrun calc_sim.html
+```
+
 ## Run
 
 ```bash
 ./calc_sim
+```
+
+For WASM:
+
+```bash
+./go_macropad.sh --wasm
 ```
 
 ## Testing

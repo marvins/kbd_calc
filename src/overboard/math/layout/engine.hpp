@@ -162,6 +162,21 @@ class Layout_Engine {
          * @return Layout_Box Layout representation
          */
         Layout_Box build_function( const ast::Function_Node* node, float scale );
+
+        /**
+         * @brief Build a MATRIX layout box for zeros(m,n) / ones(m,n)
+         */
+        Layout_Box build_matrix_literal( const ast::Function_Node* node, float scale );
+
+        /**
+         * @brief Build a 1×n row-vector MATRIX layout box for zeros(n) / ones(n)
+         */
+        Layout_Box build_vector_literal( const ast::Function_Node* node, float scale );
+
+        /**
+         * @brief Build an n×n identity MATRIX layout box for eye(n)
+         */
+        Layout_Box build_eye_literal( const ast::Function_Node* node, float scale );
 };
 
 } // namespace ovb::math::layout

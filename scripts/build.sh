@@ -31,12 +31,13 @@ Options:
   -c           Clean build directory, then build
   -d           Debug build (default)
   -r           Release build
-  -p <target>  Hardware target: SDL, PICOSDL, RP2350, PICOCALC, or ZERO (default: SDL)
+  -p <target>  Hardware target: SDL, PICOSDL, RP2350, PICOCALC, ZERO, or WASM (default: SDL)
   -s <on|off>  Simulator mode: on or off (default: on)
   -j [jobs]   Parallel jobs (default: 1, or all cores if omitted)
   -t           Trace/verbose build output
   -T <file>   CMake toolchain file (for cross-compilation)
   -x           Enable debug layout borders (DEBUG_LAYOUT=ON)
+  -w           WASM/Emscripten build (short for -p WASM -T cmake/wasm.cmake)
 
 Examples:
   $(basename "$0")              # SDL simulator, debug build
@@ -48,10 +49,11 @@ Examples:
   $(basename "$0") -c            # Clean then build
   $(basename "$0") -j 4          # Use 4 parallel jobs
   $(basename "$0") -p RP2350 -T cmake/arm-none-eabi-gcc.cmake  # ARM cross-compile
+  $(basename "$0") -w            # WASM build with Emscripten
 EOF
 }
 
-while getopts ":hcdrp:s:j::tT:x" opt; do
+while getopts ":hcdrp:s:j::tT:xw" opt; do
     case "${opt}" in
         h) usage; exit 0 ;;
         c) CLEAN=true ;;
@@ -59,6 +61,7 @@ while getopts ":hcdrp:s:j::tT:x" opt; do
         r) BUILD_TYPE="Release" ;;
         p) TARGET_DEVICE="${OPTARG}" ;;
         s) SIMULATOR="${OPTARG}" ;;
+        w) TARGET_DEVICE="WASM"; TOOLCHAIN_FILE="${PROJECT_DIR}/cmake/wasm.cmake" ;;
         j)
             if [[ -n "${OPTARG}" && "${OPTARG}" != -* ]]; then
                 JOBS="${OPTARG}"
@@ -78,14 +81,14 @@ done
 
 # Validate target device and classify
 case "${TARGET_DEVICE}" in
-    SDL|PICOSDL|RP2350|PICOCALC|ZERO) ;;
-    *) echo "Error: unknown target '${TARGET_DEVICE}'. Valid targets: SDL, PICOSDL, RP2350, PICOCALC, ZERO" >&2; usage; exit 1 ;;
+    SDL|PICOSDL|RP2350|PICOCALC|ZERO|WASM) ;;
+    *) echo "Error: unknown target '${TARGET_DEVICE}'. Valid targets: SDL, PICOSDL, RP2350, PICOCALC, ZERO, WASM" >&2; usage; exit 1 ;;
 esac
 
 # Classify targets: SDL-based vs embedded (non-SDL)
 TARGET_USES_SDL=OFF
 case "${TARGET_DEVICE}" in
-    SDL|PICOSDL) TARGET_USES_SDL=ON ;;
+    SDL|PICOSDL|WASM) TARGET_USES_SDL=ON ;;
     *) TARGET_USES_SDL=OFF ;;
 esac
 
@@ -95,6 +98,48 @@ case "${SIMULATOR}" in
     off|OFF|Off|0|false|FALSE|False) SIMULATOR=OFF ;;
     *) echo "Error: -s requires 'on' or 'off'" >&2; usage; exit 1 ;;
 esac
+
+# ── Emscripten environment setup for WASM builds ──────────────────────────────────────
+setup_emscripten() {
+    if command -v emcc >/dev/null 2>&1 && command -v em++ >/dev/null 2>&1; then
+        return 0
+    fi
+
+    local emsdk_env_candidates=(
+        "${EMSDK:-}/emsdk_env.sh"
+        "${HOME}/emsdk/emsdk_env.sh"
+        "${PROJECT_DIR}/../emsdk/emsdk_env.sh"
+        "/Users/${USER}/emsdk/emsdk_env.sh"
+        "/usr/local/emsdk/emsdk_env.sh"
+    )
+
+    for candidate in "${emsdk_env_candidates[@]}"; do
+        if [[ -f "${candidate}" ]]; then
+            # shellcheck source=/dev/null
+            source "${candidate}" >/dev/null 2>&1
+            # Add emsdk bin to PATH for emrun and other tools
+            local emsdk_bin
+            emsdk_bin="$(dirname "${candidate}")/upstream/emscripten"
+            if [[ -d "${emsdk_bin}" ]]; then
+                export PATH="${emsdk_bin}:${PATH}"
+            fi
+            if command -v emcc >/dev/null 2>&1 && command -v em++ >/dev/null 2>&1; then
+                echo "Sourced Emscripten environment: ${candidate}"
+                return 0
+            fi
+        fi
+    done
+
+    echo "Error: Emscripten SDK (emcc/em++) not found in PATH."
+    echo "Please activate it first, e.g.:"
+    echo "    source /path/to/emsdk/emsdk_env.sh"
+    echo "Or set EMSDK to the SDK root directory."
+    return 1
+}
+
+if [[ "${TARGET_DEVICE}" == "WASM" ]]; then
+    setup_emscripten || exit 1
+fi
 
 if ${CLEAN}; then
     echo "Cleaning build directory: ${BUILD_DIR}"
@@ -116,6 +161,15 @@ if [[ "${TARGET_USES_SDL}" == "OFF" ]]; then
     CMAKE_ARGS="${CMAKE_ARGS} -DCONFIG_LV_USE_SDL=OFF"
 fi
 
+# Use emcmake for WASM to get Emscripten's own CMake toolchain
+if [[ "${TARGET_DEVICE}" == "WASM" ]]; then
+    CMAKE_CMD="emcmake cmake"
+    # emcmake supplies its own toolchain; ignore the local one for this target
+    TOOLCHAIN_FILE=""
+else
+    CMAKE_CMD="cmake"
+fi
+
 if [[ -n "${TOOLCHAIN_FILE}" ]]; then
     if [[ "${TOOLCHAIN_FILE}" = /* ]]; then
         CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE}"
@@ -124,18 +178,28 @@ if [[ -n "${TOOLCHAIN_FILE}" ]]; then
     fi
 fi
 
-cmake ${CMAKE_ARGS}
+${CMAKE_CMD} ${CMAKE_ARGS}
 
 if ${VERBOSE}; then
-    cmake --build "${BUILD_DIR}" --parallel "${JOBS}" --verbose
+    if [[ "${TARGET_DEVICE}" == "WASM" ]]; then
+        emmake make -C "${BUILD_DIR}" -j "${JOBS}" VERBOSE=1
+    else
+        cmake --build "${BUILD_DIR}" --parallel "${JOBS}" --verbose
+    fi
 else
-    cmake --build "${BUILD_DIR}" --parallel "${JOBS}"
+    if [[ "${TARGET_DEVICE}" == "WASM" ]]; then
+        emmake make -C "${BUILD_DIR}" -j "${JOBS}"
+    else
+        cmake --build "${BUILD_DIR}" --parallel "${JOBS}"
+    fi
 fi
 
 echo ""
 case "${TARGET_DEVICE}" in
     SDL|PICOSDL)
         echo "Build complete: ${BUILD_DIR}/calc_sim" ;;
+    WASM)
+        echo "Build complete: ${BUILD_DIR}/calc_sim.html" ;;
     ZERO)
         echo "Build complete: ${BUILD_DIR}/calc_app" ;;
     *)

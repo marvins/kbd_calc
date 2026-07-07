@@ -355,9 +355,19 @@ core::Grid_Layout to_grid_layout(const Keyboard_Config& config) {
 /*  Load Keyboard Config       */
 /*******************************/
 Keyboard_Config load_keyboard_config(
-    const std::filesystem::path& layout_path,
+    [[maybe_unused]] const std::filesystem::path& layout_path,
     bool use_embedded_fallback
 ) {
+#ifdef __EMSCRIPTEN__
+    // WASM builds use embedded JSON exclusively; avoid filesystem access
+    if (use_embedded_fallback) {
+        return parse_keyboard_config_string(
+            std::string(ovb::resources::embedded_json_data,
+                       ovb::resources::embedded_json_size)
+        );
+    }
+    throw std::runtime_error("No embedded keyboard config available for WASM");
+#else
     // Try loading from file
     std::filesystem::path json_path = layout_path;
     if (std::filesystem::is_directory(layout_path)) {
@@ -395,6 +405,7 @@ Keyboard_Config load_keyboard_config(
         );
     }
     return cfg;
+#endif
 #endif
 }
 

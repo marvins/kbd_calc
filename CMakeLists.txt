@@ -40,14 +40,15 @@ option( SIMULATOR        "Build simulator target (requires SDL2)"    ON )
 option( BUILD_TESTS      "Build unit tests"                          ON )
 option( SHOW_KEYBOARD_UI "Show on-screen keyboard UI (SDL only)"    ON )
 option( DEBUG_LAYOUT     "Draw debug borders around LCD regions"     OFF )
+option( USE_ASAN         "Enable AddressSanitizer for memory debugging" OFF )
 
-# Target device selection: SDL, PICOSDL, PICOCALC, or ZERO
+# Target device selection: SDL, PICOSDL, PICOCALC, ZERO, or WASM
 if(NOT DEFINED TARGET_DEVICE OR TARGET_DEVICE STREQUAL "")
-    set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, PICOSDL, PICOCALC, ZERO)" FORCE)
+    set(TARGET_DEVICE "SDL" CACHE STRING "Target device (SDL, PICOSDL, PICOCALC, ZERO, WASM)" FORCE)
 else()
-    set(TARGET_DEVICE ${TARGET_DEVICE} CACHE STRING "Target device (SDL, PICOSDL, PICOCALC, ZERO)" FORCE)
+    set(TARGET_DEVICE ${TARGET_DEVICE} CACHE STRING "Target device (SDL, PICOSDL, PICOCALC, ZERO, WASM)" FORCE)
 endif()
-set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL PICOSDL PICOCALC ZERO)
+set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL PICOSDL PICOCALC ZERO WASM)
 
 # Set keyboard UI default based on target
 if(TARGET_DEVICE STREQUAL "SDL")
@@ -58,6 +59,10 @@ elseif(TARGET_DEVICE STREQUAL "PICOCALC")
     set(SHOW_KEYBOARD_UI OFF CACHE BOOL "Show on-screen keyboard UI" FORCE)
 elseif(TARGET_DEVICE STREQUAL "ZERO")
     set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
+elseif(TARGET_DEVICE STREQUAL "WASM")
+    set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
+    set(SIMULATOR OFF CACHE BOOL "Build simulator target" FORCE)
+    set(BUILD_TESTS OFF CACHE BOOL "Build unit tests" FORCE)
 endif()
 
 # ── Shared Dependencies ───────────────────────────────────────────────────────────
@@ -72,6 +77,8 @@ elseif(TARGET_DEVICE STREQUAL "PICOCALC")
     include(data/hardware/picocalc/CMakeLists.txt)
 elseif(TARGET_DEVICE STREQUAL "ZERO")
     include(data/hardware/pi_zero/CMakeLists.txt)
+elseif(TARGET_DEVICE STREQUAL "WASM")
+    include(data/hardware/wasm/CMakeLists.txt)
 else()
     message(FATAL_ERROR "Unknown TARGET_DEVICE: ${TARGET_DEVICE}")
 endif()
@@ -108,6 +115,7 @@ set(CORE_SOURCES
 set(GUI_SOURCES
     src/overboard/gui/app_menu.cpp
     src/overboard/gui/app_view.cpp
+    src/overboard/gui/dimension_picker_popup.cpp
     src/overboard/gui/footer_bar.cpp
     src/overboard/gui/function_menu_popup.cpp
     src/overboard/gui/header_bar.cpp
@@ -140,6 +148,9 @@ elseif(TARGET_DEVICE STREQUAL "PICOCALC")
 elseif(TARGET_DEVICE STREQUAL "ZERO")
     set(APP_TARGET calc_app)
     set(APP_LIBRARIES lvgl ${HARDWARE_LIBRARIES})
+elseif(TARGET_DEVICE STREQUAL "WASM")
+    set(APP_TARGET calc_sim)
+    set(APP_LIBRARIES ${HARDWARE_LIBRARIES} lvgl)
 endif()
 
 #  Build the main executable
@@ -179,6 +190,19 @@ endif()
 
 if(DEBUG_LAYOUT)
     target_compile_definitions(${APP_TARGET} PRIVATE OVB_DEBUG_LAYOUT=1)
+endif()
+
+if(USE_ASAN)
+    target_compile_options(${APP_TARGET} PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+    target_link_options(${APP_TARGET} PRIVATE -fsanitize=address)
+endif()
+
+if(TARGET_DEVICE STREQUAL "WASM")
+    set_target_properties(${APP_TARGET} PROPERTIES
+        SUFFIX "${WASM_TARGET_SUFFIX}"
+    )
+    target_compile_options(${APP_TARGET} PRIVATE ${WASM_COMPILE_OPTIONS})
+    target_link_options(${APP_TARGET} PRIVATE ${WASM_LINK_FLAGS})
 endif()
 
 if(TARGET_DEVICE STREQUAL "PICOCALC")
@@ -274,6 +298,7 @@ if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STRE
         test/math/layout/test_layout_engine.cpp
         test/math/test_calc_engine.cpp
         test/math/test_expression.cpp
+        test/math/test_matrix_ops.cpp
         test/math/test_trig_functions.cpp
         test/core/test_layout.cpp
         test/core/test_action_code.cpp

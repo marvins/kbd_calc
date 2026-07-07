@@ -1,5 +1,12 @@
 # Project Tasks
 
+## Imminent
+
+- [ ] Add valgrind/gdb like debugger flag to go_macropad — enable ASan via `-DUSE_ASAN=ON` for memory corruption debugging. Check OS and compiler, then adjust flags accordingly.
+- [ ] Add WASM/Emscripten build target: EMSDK setup, `TARGET_DEVICE=WASM` CMake path, `--wasm` flag in `go_macropad`, and browser launch via `emrun`.
+
+---
+
 ## Phase 0: Math Canvas Cleanup
 
 Goal: Refactor the monolithic draw lambda in `math_canvas.cpp` for better maintainability and performance.
@@ -383,11 +390,18 @@ Goal: Add first-class support for 1D arrays (vectors) and ND arrays (matrices) w
 - [ ] Array literal syntax — `[1, 2, 3]` for vectors, `[[1,2], [3,4]]` for matrices
 - [ ] Placeholder templates — `[□, □, □]` for quick vector entry, matrix templates for common sizes
 
+**F-Key Assignment (Core Math context):**
+- [x] F1 — Alg popup (algebra / power functions)
+- [x] F2 — Trig popup (trig and inverse trig)
+- [x] F3 — Const popup (π, e, φ, τ)
+- [x] F4 — New Matrix (opens dimension picker directly)
+- [x] F5 — Mat Ops popup (New Vec, zeros, ones, eye, transp, det, inv)
+
 **Construction & Access:**
 - [ ] Array constructor functions:
-  - [ ] `zeros(n)` / `zeros(m, n)` — create zero-filled vector/matrix
-  - [ ] `ones(n)` / `ones(m, n)` — create ones-filled vector/matrix
-  - [ ] `eye(n)` — identity matrix
+  - [x] `zeros(n)` / `zeros(m, n)` — create zero-filled vector/matrix
+  - [x] `ones(n)` / `ones(m, n)` — create ones-filled vector/matrix
+  - [x] `eye(n)` — identity matrix
   - [ ] `diag([v1, v2, ...])` — diagonal matrix from vector
   - [ ] `linspace(start, stop, n)` — linearly spaced vector
   - [ ] `arange(start, stop, step)` — range vector with step size
@@ -414,12 +428,13 @@ Goal: Add first-class support for 1D arrays (vectors) and ND arrays (matrices) w
 - [ ] `norm(v)` — Euclidean norm of vector
 
 **Display & Rendering:**
-- [ ] Matrix layout in typeset view — grid rendering with proper alignment
+- [x] Matrix layout in typeset view — `MATRIX` layout box with row-major cell grid and `[` `]` bracket rendering
+- [x] `Dimension_Picker_Popup` — spinner UI for selecting rows × cols (or n for vectors)
 - [ ] Compact notation for large matrices — show corners with ellipsis
 - [ ] Vector display — horizontal `[1, 2, 3]` or vertical column format
 
 **Unit Tests:**
-- [ ] Array construction and initialization
+- [x] `insert_matrix` / `insert_vector` — eval string, display value, state transitions (`test_matrix_ops.cpp`)
 - [ ] Element access and slicing
 - [ ] Arithmetic operations with dimension checks
 - [ ] Matrix multiplication correctness
