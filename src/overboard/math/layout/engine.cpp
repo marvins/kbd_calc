@@ -13,6 +13,7 @@
 
 // Project Libraries
 #include <overboard/core/point.hpp>
+#include <overboard/math/ast/matrix_node.hpp>
 #include <overboard/math/ast/number_node.hpp>
 
 namespace {
@@ -170,6 +171,25 @@ Layout_Box Layout_Engine::build( const ast::Node* node, float scale ) {
             boxes.push_back(build(group->child().get(), scale));
             boxes.push_back(Layout_Box::atom(")", scale));
             auto box = Layout_Box::sequence(std::move(boxes), scale);
+            box.node_ptr = node;
+            return box;
+        }
+
+        case ast::Node_Kind::MATRIX: {
+            const auto* mat = static_cast<const ast::Matrix_Node*>(node);
+            const int rows = mat->rows();
+            const int cols = mat->cols();
+            const float cell_scale = std::max(1.0f, scale - 1.0f);
+
+            std::vector<Layout_Box> cells;
+            cells.reserve(static_cast<std::size_t>(rows * cols));
+            for (int r = 0; r < rows; ++r) {
+                for (int c = 0; c < cols; ++c) {
+                    auto idx = static_cast<std::size_t>(r * cols + c);
+                    cells.push_back(build(mat->child_at(idx), cell_scale));
+                }
+            }
+            auto box = Layout_Box::matrix(std::move(cells), rows, cols, scale);
             box.node_ptr = node;
             return box;
         }

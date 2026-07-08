@@ -55,6 +55,16 @@ LCD_Section::~LCD_Section() {
 }
 
 /*****************************/
+/*         Teardown          */
+/*****************************/
+void LCD_Section::teardown() {
+    m_preview_canvas = nullptr;
+    m_table          = nullptr;
+    m_bezel          = nullptr;
+    m_history_cells.clear();
+}
+
+/*****************************/
 /*        LCD Section        */
 /*****************************/
 void LCD_Section::build(lv_obj_t* parent, int avail_w, int avail_h) {
@@ -193,10 +203,12 @@ void LCD_Section::refresh() {
         : LVGL_COLOR_CURSOR_HIGHLIGHT;
 
     // Draw typeset math — result and expression both go through the layout engine
-    int pw = hal::PREVIEW_MAX_WIDTH;
-    int ph = hal::PREVIEW_MAX_HEIGHT;
-    draw_math_to_canvas(m_preview_canvas, pw, ph, *m_layout_engine, *ast_to_render, "", cursor_node,
-                        highlight_color);
+    draw_math_to_canvas( m_preview_canvas,
+                         *m_layout_engine,
+                         *ast_to_render,
+                         "",
+                         cursor_node,
+                         highlight_color);
 
     lv_obj_invalidate(m_preview_canvas);
     lv_obj_invalidate(m_bezel);

@@ -151,8 +151,27 @@ bool Dimension_Picker_Popup::is_visible() const {
 /****************************/
 /*    Handle Input (Key)    */
 /****************************/
-bool Dimension_Picker_Popup::handle_input([[maybe_unused]] core::Input_Key key) {
-    return false; // raw key not used — action codes drive everything
+bool Dimension_Picker_Popup::handle_input(core::Input_Key key) {
+    using AC = core::Action_Code;
+    AC action = AC::NONE_ACTION;
+    switch (key) {
+        case core::Input_Key::RETURN:
+        case core::Input_Key::NUMPAD_ENTER:
+            action = AC::EVAL; break;
+        case core::Input_Key::ESCAPE:
+            action = AC::ESCAPE; break;
+        case core::Input_Key::UP:
+            action = AC::CURSOR_UP; break;
+        case core::Input_Key::DOWN:
+            action = AC::CURSOR_DOWN; break;
+        case core::Input_Key::LEFT:
+            action = AC::CURSOR_LEFT; break;
+        case core::Input_Key::RIGHT:
+            action = AC::CURSOR_RIGHT; break;
+        default: break;
+    }
+    if (action == AC::NONE_ACTION) return false;
+    return handle_input(action);
 }
 
 /*****************************/

@@ -76,11 +76,12 @@ static void draw_placeholder( lv_layer_t& layer,
                                int         x,
                                int         y,
                                int         w,
-                               int         h )
+                               int         h,
+                               uint32_t    bg_color = LVGL_COLOR_BG_CANVAS )
 {
     lv_draw_rect_dsc_t rect_dsc;
     lv_draw_rect_dsc_init(&rect_dsc);
-    rect_dsc.bg_color     = lvgl_color(LVGL_COLOR_BG_CANVAS);
+    rect_dsc.bg_color     = lvgl_color(bg_color);
     rect_dsc.bg_opa       = LV_OPA_COVER;
     rect_dsc.border_color = lvgl_color(LVGL_COLOR_BORDER_MEDIUM);
     rect_dsc.border_opa   = LV_OPA_COVER;
@@ -215,7 +216,11 @@ struct Box_Renderer {
                 if (!b.text.empty()) {
                     draw_atom(layer, b, x, y);
                 } else {
-                    draw_placeholder(layer, x, y, b.size.x, b.size.y);
+                    // Use cursor highlight color as background when cursor is on this placeholder
+                    const uint32_t ph_bg = (cursor_node && b.node_ptr == cursor_node)
+                        ? cursor_color
+                        : LVGL_COLOR_BG_CANVAS;
+                    draw_placeholder(layer, x, y, b.size.x, b.size.y, ph_bg);
                 }
                 break;
 
@@ -251,14 +256,15 @@ struct Box_Renderer {
 /*       Draw Math To Canvas        */
 /************************************/
 bool draw_math_to_canvas( lv_obj_t*                     canvas,
-                          int                           width,
-                          int                           height,
                           math::layout::Layout_Engine&  layout_engine,
                           const math::ast::Node::ptr_t& ast,
                           const std::string&            result_str,
                           const math::ast::Node*        cursor_node,
                           uint32_t                      cursor_highlight_color )
 {
+    const int width  = lv_obj_get_width(canvas);
+    const int height = lv_obj_get_height(canvas);
+
     // Create draw layer for canvas
     lv_layer_t layer;
     lv_canvas_init_layer(canvas, &layer);
@@ -293,20 +299,17 @@ bool draw_math_to_canvas( lv_obj_t*                     canvas,
         }
     }
 
-    Box_Renderer{ layer, cursor_node, cursor_highlight_color, scroll_x, scroll_y }.draw(box);
+    Box_Renderer renderer{ layer, cursor_node, cursor_highlight_color, scroll_x, scroll_y };
+    renderer.draw(box);
 
-    // Draw result in lower right if present
+    // Render result string as a layout box in the lower-right region
     if (!result_str.empty()) {
-        lv_draw_label_dsc_t result_dsc;
-        lv_draw_label_dsc_init(&result_dsc);
-        result_dsc.color = lvgl_color(LVGL_COLOR_TEXT_PRIMARY);
-        result_dsc.font  = LVGL_FONT_DEFAULT;
-        result_dsc.opa   = LV_OPA_COVER;
-        result_dsc.text  = result_str.c_str();
-
-        lv_area_t result_coords = make_area( width / 2, height / 2,
-                                             width - 10, height - 10 );
-        lv_draw_label(&layer, &result_dsc, &result_coords);
+        auto result_box = math::layout::Layout_Box::atom(result_str, box.scale);
+        layout_engine.measure(result_box);
+        constexpr int MARGIN { 10 };
+        result_box.pos = { width  - result_box.size.x - MARGIN,
+                           height - result_box.size.y - MARGIN };
+        renderer.draw(result_box);
     }
 
     lv_canvas_finish_layer(canvas, &layer);

@@ -128,6 +128,11 @@ void Expression::insert(core::Action_Code code) {
         // Approx function
         case AC::APPROX:      insert_function(operators::Approx()); break;
 
+        // Matrix operations
+        case AC::MAT_TRANSPOSE: insert_function(operators::Transpose()); break;
+        case AC::MAT_DET:       insert_function(operators::Det()); break;
+        case AC::MAT_INV:       insert_function(operators::Inv()); break;
+
         // Layer navigation handled in Calc_Engine, not here
         case AC::NEXT_LAYER:
         case AC::PREV_LAYER:
@@ -172,10 +177,11 @@ void Expression::backspace() {
             replace_node_at_cursor(std::move(new_node));
         }
     }
-    // If cursor is on a placeholder, check if parent is a function/constant to delete atomically
+    // If cursor is on a placeholder, check if parent is a function/constant/matrix to delete atomically
     else if (cursor_node->kind() == ast::Node_Kind::PLACEHOLDER) {
         if (!m_cursor_path.empty()) {
-            // Check if parent is a function or constant
+
+            // Check if parent is a function, constant, or matrix
             ast::Cursor_Path_Runtime parent_path = m_cursor_path.parent_path();
             ast::Node* parent = ast::get_node_at_path(m_ast_root.get(), parent_path);
             if (parent && (parent->kind() == ast::Node_Kind::FUNCTION || parent->kind() == ast::Node_Kind::CONSTANT)) {
@@ -186,6 +192,17 @@ void Expression::backspace() {
                 m_cursor_path = ast::Cursor_Path_Runtime();
                 return;
             }
+
+            // If parent is a matrix, replace current cell with placeholder (already is)
+            // so delete the entire matrix
+            if (parent && parent->kind() == ast::Node_Kind::MATRIX) {
+                m_cursor_path = parent_path;
+                auto new_node = std::make_unique<ast::Placeholder_Node>();
+                replace_node_at_cursor(std::move(new_node));
+                m_cursor_path = ast::Cursor_Path_Runtime();
+                return;
+            }
+
             // If parent is a binary op, delete the operator and move to left child
             if (parent && parent->kind() == ast::Node_Kind::BINARY_OP) {
                 auto* bin_node = static_cast<ast::Binary_Op_Node*>(parent);
@@ -215,6 +232,14 @@ void Expression::backspace() {
         replace_node_at_cursor(std::move(new_node));
         m_cursor_path = ast::Cursor_Path_Runtime();
     }
+
+    // If cursor is on a matrix, delete the matrix atomically
+    else if (cursor_node->kind() == ast::Node_Kind::MATRIX) {
+        auto new_node = std::make_unique<ast::Placeholder_Node>();
+        replace_node_at_cursor(std::move(new_node));
+        m_cursor_path = ast::Cursor_Path_Runtime();
+    }
+
     // If cursor is on a constant, delete the constant
     else if (cursor_node->kind() == ast::Node_Kind::CONSTANT) {
         auto new_node = std::make_unique<ast::Placeholder_Node>();
@@ -295,6 +320,69 @@ void Expression::cursor_right() {
 }
 
 /********************************************/
+/*               Cursor Up                  */
+/********************************************/
+void Expression::cursor_up() {
+    if (m_cursor_path.empty()) return;
+
+    // Walk up to find the nearest matrix ancestor
+    ast::Cursor_Path_Runtime path = m_cursor_path;
+    while (!path.empty()) {
+        std::size_t idx = path[path.depth() - 1];
+        ast::Cursor_Path_Runtime parent_path = path;
+        parent_path.pop();
+        const ast::Node* parent = ast::get_node_at_path(m_ast_root.get(), parent_path);
+
+        if (parent && parent->kind() == ast::Node_Kind::MATRIX) {
+            const auto* mat = static_cast<const ast::Matrix_Node*>(parent);
+            int cols = mat->cols();
+            int current_flat = static_cast<int>(idx);
+            int current_row = current_flat / cols;
+            int current_col = current_flat % cols;
+            if (current_row > 0) {
+                int new_flat = (current_row - 1) * cols + current_col;
+                path.path()[path.depth() - 1] = static_cast<std::size_t>(new_flat);
+                m_cursor_path = path;
+            }
+            return;
+        }
+        path = parent_path;
+    }
+}
+
+/********************************************/
+/*              Cursor Down                 */
+/********************************************/
+void Expression::cursor_down() {
+    if (m_cursor_path.empty()) return;
+
+    // Walk up to find the nearest matrix ancestor
+    ast::Cursor_Path_Runtime path = m_cursor_path;
+
+    while (!path.empty()) {
+        std::size_t idx = path[path.depth() - 1];
+        ast::Cursor_Path_Runtime parent_path = path;
+        parent_path.pop();
+        const ast::Node* parent = ast::get_node_at_path(m_ast_root.get(), parent_path);
+        if (parent && parent->kind() == ast::Node_Kind::MATRIX) {
+            const auto* mat = static_cast<const ast::Matrix_Node*>(parent);
+            int rows = mat->rows();
+            int cols = mat->cols();
+            int current_flat = static_cast<int>(idx);
+            int current_row = current_flat / cols;
+            int current_col = current_flat % cols;
+            if (current_row < rows - 1) {
+                int new_flat = (current_row + 1) * cols + current_col;
+                path.path()[path.depth() - 1] = static_cast<std::size_t>(new_flat);
+                m_cursor_path = path;
+            }
+            return;
+        }
+        path = parent_path;
+    }
+}
+
+/********************************************/
 /*            Insert Node                   */
 /********************************************/
 void Expression::insert_node( const ast::Node& node ) {
@@ -306,6 +394,12 @@ void Expression::insert_node( const ast::Node& node ) {
     if (cursor_node->kind() == ast::Node_Kind::PLACEHOLDER) {
         replace_node_at_cursor(node.clone());
         m_decimal_position = 0;
+
+        // If the new node has children (e.g. Matrix_Node), descend to first child
+        ast::Node* new_cursor = get_cursor_node();
+        if (new_cursor && new_cursor->child_count() > 0) {
+            m_cursor_path.push(0);
+        }
     }
 }
 
@@ -498,6 +592,20 @@ std::string Expression::eval_string() const {
                 const auto* group = static_cast<const ast::Group_Node*>(node);
                 return "(" + to_eval_string(group->child().get()) + ")";
             }
+            case ast::Node_Kind::MATRIX: {
+                const auto* mat = static_cast<const ast::Matrix_Node*>(node);
+                std::string s = "[";
+                for (int r = 0; r < mat->rows(); ++r) {
+                    if (r > 0) s += ";";
+                    s += "[";
+                    for (int c = 0; c < mat->cols(); ++c) {
+                        if (c > 0) s += ",";
+                        s += to_eval_string(mat->child_at(static_cast<std::size_t>(r * mat->cols() + c)));
+                    }
+                    s += "]";
+                }
+                return s + "]";
+            }
             case ast::Node_Kind::CONSTANT: {
                 const auto* const_node = static_cast<const ast::Constant_Node*>(node);
                 switch (const_node->id()) {
@@ -585,6 +693,20 @@ std::string Expression::render_string() const {
             case ast::Node_Kind::GROUP: {
                 const auto* group = static_cast<const ast::Group_Node*>(node);
                 return "(" + to_render_string(group->child().get()) + ")";
+            }
+            case ast::Node_Kind::MATRIX: {
+                const auto* mat = static_cast<const ast::Matrix_Node*>(node);
+                std::string s = "[";
+                for (int r = 0; r < mat->rows(); ++r) {
+                    if (r > 0) s += "; ";
+                    s += "[";
+                    for (int c = 0; c < mat->cols(); ++c) {
+                        if (c > 0) s += ", ";
+                        s += to_render_string(mat->child_at(static_cast<std::size_t>(r * mat->cols() + c)));
+                    }
+                    s += "]";
+                }
+                return s + "]";
             }
             case ast::Node_Kind::CONSTANT: {
                 const auto* const_node = static_cast<const ast::Constant_Node*>(node);
@@ -757,6 +879,9 @@ void Expression::replace_node_at_cursor( ast::Node::ptr_t new_node ) {
     } else if (parent->kind() == ast::Node_Kind::FACTORIAL) {
         auto* fact_node = static_cast<ast::Factorial_Node*>(parent);
         fact_node->set_operand(std::move(new_node));
+    } else if (parent->kind() == ast::Node_Kind::MATRIX) {
+        auto* mat_node = static_cast<ast::Matrix_Node*>(parent);
+        mat_node->set_child(child_index, std::move(new_node));
     }
 }
 

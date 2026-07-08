@@ -26,10 +26,9 @@ namespace ovb::gui {
  * @brief Render a typeset mathematical expression to an LVGL canvas
  *
  * Builds a layout box tree from @p ast and draws it onto @p canvas.
+ * Canvas dimensions are queried internally via lv_obj_get_width/height.
  *
  * @param canvas        Target LVGL canvas object
- * @param width         Canvas width in pixels
- * @param height        Canvas height in pixels
  * @param layout_engine Layout engine for box construction and positioning
  * @param ast           AST node to render (upper left)
  * @param result_str    Result string to render (lower right), empty if no result
@@ -38,8 +37,6 @@ namespace ovb::gui {
  * @return true on success, false if layout build failed
  */
 bool draw_math_to_canvas( lv_obj_t*                     canvas,
-                          int                           width,
-                          int                           height,
                           math::layout::Layout_Engine&  layout_engine,
                           const math::ast::Node::ptr_t& ast,
                           const std::string&            result_str = "",

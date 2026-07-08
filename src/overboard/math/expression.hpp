@@ -12,6 +12,7 @@
 #include <overboard/core/keymap.hpp>
 #include <overboard/math/ast/node.hpp>
 #include <overboard/math/ast/node_traits.hpp>
+#include <overboard/math/ast/matrix_node.hpp>
 #include <overboard/math/ast/placeholder_node.hpp>
 #include <overboard/math/operators/operator.hpp>
 #include <string>
@@ -65,6 +66,16 @@ class Expression {
          * @brief Move cursor right in tree
          */
         void cursor_right();
+
+        /**
+         * @brief Move cursor up (matrix cell navigation)
+         */
+        void cursor_up();
+
+        /**
+         * @brief Move cursor down (matrix cell navigation)
+         */
+        void cursor_down();
 
         /**
          * @brief Clear the entire tree and reset to placeholder

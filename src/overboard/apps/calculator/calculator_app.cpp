@@ -261,7 +261,10 @@ void Calculator_App::deactivate() {
     // Now reset the smart pointers - their LVGL objects are already deleted
     m_impl->footer.reset();
     m_impl->header.reset();
-    m_impl->lcd.reset();
+    if (m_impl->lcd) {
+        m_impl->lcd->teardown();
+        m_impl->lcd.reset();
+    }
 }
 
 /*******************************/
@@ -376,6 +379,17 @@ bool Calculator_App::handle_input(core::Action_Code action) {
 /*      Handle Input Key       */
 /*******************************/
 bool Calculator_App::handle_input_key(core::Input_Key key) {
+    // If the dimension picker is active, route input to it first
+    if (m_impl->dim_picker) {
+        bool handled = m_impl->dim_picker->handle_input(key);
+        if (!m_impl->dim_picker->is_visible()) {
+            m_impl->dim_picker.reset();
+            if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
+            refresh();
+        }
+        if (handled) return true;
+    }
+
     // If a popup is active, route input to it first
     if (m_impl->active_popup) {
         bool handled = m_impl->active_popup->handle_input(key);
@@ -409,6 +423,18 @@ bool Calculator_App::handle_input_key(core::Input_Key key) {
         case core::Input_Key::RIGHT:
             // Move cursor right in the expression
             m_impl->engine.state().expression.cursor_right();
+            refresh();
+            return true;
+
+        case core::Input_Key::UP:
+            // Move cursor up (matrix cell navigation)
+            m_impl->engine.state().expression.cursor_up();
+            refresh();
+            return true;
+
+        case core::Input_Key::DOWN:
+            // Move cursor down (matrix cell navigation)
+            m_impl->engine.state().expression.cursor_down();
             refresh();
             return true;
 

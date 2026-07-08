@@ -13,6 +13,7 @@
 #include <limits>
 
 // Project Libraries
+#include <overboard/math/ast/matrix_node.hpp>
 #include <overboard/math/ast/number_node.hpp>
 
 namespace ovb::math::ast {
@@ -140,6 +141,22 @@ Node::ptr_t Function_Node::simplify() const {
         const double result = Function_Node(m_name, std::move(copies)).eval();
         if (std::abs(result - std::floor(result)) < 1e-10 && std::abs(result) < 1e15) {
             return std::make_unique<Number_Node>(result);
+        }
+    }
+
+    // transpose of a matrix — swap rows and cols
+    if (m_name == "transpose" && m_args.size() == 1) {
+        if (auto* mat = dynamic_cast<const Matrix_Node*>(simplified_args[0].get())) {
+            int rows = mat->rows();
+            int cols = mat->cols();
+            std::vector<Node::ptr_t> transposed;
+            transposed.reserve(static_cast<std::size_t>(rows * cols));
+            for (int c = 0; c < cols; ++c) {
+                for (int r = 0; r < rows; ++r) {
+                    transposed.push_back(mat->child_at(static_cast<std::size_t>(r * cols + c))->clone());
+                }
+            }
+            return std::make_unique<Matrix_Node>(std::move(transposed), cols, rows);
         }
     }
 

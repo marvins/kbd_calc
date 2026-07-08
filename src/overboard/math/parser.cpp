@@ -15,6 +15,7 @@
 #include <overboard/math/ast/constant_node.hpp>
 #include <overboard/math/ast/factorial_node.hpp>
 #include <overboard/math/ast/function_node.hpp>
+#include <overboard/math/ast/matrix_node.hpp>
 #include <overboard/math/ast/number_node.hpp>
 #include <overboard/math/ast/placeholder_node.hpp>
 #include <overboard/math/ast/unary_op_node.hpp>
@@ -265,6 +266,10 @@ ast::Node::ptr_t Parser::parse_primary() {
         return v;
     }
 
+    if (peek() == '[') {
+        return parse_matrix();
+    }
+
     if (std::isalpha(peek())) {
         std::string id = read_ident();
 
@@ -305,6 +310,66 @@ ast::Node::ptr_t Parser::parse_func(const std::string& name) {
     }
     if (peek() == ')') consume();
     return std::make_unique<ast::Function_Node>(name, std::move(args));
+}
+
+/************************************/
+/*          Parse Matrix            */
+/************************************/
+ast::Node::ptr_t Parser::parse_matrix() {
+    consume(); // consume '['
+
+    // Parse rows separated by ';'
+    std::vector<std::vector<ast::Node::ptr_t>> rows;
+
+    // Handle empty matrix []
+    if (peek() == ']') {
+        consume();
+        return std::make_unique<ast::Matrix_Node>(0, 0);
+    }
+
+    while (true) {
+        // Each row starts with '['
+        if (peek() != '[') break;
+        consume(); // consume '['
+
+        std::vector<ast::Node::ptr_t> row;
+        if (peek() != ']') {
+            row.push_back(parse_expr());
+            while (peek() == ',') {
+                consume();
+                row.push_back(parse_expr());
+            }
+        }
+        if (peek() == ']') consume();
+
+        rows.push_back(std::move(row));
+
+        if (peek() == ';') {
+            consume();
+            continue;
+        }
+        break;
+    }
+
+    if (peek() == ']') consume();
+
+    if (rows.empty()) {
+        return std::make_unique<ast::Matrix_Node>(0, 0);
+    }
+
+    int num_rows = static_cast<int>(rows.size());
+    int num_cols = static_cast<int>(rows[0].size());
+
+    // Flatten into row-major order
+    std::vector<ast::Node::ptr_t> cells;
+    cells.reserve(static_cast<std::size_t>(num_rows * num_cols));
+    for (auto& row : rows) {
+        for (auto& cell : row) {
+            cells.push_back(std::move(cell));
+        }
+    }
+
+    return std::make_unique<ast::Matrix_Node>(std::move(cells), num_rows, num_cols);
 }
 
 } // namespace ovb::math

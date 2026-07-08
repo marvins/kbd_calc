@@ -103,6 +103,7 @@ set(CORE_SOURCES
     src/overboard/io/keyboard_config.cpp
     src/overboard/math/ast/binary_op_node.cpp
     src/overboard/math/ast/function_node.cpp
+    src/overboard/math/ast/matrix_node.cpp
     src/overboard/math/ast/number_node.cpp
     src/overboard/math/ast/unary_op_node.cpp
     src/overboard/math/calc_engine.cpp
@@ -250,6 +251,7 @@ if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL")
         src/overboard/font/font_metrics.cpp
         src/overboard/math/ast/binary_op_node.cpp
         src/overboard/math/ast/function_node.cpp
+        src/overboard/math/ast/matrix_node.cpp
         src/overboard/math/ast/number_node.cpp
         src/overboard/math/ast/unary_op_node.cpp
         src/overboard/math/parser.cpp
@@ -318,6 +320,7 @@ if( BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STRE
         src/overboard/font/font_metrics.cpp
         src/overboard/math/ast/binary_op_node.cpp
         src/overboard/math/ast/function_node.cpp
+        src/overboard/math/ast/matrix_node.cpp
         src/overboard/math/ast/number_node.cpp
         src/overboard/math/ast/unary_op_node.cpp
         src/overboard/math/expression.cpp

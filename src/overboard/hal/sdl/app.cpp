@@ -242,10 +242,12 @@ bool SDL_App::init() {
 /************************************/
 /*          Run the app             */
 /************************************/
+#ifdef __EMSCRIPTEN__
 static void sdl_app_run_frame(void* user_data) {
     auto* app = static_cast<SDL_App*>(user_data);
     app->run_frame();
 }
+#endif
 
 void SDL_App::run_frame() {
     // Pump SDL events (handles keyboard and mouse hit-testing)
