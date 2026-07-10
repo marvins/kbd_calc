@@ -62,9 +62,13 @@ struct Status_Page::Impl {
     std::unique_ptr<widgets::Solar_Info>    solar_info;
     bool                         dismissed  = false;
 
-    /// @brief Pending location resolved from background thread
-    std::mutex                          location_mutex;
-    std::optional<core::Solar_Location> pending_location;
+    /// @brief Shared between Impl and the detached location thread so the
+    ///        thread can safely write even after Status_Page is destroyed.
+    struct Location_State {
+        std::mutex                          mutex;
+        std::optional<core::Solar_Location> pending;
+    };
+    std::shared_ptr<Location_State> location_state = std::make_shared<Location_State>();
 };
 
 /*******************************/
@@ -142,10 +146,13 @@ void Status_Page::activate(lv_obj_t* parent) {
     m_impl->solar_info->create(content);
 
     // Resolve geographic location from settings or IP geolocation
+    // Capture location_state by value (shared_ptr copy) so the detached
+    // thread can safely write even if Status_Page is destroyed first.
     {
-        core::resolve_location_async(m_impl->settings->tree(), [this](core::Solar_Location loc) {
-            std::lock_guard<std::mutex> lock(m_impl->location_mutex);
-            m_impl->pending_location = loc;
+        auto loc_state = m_impl->location_state;
+        core::resolve_location_async(m_impl->settings->tree(), [loc_state](core::Solar_Location loc) {
+            std::lock_guard<std::mutex> lock(loc_state->mutex);
+            loc_state->pending = loc;
         });
     }
 
@@ -196,10 +203,10 @@ void Status_Page::activate(lv_obj_t* parent) {
         if (impl->solar_info) {
             // Apply location if background thread resolved one
             {
-                std::lock_guard<std::mutex> lock(impl->location_mutex);
-                if (impl->pending_location) {
-                    impl->solar_info->set_location(*impl->pending_location);
-                    impl->pending_location.reset();
+                std::lock_guard<std::mutex> lock(impl->location_state->mutex);
+                if (impl->location_state->pending) {
+                    impl->solar_info->set_location(*impl->location_state->pending);
+                    impl->location_state->pending.reset();
                 }
             }
             impl->solar_info->update(tm_update);
@@ -258,11 +265,13 @@ bool Status_Page::handle_input(core::Action_Code action) {
 
     // F1 shows About popup
     if (action == core::Action_Code::FUNC_1) {
+        hide_stats_popup();
         show_about_popup();
     }
 
     // F2 shows Stats popup
     if (action == core::Action_Code::FUNC_2) {
+        hide_about_popup();
         show_stats_popup();
     }
 
@@ -292,12 +301,14 @@ bool Status_Page::handle_input_key(core::Input_Key key) {
 
     // F1 shows About popup
     if (key == core::Input_Key::F1) {
+        hide_stats_popup();
         show_about_popup();
         return true;
     }
 
     // F2 shows Stats popup
     if (key == core::Input_Key::F2) {
+        hide_about_popup();
         show_stats_popup();
         return true;
     }

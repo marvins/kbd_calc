@@ -36,11 +36,11 @@ set( CMAKE_CXX_STANDARD 23 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 #  Options Configuration
-option( SIMULATOR        "Build simulator target (requires SDL2)"    ON )
-option( BUILD_TESTS      "Build unit tests"                          ON )
-option( SHOW_KEYBOARD_UI "Show on-screen keyboard UI (SDL only)"    ON )
-option( DEBUG_LAYOUT     "Draw debug borders around LCD regions"     OFF )
-option( USE_ASAN         "Enable AddressSanitizer for memory debugging" OFF )
+option( SIMULATOR            "Build simulator target (requires SDL2)"    ON )
+option( BUILD_TESTS          "Build unit tests"                          ON )
+option( SHOW_KEY_MAPPING     "Show interactive key mapping panel"        ON )
+option( DEBUG_LAYOUT         "Draw debug borders around LCD regions"     OFF )
+option( USE_ASAN             "Enable AddressSanitizer for memory debugging" OFF )
 
 # Target device selection: SDL, PICOSDL, PICOCALC, ZERO, or WASM
 if(NOT DEFINED TARGET_DEVICE OR TARGET_DEVICE STREQUAL "")
@@ -50,17 +50,17 @@ else()
 endif()
 set_property(CACHE TARGET_DEVICE PROPERTY STRINGS SDL PICOSDL PICOCALC ZERO WASM)
 
-# Set keyboard UI default based on target
+# Set keyboard UI defaults based on target
 if(TARGET_DEVICE STREQUAL "SDL")
-    set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
+    set(SHOW_KEY_MAPPING ON CACHE BOOL "Show interactive key mapping panel" FORCE)
 elseif(TARGET_DEVICE STREQUAL "PICOSDL")
-    set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
+    set(SHOW_KEY_MAPPING ON CACHE BOOL "Show interactive key mapping panel" FORCE)
 elseif(TARGET_DEVICE STREQUAL "PICOCALC")
-    set(SHOW_KEYBOARD_UI OFF CACHE BOOL "Show on-screen keyboard UI" FORCE)
+    set(SHOW_KEY_MAPPING OFF CACHE BOOL "Show interactive key mapping panel" FORCE)
 elseif(TARGET_DEVICE STREQUAL "ZERO")
-    set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
+    set(SHOW_KEY_MAPPING ON CACHE BOOL "Show interactive key mapping panel" FORCE)
 elseif(TARGET_DEVICE STREQUAL "WASM")
-    set(SHOW_KEYBOARD_UI ON CACHE BOOL "Show on-screen keyboard UI" FORCE)
+    set(SHOW_KEY_MAPPING ON CACHE BOOL "Show interactive key mapping panel" FORCE)
     set(SIMULATOR OFF CACHE BOOL "Build simulator target" FORCE)
     set(BUILD_TESTS OFF CACHE BOOL "Build unit tests" FORCE)
 endif()
@@ -183,11 +183,13 @@ target_link_libraries(${APP_TARGET} PRIVATE
     tomlplusplus
 )
 
-if(SHOW_KEYBOARD_UI)
-    target_compile_definitions(${APP_TARGET} PRIVATE ${HARDWARE_COMPILE_DEFINITIONS} SHOW_KEYBOARD_UI=1)
+if(SHOW_KEY_MAPPING)
+    target_compile_definitions(${APP_TARGET} PRIVATE SHOW_KEY_MAPPING=1)
 else()
-    target_compile_definitions(${APP_TARGET} PRIVATE ${HARDWARE_COMPILE_DEFINITIONS} SHOW_KEYBOARD_UI=0)
+    target_compile_definitions(${APP_TARGET} PRIVATE SHOW_KEY_MAPPING=0)
 endif()
+
+target_compile_definitions(${APP_TARGET} PRIVATE ${HARDWARE_COMPILE_DEFINITIONS})
 
 if(DEBUG_LAYOUT)
     target_compile_definitions(${APP_TARGET} PRIVATE OVB_DEBUG_LAYOUT=1)

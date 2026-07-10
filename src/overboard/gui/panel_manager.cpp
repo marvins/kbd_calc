@@ -125,4 +125,13 @@ void Panel_Manager::set_panel_change_callback(std::function<void(I_Panel*)> cb) 
     m_panel_change_cb = std::move(cb);
 }
 
+/************************************/
+/* Trigger Panel Change Callback   */
+/************************************/
+void Panel_Manager::trigger_panel_change_callback() {
+    if (m_panel_change_cb && !m_stack.empty()) {
+        m_panel_change_cb(active_panel());
+    }
+}
+
 } // namespace ovb::gui

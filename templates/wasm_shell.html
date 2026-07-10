@@ -50,6 +50,8 @@
     <div id="status">Loading...</div>
 
     <script type="text/javascript">
+        console.log("=== WASM Shell HTML Loaded ===");
+        
         var Module = {
             preRun: [],
             postRun: [],
@@ -66,7 +68,9 @@
             totalDependencies: 0,
             monitorRunDependencies: function(left) {
                 this.totalDependencies = Math.max(this.totalDependencies, left);
-                this.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+                var status = left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.';
+                console.log(">>> Dependencies:", left, "remaining");
+                this.setStatus(status);
             },
             locateFile: function(file) {
                 // Help Emscripten find .wasm and .data files relative to the HTML
@@ -74,6 +78,7 @@
             }
         };
         Module.setStatus('Downloading...');
+
         window.onerror = function(message, source, lineno, colno, error) {
             Module.setStatus('Exception thrown: ' + message);
             console.error('Error:', message, 'at', source, lineno, colno, error);

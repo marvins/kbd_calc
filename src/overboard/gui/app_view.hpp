@@ -87,16 +87,6 @@ class App_View : public hal::I_Display {
         /// @brief Re-render keyboard display for the current layer
         void update_layer() override;
 
-        /**
-         * @brief Register a callback fired when an on-screen key button is clicked
-         *
-         * Forwards to Keyboard_Display::set_click_callback. Must be called
-         * after construction. Has no effect if the keyboard UI is not present.
-         *
-         * @param cb Callable receiving the logical key index
-         */
-        void set_key_click_callback(std::function<void(int)> cb);
-
         /// @brief Drive the LVGL render loop (call once per frame)
         void render()       override;
 
@@ -112,6 +102,14 @@ class App_View : public hal::I_Display {
          * @param cb Callback function to invoke on panel change
          */
         void set_panel_change_callback(std::function<void(I_Panel*)> cb);
+
+        /**
+         * @brief Manually trigger panel change callback for current active panel
+         * 
+         * Used to wire up callbacks after they are set, for panels that were
+         * already activated during construction.
+         */
+        void trigger_panel_change_callback();
 
     private:
 

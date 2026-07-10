@@ -1,194 +1,188 @@
 # Hardware
 
-## Current Architecture (Interim Design)
+## Current Architecture
 
-Since LCD keys (NKK SmartDisplay) are not readily available for prototyping, the current implementation uses a **20-key macropad** paired with a **5-inch side LCD panel** displaying key labels.
+The calculator uses a **Raspberry Pi Zero 2 W** as the main compute platform, handling calculator logic, UI rendering, and macropad input. A **Raspberry Pi Pico 2 (RP2350)** provides USB gadget functionality, enabling the device to act as a USB HID keyboard when connected to a laptop (passthrough and macro modes).
 
 ```mermaid
 flowchart LR
-    subgraph Macropad["20-Key Macropad"]
+    subgraph Macropad["33-Key Macropad"]
         K[Cherry MX/Kailh]
     end
 
-    subgraph ESP32[CrowPanel Advance 5.0]
-        MCU[ESP32-S3]
-        DISP["5 inch IPS Display<br/>800x480 Touch"]
-        MCU <--> DISP
+    subgraph PiZero["Raspberry Pi Zero 2 W"]
+        CPU["Quad-core ARM Cortex-A53"]
+        DISP["52pi 7-inch Display<br/>1024x600 HDMI"]
+        RTC["RTC Module"]
+        CPU -->|DRM/KMS| DISP
+        CPU <-->|I2C| RTC
     end
 
-    subgraph PC["PC"]
-        USB[USB HID Input]
+    subgraph Pico["Raspberry Pi Pico 2"]
+        MCU[RP2350]
+        USB_DEV[USB Device]
+        MCU --> USB_DEV
     end
 
-    Macropad -->|"USB-C<br/>USB Host"| ESP32
-    ESP32 -->|"USB-C<br/>HID Keyboard"| PC
+    subgraph PC["Laptop"]
+        HOST[USB Host]
+    end
+
+    Macropad -->|USB HID| PiZero
+    PiZero <-->|UART/GPIO| Pico
+    Pico -->|"USB Gadget<br/>HID Keyboard"| PC
 
     style Macropad fill:#e1f5fe
-    style ESP32 fill:#fff3e0
-    style PC fill:#e8f5e9
+    style PiZero fill:#e8f5e9
+    style Pico fill:#fff3e0
+    style PC fill:#f3e5f5
 ```
 
 ### Components
 
-#### Primary Display — CrowPanel Advance 5.0 HMI
+#### Compute — Raspberry Pi Zero 2 W
 
-**Product**: [CrowPanel Advance 5.0 HMI ESP32 AI Display](https://www.elecrow.com/crowpanel-advance-5-0-hmi-esp32-ai-display-800x480-ips-artificial-intelligent-touch-screen.html)
+**Product**: [Raspberry Pi Zero 2 W](https://www.raspberrypi.com/products/raspberry-pi-zero-2-w/)
+
+| Property           | Value                          |
+|--------------------|---------------------------------|
+| CPU                | Quad-core ARM Cortex-A53 @ 1GHz |
+| RAM                | 512MB LPDDR2                   |
+| Storage            | microSD card                   |
+| Connectivity       | 802.11 b/g/n WiFi, Bluetooth 4.2, BLE |
+| Video Output       | mini HDMI (1080p60)            |
+| GPIO               | 40-pin header                  |
+| Power              | 5V via micro USB or GPIO       |
+
+**Role**: Runs the calculator engine, renders the LCD UI (via LVGL + DRM/KMS), receives macropad input directly via USB HID, communicates with Pico 2 for USB gadget control (passthrough/macro modes).
+
+#### Display — 52pi 7" HDMI Display
+
+**Product**: 52pi 7" IPS Display with Capacitive Touch
+
+| Property           | Value                          |
+|--------------------|---------------------------------|
+| Size               | 7.0" IPS                       |
+| Resolution         | 1024×600                       |
+| Touch              | 5-point capacitive touch       |
+| Interface          | HDMI + USB touch               |
+| Brightness         | 250 cd/m²                      |
+| Viewing Angle      | 170°                           |
+| Power              | 5V/2A via USB or GPIO          |
+
+**Role**: Primary display for calculator UI, connected via HDMI to Pi Zero.
+
+#### USB Interface — Raspberry Pi Pico 2 (RP2350)
+
+**Product**: [Raspberry Pi Pico 2](https://www.raspberrypi.com/products/raspberry-pi-pico-2/)
+
+| Property           | Value                          |
+|--------------------|---------------------------------|
+| MCU                | RP2350 (dual Cortex-M33 @ 150MHz) |
+| RAM                | 520KB SRAM                     |
+| Flash              | 4MB QSPI                       |
+| GPIO               | 26 multi-function pins         |
+| USB                | Native USB 1.1 device (gadget mode) |
+| Connectivity       | UART, SPI, I2C                 |
+| Power              | 5V via USB or VSYS pin         |
+
+**Role**: USB gadget controller for laptop connectivity. Communicates with Pi Zero via UART/GPIO, acts as USB HID keyboard to laptop in passthrough/macro mode. Does not handle macropad input (macropad connects directly to Pi Zero).
+
+#### Real-Time Clock — RTC Module
+
+**Interface**: I2C connected to Pi Zero GPIO
+
+| Property           | Value                          |
+|--------------------|---------------------------------|
+| Interface          | I2C (GPIO 2/3 on Pi Zero)      |
+| Accuracy           | ±2 ppm typical                 |
+| Battery Backup     | CR2032 coin cell               |
+| Features           | Temperature-compensated crystal |
+
+**Role**: Maintains accurate time when Pi Zero is powered off. Used by clock widgets (analog/digital) and solar calculation engine for sunrise/sunset times. Critical for standalone operation without network connectivity.
+
+**Configuration**: Accessible via `/dev/rtc0` on Linux. System time synced from RTC on boot, written back on shutdown.
+
+#### Input Device — TH33 Macropad
+
+**Product**: Epomaker TH33 33-Key Mechanical Macropad
 
 | Property           | Value                          |
 |--------------------|--------------------------------|
-| MCU                | ESP32-S3-WROOM-1-N16R8         |
-| CPU                | Xtensa LX7 dual-core @ 240MHz  |
-| RAM                | 512KB SRAM + 8MB PSRAM         |
-| Flash              | 16MB                           |
-| Display            | 5.0" IPS, 800×480, capacitive touch |
-| Brightness         | 400 cd/m²                      |
-| Viewing Angle      | 178°                           |
-| Connectivity       | WiFi 2.4GHz, BLE 5.0, USB-C    |
-| Audio              | Built-in mic + speaker         |
-| Power              | 5V/2A via USB or battery       |
-
-**Role**: Runs the calculator engine, renders the LCD UI (via LVGL), receives key events from macropad, and can forward keystrokes to a PC as a USB HID keyboard.
-
-#### Input Device — 20-Key Macropad
-
-Any standard USB HID macropad with mechanical switches:
-- Cherry MX, Kailh, or Gateron switches
-- USB-C connection to the ESP32 host port
-- No display per key (labels shown on side LCD panel)
-
-**Layout**: 5 columns × 4 rows to match the software grid (`GRID_COLS=5`, `GRID_ROWS=4`)
-
-##### Selected: KISNT MF34 (34-Key Macropad with VIA)
-
-**Product**: KISNT MF34 Mechanical Keypad (VIA-compatible firmware)
-
-| Property           | Value                          |
-|--------------------|--------------------------------|
-| Keys               | 34 (8 columns × 7 rows)        |
-| Dimensions         | 156 × 143 × 38.8 mm            |
+| Brand              | Epomaker                       |
+| Keys               | 33 keys (configurable layout)  |
 | Switches           | Hot-swappable mechanical       |
-| Connectivity       | USB-C, Bluetooth               |
-| Features           | RGB backlight, rechargeable    |
+| Connectivity       | USB-C                          |
+| Firmware           | VIA-compatible                 |
+| Features           | RGB backlight, full programmability |
 
-**Notes**: The 34-key layout provides 14 extra keys beyond the 4-row calculator grid. These can be mapped to functions (clear, history, mode toggle, etc.) or left unused. The compact footprint is comparable to the target form factor.
+**Connection**: USB HID directly to Pi Zero
 
-### USB Architecture
+**Layout**: Configured via VIA to match the calculator's 5×4 grid with additional function keys. Extra keys can trigger mode switching, macros, or calculator functions.
 
-The ESP32-S3 operates in dual USB roles:
+**Notes**: The VIA-compatible firmware allows remapping function keys (F1-F10) to trigger calculator menus and operations. Pi Zero reads keyboard input via Linux `/dev/input/event*` devices.
 
-| Role | Mode | Function |
-|------|------|----------|
-| **USB Host** | OTG Host | Receives key events from macropad via TinyUSB Host stack |
-| **USB Device** | HID Keyboard | Sends keystrokes to PC as standard keyboard input |
+### System Architecture
+
+#### Communication Flow
+
+```mermaid
+sequenceDiagram
+    participant Macropad
+    participant PiZero as Pi Zero 2 W
+    participant Pico as Pico 2 (RP2350)
+    participant Laptop
+    
+    Macropad->>PiZero: USB HID events
+    PiZero->>PiZero: Process calculator logic
+    PiZero->>PiZero: Render UI to display
+    
+    alt Passthrough Mode
+        PiZero->>Pico: UART: key events
+        Pico->>Laptop: USB HID (forward keys)
+    end
+    
+    alt Macro Mode
+        PiZero->>Pico: UART: macro sequence
+        Pico->>Laptop: USB HID (execute macro)
+    end
+```
+
+#### Pico 2 Responsibilities
+
+| Function | Description |
+|----------|-------------|
+| **USB Device/Gadget** | Acts as HID keyboard to laptop |
+| **UART Bridge** | Receives commands from Pi Zero (key events, macro sequences) |
+| **Mode Controller** | Switches between passthrough/macro modes based on Pi Zero commands |
 
 ### Display Layout
 
-The 5" screen is split into two regions:
+The 7" screen (1024×600) is split into two regions:
 
 ```mermaid
 block-beta
     columns 1
     space
-    block:Virtual_Keypad:1
-        Keypad["800×480<br/>5 columns × 4 rows<br/>Shows layer labels"]
+    block:Calculator_LCD:1
+        LCD["~1024×400 area<br/>History table<br/>Current expression<br/>Math preview with cursor"]
     end
     space
-    block:Calculator_LCD:1
-        LCD["~480×240 area<br/>History<br/>Current expression<br/>Math preview"]
+    block:Virtual_Keypad:1
+        Keypad["1024×200 area<br/>5 columns × 4 rows<br/>Shows current layer labels"]
     end
     space
 ```
 
 ### Operating Modes
 
-| Mode | Description |
-|------|-------------|
-| **Standalone** | Disconnected from PC. ESP32 runs full calculator, display shows keypad + LCD regions. |
-| **Passthrough** | Connected to PC. Macropad keystrokes forwarded via USB HID. Display can mirror PC calculator or show status. |
+| Mode | Description | Pico 2 Role |
+|------|-------------|-------------|
+| **Standalone** | Disconnected from laptop. Pi Zero receives macropad input directly, runs full calculator, renders UI to display. | Inactive (not connected to laptop) |
+| **Passthrough** | Connected to laptop. Pi Zero forwards macropad keystrokes to Pico 2 via UART, which sends them as USB HID keyboard events to laptop. | USB HID keyboard forwarding raw events |
+| **Macro** | Connected to laptop. Pi Zero processes macropad input, sends macro sequences to Pico 2, which types them to laptop. Calculator UI shows active macros. | USB HID keyboard executing macro sequences |
+
+**Mode Switching**: Triggered by special key combination on macropad (e.g., Fn+Mode key). Pi Zero detects mode change request and updates display, activates/deactivates Pico 2 USB gadget functionality accordingly.
 
 ---
 
-## Reference — NKK SmartDisplay (Future Implementation)
-
-**Part No.:** IS15BSBFP4RGB
-**Series:** SmartDisplay™ — Compact Programmable LCD Pushbutton
-**Product Page:** <https://www.nkkswitches.com/wp-content/themes/impress-blank/search/inc/part.php?part_no=IS15BSBFP4RGB>
-**Datasheet:** <https://www.nkkswitches.com/pdf/IS15BSBFP4RGB_WideCmpct36x24.pdf>
-**SmartDisplay Brochure:** <https://www.nkkswitches.com/pdf/NKKSmartDisplayBrochure.pdf>
-
-### Key Specifications
-
-| Property           | Value                  |
-|--------------------|------------------------|
-| Type               | Pushbutton, LCD        |
-| Style              | Compact                |
-| Outer Dimensions   | 19.0 mm × 18.0 mm × 23.0 mm |
-| Display Mode       | Black & White, FSTN Positive |
-| LED Color          | RGB (Red / Green / Blue) |
-| Pixel Format (H×V) | 36 × 24                |
-| Poles              | SPST-NO                |
-| Circuit Action     | Off-Momentary          |
-| Mounting           | Through Hole           |
-| Logic Voltage      | 3 V – 5.5 V            |
-| Max Clock Freq.    | 8 MHz                  |
-
-### Notes
-
-- Each key has an individually programmable LCD display surface — the simulator renders this via `SDL_Display` per-key labels in the keyboard window.
-- The compact form factor (19 × 18 mm footprint) drives the calculator module's physical key pitch and overall PCB dimensions.
-- RGB backlighting is used to indicate layer, mode, or key state in firmware.
-- 3D CAD model available via NKK's PartCommunity library (linked on the product page).
-
-**Status**: Reserved for future hardware revision when components are available. Current implementation uses standard mechanical switches with external LCD panel.
-
----
-
-## Pi Zero Setup
-
-The Raspberry Pi Zero has limited RAM (512MB). To prevent OOM kills during compilation, configure a swap file:
-
-```bash
-# Check current memory
-free -h
-
-# Create a 2GB swap file
-sudo fallocate -l 2G /swapfile
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-
-# Make swap persistent across reboots
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-
-# Verify
-free -h
-```
-
-### Input Device Permissions
-
-The calculator reads keyboard input directly from Linux input devices (`/dev/input/event*`). These devices require read permissions. Add your user to the `input` group:
-
-```bash
-# Add user to input group
-sudo usermod -a -G input marvin
-
-# Verify group membership (log out and back in first)
-groups
-```
-
-After logging out and back in, verify device access:
-
-```bash
-# Check device permissions
-ls -l /dev/input/event*
-
-# Test with keylogger utility
-./build/keylogger
-```
-
-After crashes, check the kernel log to diagnose the cause:
-```bash
-dmesg | tail -50
-# Or for previous boot logs:
-journalctl -k -b -1
-```

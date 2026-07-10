@@ -21,10 +21,6 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
-
-static void sdl_app_dummy_loop(void* /*arg*/) {
-    // No-op placeholder until run() installs the real loop
-}
 #endif
 
 // Project Libraries
@@ -56,12 +52,15 @@ SDL_App::SDL_App(const core::Grid_Layout& layout)
 /*          Destructor          */
 /********************************/
 SDL_App::~SDL_App() {
-    if (m_initialized) {
-        // Reset LVGL-owning members while display is still alive
-        m_key_mapping_info.reset();
-        m_view.reset();
-        SDL_Quit();
+    LOG_DEBUG("SDL_App: destructor starting");
+    // Clear callbacks first to prevent dangling references during destruction
+    if (m_view) {
+        m_view->set_panel_change_callback(nullptr);
     }
+    m_layers.on_layer_change(nullptr);
+    LOG_DEBUG("SDL_App: callbacks cleared, automatic member destruction will proceed");
+    // Members destroyed automatically in reverse order: m_input → m_system_info → m_view → m_key_mapping_info → m_display
+    // Then SDL_Quit() is called by Display destructor
 }
 
 /************************************/
@@ -97,19 +96,16 @@ bool SDL_App::init() {
     // Initialise LVGL before SDL so the SDL driver is registered
     lv_init();
 
+#ifndef __EMSCRIPTEN__
+    // Native SDL targets need explicit SDL_Init
+    // Emscripten: LVGL's lv_sdl_window_create calls SDL_Init internally
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::cerr << "SDL_Init: " << SDL_GetError() << "\n";
         return false;
     }
+#endif
 
     m_initialized = true;
-
-#ifdef __EMSCRIPTEN__
-    // Install a no-op main loop now so SDL's renderer creation (which calls
-    // SDL_GL_SetSwapInterval -> emscripten_set_main_loop_timing) succeeds.
-    // simulate_infinite_loop=0 so init() continues; run() replaces this.
-    emscripten_set_main_loop_arg(sdl_app_dummy_loop, this, 0, 0);
-#endif
 
     try {
         // Create SDL window (HAL)
@@ -164,42 +160,27 @@ bool SDL_App::init() {
         m_input->keymap() = m_sdl_keymap;
         LOG_TRACE("SDL input handler created successfully");
 
-#if SHOW_KEYBOARD_UI
-        // Create separate keyboard window when SHOW_KEYBOARD_UI is enabled
-        LOG_TRACE("Creating separate keyboard window");
-        m_keyboard_window = std::make_unique<Keyboard_Window>(
-            "Keyboard", hal::KBD_WIDTH, hal::KBD_WIN_HEIGHT);
-        LOG_TRACE("Keyboard window created successfully");
-
-        // Create keyboard display in separate window (interactive buttons)
-        LOG_TRACE("Creating Keyboard_Display in separate window");
-        m_keyboard_display = std::make_unique<gui::Keyboard_Display>(
-            m_keyboard_window->screen(), m_layout, m_layers,
-            hal::KBD_WIDTH, hal::KBD_WIN_HEIGHT);
-        LOG_TRACE("Keyboard_Display created successfully");
-
-        // Wire keyboard button clicks to the same handler as physical keys
-        m_keyboard_display->set_click_callback([this](int key_index) {
-            on_key_clicked(key_index, this);
-        });
-
-        // Create key mapping info panel only when the main window has space for it
+#if SHOW_KEY_MAPPING
+        // Create interactive key mapping panel in main window
         // (KBD_HEIGHT > 0 means a keyboard region was reserved below the LCD)
         if constexpr (hal::KBD_HEIGHT > 0) {
-            LOG_TRACE("Creating Key_Mapping_Info panel in main window");
+            LOG_TRACE("Creating interactive Key_Mapping_Info panel in main window");
             m_key_mapping_info = std::make_unique<gui::Key_Mapping_Info>(
                 m_display->screen(), m_layout, m_layers,
-                hal::FULL_WIDTH, hal::KBD_WIN_HEIGHT,
+                hal::FULL_WIDTH, hal::KBD_HEIGHT,
                 [this](int key_index) { return m_view->get_active_panel_label(key_index); });
             lv_obj_set_pos(m_key_mapping_info->container(), 0, hal::LCD_HEIGHT);
-            LOG_TRACE("Key_Mapping_Info panel created successfully");
+            
+            // Make it interactive - wire button clicks to the same handler as physical keys
+            m_key_mapping_info->set_click_callback([this](int key_index) {
+                on_key_clicked(key_index, this);
+            });
+            
+            LOG_TRACE("Interactive Key_Mapping_Info panel created successfully");
         }
 
-        // Subscribe both displays to layer changes
+        // Subscribe to layer changes
         m_layers.on_layer_change([this]([[maybe_unused]] int layer_index) {
-            if (m_keyboard_display) {
-                m_keyboard_display->update_layer();
-            }
             if (m_key_mapping_info) {
                 m_key_mapping_info->update_layer();
             }
@@ -226,6 +207,9 @@ bool SDL_App::init() {
             }
             LOG_DEBUG("SDL_App: panel change callback complete");
         });
+
+        // Trigger callback manually for the initial panel (already activated during App_View construction)
+        m_view->trigger_panel_change_callback();
 #endif
 
         LOG_DEBUG("Rendering initial view");
