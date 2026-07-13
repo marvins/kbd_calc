@@ -1,6 +1,6 @@
 # System Diagrams
 
-This document contains UML diagrams for the kbd_calc system architecture using Mermaid.
+This document contains UML diagrams for the Overboard system architecture using Mermaid.
 
 ## High-Level Architecture
 

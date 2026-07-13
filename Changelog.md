@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.14.0] - 2026-07-12
+
+### Added
+- **Pico 2 W USB + Bluetooth HID gadget** (`src/usb_gadget/`): `BT_HID` class using BTstack Classic BR/EDR; `USB_HID` / `BT_HID` dual-transport routing in `main.cpp`; fixed PIN `"0000"`; `btstack_config.h`, `go_usb_gadget.sh`, and shared `uart_protocol.hpp` *(untested on hardware)*
+- **`Connections_Popup`** (`src/overboard/apps/status/popups/`): persistent popup lifecycle — constructed once on `Status_Page::activate()`, shown/hidden via `show()` / `hide()` / `is_visible()`, refreshed via `refresh()`
+- **Matrix node** (`src/overboard/math/ast/matrix_node.cpp/.hpp`): `Matrix_Node` AST with `zeros`, `ones`, `eye`, and matrix typeset rendering
+- **`Dimension_Picker_Popup`**: spinner UI for selecting matrix/vector dimensions
+- **F-Key Core Math context**: F4 → New Matrix, F5 → Mat Ops popup
+
+### Changed
+- `src/usb_gadget/CMakeLists.txt`: `PICO_BOARD` set to `pico2_w`; linked `pico_cyw43_arch_none` and `pico_btstack_classic`
+- `src/usb_gadget/tusb_config.h`: activated device stack with `CFG_TUSB_RHPORT0_MODE (OPT_MODE_DEVICE)`
+- `Status_Page`: `Connections_Popup` created once in `activate()`; `show/hide_connections_popup()` use `show()` / `hide()`
+- LVGL popup API: replaced deprecated flag APIs with `lv_obj_set_hidden()` / `lv_obj_is_hidden()`
+- `key_mapping_info.cpp` / `panel_manager.cpp`: SDL main screen made directly interactive
+
+### Fixed
+- **WiFi status on macOS Sonoma**: uses `scutil --nwi` for connectivity and `ipconfig getifaddr` for display IP when SSID is redacted
+- **Em dash rendering**: replaced UTF-8 em dash with ASCII hyphen in WiFi status string
+- **Matrix shutdown crash**: `Calculator_App` destructor now tears down matrix-related LVGL objects
+
+### Documentation
+- `docs/pico_usb_gadget.md`: added Bluetooth HID transport section, pairing details, and `BT_PIN_CHANGE` ICD TODO
+- `docs/tasks.md`: added Phase 2.5 tracking for Pico 2 W work
+
+> **Note**: Pico 2 W firmware has not been compiled or flashed to hardware.
+
+---
+
 ## [0.13.0] - 2026-07-05
 
 ### Added

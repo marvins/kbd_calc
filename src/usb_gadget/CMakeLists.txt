@@ -18,7 +18,7 @@ include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 
 project(usb_hid_bridge
         LANGUAGES C CXX ASM
-        VERSION 0.1.0
+        VERSION 0.14.0
         DESCRIPTION "Pico 2 USB HID Keyboard Gadget for Calculator")
 
 # Initialize Pico SDK

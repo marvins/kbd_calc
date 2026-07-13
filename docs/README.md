@@ -1,6 +1,6 @@
 # Documentation
 
-Complete documentation for the kbd_calc calculator project.
+Complete documentation for the Overboard calculator project.
 
 ## Core Documentation
 

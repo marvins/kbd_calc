@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes the software architecture for the kbd_calc project.
+This document describes the software architecture for the Overboard project.
 
 ## Source Layout
 
@@ -300,7 +300,7 @@ Each target header defines:
 | `Input_Key_Mapping` | SDL keycode → `Input_Key` translation table |
 | `Keymap` | SDL-specific keymap handling |
 | `OS_Utils` | Platform utilities: file paths, system information retrieval |
-| `Settings_Store` | File-based settings persistence (uses TOML files in `~/.config/kbd_calc/`) |
+| `Settings_Store` | File-based settings persistence (uses TOML files in `~/.config/overboard/`) |
 | `System_Info` | Desktop system information: CPU model, memory, OS version |
 | `event_filter()` | Implements text-first routing strategy for keyboard events (see Input Architecture below) |
 
@@ -312,7 +312,7 @@ Linux target using DRM/KMS for direct HDMI output (no X11).
 | `PiZero_App` | Main application lifecycle class |
 | `Display_DRM` | DRM/KMS display driver for direct framebuffer access |
 | `Linux_Input` | Linux evdev input handler (`/dev/input/event*`); handles keyboard and mouse |
-| `Settings_Store` | File-based settings persistence (uses `/home/<user>/.config/kbd_calc/`) |
+| `Settings_Store` | File-based settings persistence (uses `/home/<user>/.config/overboard/`) |
 | `System_Info` | Raspberry Pi system information: CPU temp, memory, uptime, Raspberry Pi model |
 
 ### `hal/picocalc/` — ClockworkPi PicoCalc target
@@ -339,7 +339,7 @@ RP2350-based calculator with ILI9488 320×320 SPI display and STM32-driven I2C k
 | `gui/` | `hal/` interfaces, `core/`, `math/`, `display/` | `hal/sdl/`, `hal/pi_zero/`, `hal/picocalc/` |
 | `apps/` | everything | — |
 
-**Key invariants**: 
+**Key invariants**:
 - `gui/` has no dependency on any specific HAL implementation. The SDL window driver exposes `lv_obj_t* screen()` as the single coupling point — `App_View` uses it to attach LVGL widgets without knowing anything about SDL.
 - `display/` abstracts rendering from GUI framework, enabling alternative renderers (terminal, framebuffer, etc.) without changing math or GUI logic.
 
@@ -548,11 +548,11 @@ This keeps the calculator engine (`math/`) independent of text encoding.
 
 ### Benefits
 
-✅ Consistency across all input sources  
-✅ OS handles keyboard layouts/localization  
-✅ Single text handling path  
-✅ Hardware macropads work seamlessly (VIA configuration)  
-✅ No double-refresh (panels signal when they've refreshed)  
+✅ Consistency across all input sources
+✅ OS handles keyboard layouts/localization
+✅ Single text handling path
+✅ Hardware macropads work seamlessly (VIA configuration)
+✅ No double-refresh (panels signal when they've refreshed)
 
 ---
 
