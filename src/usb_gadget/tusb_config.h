@@ -11,9 +11,10 @@
 extern "C" {
 #endif
 
-// Target MCU and OS (bare-metal, no RTOS)
-#define CFG_TUSB_MCU              OPT_MCU_RP2350
-#define CFG_TUSB_OS               OPT_OS_NONE
+// Activate USB device stack on port 0.
+// This sets CFG_TUD_ENABLED via the TUD_RHPORT_MODE fallback in tusb_option.h.
+// Without this, all tud_* APIs are compiled out.
+#define CFG_TUSB_RHPORT0_MODE   (OPT_MODE_DEVICE)
 
 // Device class support — only HID enabled
 #define CFG_TUD_HID               1

@@ -15,6 +15,7 @@
 #include <cerrno>
 #include <cstring>
 #include <fstream>
+#include <vector>
 
 // Project Libraries
 #include <overboard/log/stdout_logger.hpp>
@@ -126,6 +127,27 @@ bool SDL_System_Info::has_bluetooth() const {
 /************************************************/
 bool SDL_System_Info::has_wifi() const {
     return ovb::hal::sdl::has_wifi();
+}
+
+/*********************************************/
+/*          Check if Wifi is Enabled         */
+/*********************************************/
+bool SDL_System_Info::wifi_enabled() const {
+    return ovb::hal::sdl::wifi_enabled();
+}
+
+/*********************************************/
+/*            Set Wifi Enabled               */
+/*********************************************/
+void SDL_System_Info::set_wifi_enabled(bool enable) {
+    ovb::hal::sdl::set_wifi_enabled(enable);
+}
+
+/*********************************************/
+/*          Scan WiFi Networks               */
+/*********************************************/
+std::vector<std::string> SDL_System_Info::scan_wifi_networks() {
+    return ovb::hal::sdl::scan_wifi_networks();
 }
 
 /****************************/

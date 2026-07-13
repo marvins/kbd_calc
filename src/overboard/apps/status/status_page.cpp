@@ -18,6 +18,7 @@
 #include <sstream>
 
 // Project Libraries
+#include <overboard/apps/status/popups/connections_popup.hpp>
 #include <overboard/apps/status/widgets/analog_clock.hpp>
 #include <overboard/apps/status/widgets/digital_clock.hpp>
 #include <overboard/apps/status/widgets/solar_info.hpp>
@@ -53,8 +54,9 @@ struct Status_Page::Impl {
     lv_obj_t*                    container   = nullptr;
     lv_timer_t*                  clock_timer = nullptr;
     lv_timer_t*                  solar_timer = nullptr;
-    lv_obj_t*                    about_popup = nullptr;
-    lv_obj_t*                    stats_popup = nullptr;
+    lv_obj_t*                    about_popup        = nullptr;
+    lv_obj_t*                    stats_popup        = nullptr;
+    std::unique_ptr<Connections_Popup> connections_popup;
     std::unique_ptr<Header_Bar>  header;
     std::unique_ptr<Footer_Bar>  footer;
     std::unique_ptr<widgets::Analog_Clock>  analog_clock;
@@ -213,10 +215,32 @@ void Status_Page::activate(lv_obj_t* parent) {
         }
     }, solar_update_ms, m_impl.get());
 
+    // Connections popup — created once, shown/hidden on demand
+    m_impl->connections_popup = std::make_unique<Connections_Popup>(
+        m_impl->system_info, nullptr);
+
     // Footer bar
     m_impl->footer = std::make_unique<Footer_Bar>(m_impl->container, width);
     m_impl->footer->set_label(0, "About");
     m_impl->footer->set_label(1, "Stats");
+    m_impl->footer->set_label(2, "Network");
+    m_impl->footer->set_click_callback([this](int slot) {
+        switch (slot) {
+            case 0:
+                if (m_impl->about_popup)       { hide_about_popup(); }
+                else { hide_stats_popup(); hide_connections_popup(); show_about_popup(); }
+                break;
+            case 1:
+                if (m_impl->stats_popup)       { hide_stats_popup(); }
+                else { hide_about_popup(); hide_connections_popup(); show_stats_popup(); }
+                break;
+            case 2:
+                if (m_impl->connections_popup && m_impl->connections_popup->is_visible()) { hide_connections_popup(); }
+                else { hide_about_popup(); hide_stats_popup(); show_connections_popup(); }
+                break;
+            default: break;
+        }
+    });
     lv_obj_align(m_impl->footer->get_obj(), LV_ALIGN_BOTTOM_MID, 0, 0);
 }
 
@@ -225,6 +249,8 @@ void Status_Page::activate(lv_obj_t* parent) {
 /*******************************/
 void Status_Page::deactivate() {
     LOG_DEBUG("Status_Page: deactivating");
+    hide_wifi_menu();
+    hide_connections_popup();
     hide_stats_popup();
     hide_about_popup();
     if (m_impl->clock_timer) {
@@ -249,6 +275,14 @@ void Status_Page::deactivate() {
 bool Status_Page::handle_input(core::Action_Code action) {
     // ESC closes any open popup, otherwise dismisses status page
     if (action == core::Action_Code::ESCAPE) {
+        if (m_impl->connections_popup && m_impl->connections_popup->wifi_menu_visible()) {
+            hide_wifi_menu();
+            return true;
+        }
+        if (m_impl->connections_popup && m_impl->connections_popup->is_visible()) {
+            hide_connections_popup();
+            return true;
+        }
         if (m_impl->stats_popup) {
             hide_stats_popup();
             return true;
@@ -263,16 +297,37 @@ bool Status_Page::handle_input(core::Action_Code action) {
         }
     }
 
-    // F1 shows About popup
+    // F1 toggles About popup
     if (action == core::Action_Code::FUNC_1) {
-        hide_stats_popup();
-        show_about_popup();
+        if (m_impl->about_popup) {
+            hide_about_popup();
+        } else {
+            hide_stats_popup();
+            hide_connections_popup();
+            show_about_popup();
+        }
     }
 
-    // F2 shows Stats popup
+    // F2 toggles Stats popup
     if (action == core::Action_Code::FUNC_2) {
-        hide_about_popup();
-        show_stats_popup();
+        if (m_impl->stats_popup) {
+            hide_stats_popup();
+        } else {
+            hide_about_popup();
+            hide_connections_popup();
+            show_stats_popup();
+        }
+    }
+
+    // F3 toggles Connections popup
+    if (action == core::Action_Code::FUNC_3) {
+        if (m_impl->connections_popup && m_impl->connections_popup->is_visible()) {
+            hide_connections_popup();
+        } else {
+            hide_about_popup();
+            hide_stats_popup();
+            show_connections_popup();
+        }
     }
 
     return true;
@@ -284,6 +339,14 @@ bool Status_Page::handle_input(core::Action_Code action) {
 bool Status_Page::handle_input_key(core::Input_Key key) {
     // ESCAPE closes any open popup, otherwise dismisses status page
     if (key == core::Input_Key::ESCAPE) {
+        if (m_impl->connections_popup && m_impl->connections_popup->wifi_menu_visible()) {
+            hide_wifi_menu();
+            return true;
+        }
+        if (m_impl->connections_popup && m_impl->connections_popup->is_visible()) {
+            hide_connections_popup();
+            return true;
+        }
         if (m_impl->stats_popup) {
             hide_stats_popup();
             return true;
@@ -299,17 +362,39 @@ bool Status_Page::handle_input_key(core::Input_Key key) {
         }
     }
 
-    // F1 shows About popup
+    // F1 toggles About popup
     if (key == core::Input_Key::F1) {
-        hide_stats_popup();
-        show_about_popup();
+        if (m_impl->about_popup) {
+            hide_about_popup();
+        } else {
+            hide_stats_popup();
+            hide_connections_popup();
+            show_about_popup();
+        }
         return true;
     }
 
-    // F2 shows Stats popup
+    // F2 toggles Stats popup
     if (key == core::Input_Key::F2) {
-        hide_about_popup();
-        show_stats_popup();
+        if (m_impl->stats_popup) {
+            hide_stats_popup();
+        } else {
+            hide_about_popup();
+            hide_connections_popup();
+            show_stats_popup();
+        }
+        return true;
+    }
+
+    // F3 toggles Connections popup
+    if (key == core::Input_Key::F3) {
+        if (m_impl->connections_popup && m_impl->connections_popup->is_visible()) {
+            hide_connections_popup();
+        } else {
+            hide_about_popup();
+            hide_stats_popup();
+            show_connections_popup();
+        }
         return true;
     }
 
@@ -483,6 +568,42 @@ void Status_Page::hide_stats_popup() {
     if (m_impl->stats_popup) {
         lv_obj_del(m_impl->stats_popup);
         m_impl->stats_popup = nullptr;
+    }
+}
+
+/*************************************/
+/*      Show Connections Popup       */
+/*************************************/
+void Status_Page::show_connections_popup() {
+    if (m_impl->connections_popup) {
+        m_impl->connections_popup->show();
+    }
+}
+
+/*************************************/
+/*      Hide Connections Popup       */
+/*************************************/
+void Status_Page::hide_connections_popup() {
+    if (m_impl->connections_popup) {
+        m_impl->connections_popup->hide();
+    }
+}
+
+/*************************************/
+/*         Show WiFi Menu            */
+/*************************************/
+void Status_Page::show_wifi_menu() {
+    if (m_impl->connections_popup) {
+        m_impl->connections_popup->show_wifi_menu();
+    }
+}
+
+/*************************************/
+/*          Hide WiFi Menu           */
+/*************************************/
+void Status_Page::hide_wifi_menu() {
+    if (m_impl->connections_popup) {
+        m_impl->connections_popup->hide_wifi_menu();
     }
 }
 

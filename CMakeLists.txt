@@ -134,6 +134,7 @@ set(APP_SOURCES
     src/overboard/apps/calculator/calculator_app.cpp
     src/overboard/apps/settings/settings_page.cpp
     src/overboard/apps/status/status_page.cpp
+    src/overboard/apps/status/popups/connections_popup.cpp
     src/overboard/apps/status/widgets/analog_clock.cpp
     src/overboard/apps/status/widgets/digital_clock.cpp
     src/overboard/apps/status/widgets/solar_info.cpp

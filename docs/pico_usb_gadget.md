@@ -12,7 +12,7 @@ flowchart TB
         APP[Calculator Application]
         UART_TX[UART TX]
     end
-    
+
     subgraph Pico["Pico 2 (RP2350)"]
         UART_RX[UART RX]
         PROTO[Protocol Handler]
@@ -22,11 +22,11 @@ flowchart TB
         PROTO --> MODE
         MODE --> HID
     end
-    
+
     subgraph Laptop["Laptop"]
         USB_HOST[USB Host]
     end
-    
+
     APP --> UART_TX
     UART_TX -.->|UART| UART_RX
     HID -->|USB HID| USB_HOST
@@ -268,7 +268,7 @@ uint8_t const desc_hid_keyboard_report[] = {
     HID_COLLECTION ( HID_COLLECTION_APPLICATION ),
         // Report ID
         HID_REPORT_ID  ( 0x01 ),
-        
+
         // Modifier keys (Ctrl, Shift, Alt, GUI)
         HID_USAGE_PAGE ( HID_USAGE_PAGE_KEYBOARD ),
         HID_USAGE_MIN  ( 0xE0 ),
@@ -278,12 +278,12 @@ uint8_t const desc_hid_keyboard_report[] = {
         HID_REPORT_COUNT( 8 ),
         HID_REPORT_SIZE( 1 ),
         HID_INPUT      ( HID_DATA | HID_VARIABLE | HID_ABSOLUTE ),
-        
+
         // Reserved byte
         HID_REPORT_COUNT( 1 ),
         HID_REPORT_SIZE( 8 ),
         HID_INPUT      ( HID_CONSTANT ),
-        
+
         // Keycodes (up to 6 simultaneous keys)
         HID_USAGE_PAGE ( HID_USAGE_PAGE_KEYBOARD ),
         HID_USAGE_MIN  ( 0x00 ),
@@ -320,14 +320,14 @@ void usb_hid_init(void) {
 ```c
 void usb_hid_task(void) {
     tud_task();  // TinyUSB device task
-    
+
     if (tud_hid_ready()) {
         // Check for pending key events from UART
         if (has_pending_key_event()) {
             keyboard_report_t report;
             build_keyboard_report(&report);
-            tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 
-                                   report.modifiers, 
+            tud_hid_keyboard_report(REPORT_ID_KEYBOARD,
+                                   report.modifiers,
                                    report.keycode);
         }
     }
@@ -366,13 +366,13 @@ stateDiagram-v2
     [*] --> Inactive
     Inactive --> Passthrough: MODE_CHANGE(1)
     Inactive --> Macro: MODE_CHANGE(2)
-    
+
     Passthrough --> Inactive: MODE_CHANGE(0)
     Passthrough --> Macro: MODE_CHANGE(2)
-    
+
     Macro --> Inactive: MODE_CHANGE(0)
     Macro --> Passthrough: MODE_CHANGE(1)
-    
+
     Inactive: No USB activity
     Passthrough: Forward key events immediately
     Macro: Execute macro sequences
@@ -396,12 +396,12 @@ void handle_key_event_passthrough(key_event_msg_t *msg) {
 void handle_macro_sequence(macro_sequence_msg_t *msg) {
     for (int i = 0; i < msg->count; i++) {
         if (msg->actions[i].action == KEY_PRESS) {
-            send_key_press(msg->actions[i].modifiers, 
+            send_key_press(msg->actions[i].modifiers,
                           msg->actions[i].keycode);
         } else {
             send_key_release();
         }
-        
+
         if (msg->actions[i].delay_ms > 0) {
             sleep_ms(msg->actions[i].delay_ms);
         }
@@ -477,44 +477,44 @@ import crc8
 
 class PicoHIDBridge:
     SOF = 0xAA
-    
+
     MSG_MODE_CHANGE = 0x01
     MSG_KEY_EVENT = 0x02
     MSG_MACRO_SEQUENCE = 0x03
     MSG_TEXT_STRING = 0x04
     MSG_CONSUMER_CONTROL = 0x05
     MSG_RESET = 0xFF
-    
+
     def __init__(self, port='/dev/serial0', baudrate=115200):
         self.ser = serial.Serial(port, baudrate, timeout=0.1)
         self.crc = crc8.crc8()
-    
+
     def _send_message(self, msg_type, payload):
         length = 5 + len(payload)  # SOF + LEN + TYPE + PAYLOAD + CRC
         message = struct.pack('BBB', self.SOF, length, msg_type) + payload
-        
+
         # Calculate CRC (excluding SOF)
         self.crc.reset()
         self.crc.update(message[1:])
         message += bytes([self.crc.digest()[0]])
-        
+
         self.ser.write(message)
-    
+
     def set_mode(self, mode):
         """Mode: 0=Inactive, 1=Passthrough, 2=Macro"""
         self._send_message(self.MSG_MODE_CHANGE, bytes([mode]))
-    
+
     def send_key_event(self, modifiers, keycode, action):
         """Action: 0=Release, 1=Press"""
         payload = struct.pack('BBB', modifiers, keycode, action)
         self._send_message(self.MSG_KEY_EVENT, payload)
-    
+
     def send_text(self, text):
         """Send UTF-8 text string"""
         text_bytes = text.encode('utf-8')
         payload = struct.pack('B', len(text_bytes)) + text_bytes + b'\x00'
         self._send_message(self.MSG_TEXT_STRING, payload)
-    
+
     def send_macro(self, actions):
         """
         actions: list of (modifiers, keycode, action, delay_ms) tuples
@@ -552,12 +552,12 @@ Add to `hal/pi_zero/`:
 class Pico_HID_Bridge {
     public:
         Pico_HID_Bridge(std::string_view uart_device = "/dev/serial0");
-        
+
         void set_mode(Mode mode);
         void send_key_event(uint8_t modifiers, uint8_t keycode, bool press);
         void send_text(std::string_view text);
         void send_macro(std::span<Macro_Action> actions);
-        
+
     private:
         int m_uart_fd;
         void send_message(uint8_t type, std::span<uint8_t> payload);
@@ -630,3 +630,50 @@ Add Pico → Pi Zero messages for:
 - Gamepad HID support
 - Custom HID reports for special functions
 - Firmware update over UART
+
+---
+
+## Bluetooth HID Transport
+
+The Pico 2 W (CYW43439) supports Classic Bluetooth (BR/EDR) HID in addition to
+USB HID.  The firmware automatically selects the active transport:
+
+| Condition | Active transport |
+|-----------|-----------------|
+| USB-C cable plugged into an enumerated host | USB HID (`tud_mounted() == true`) |
+| No USB host present | Bluetooth HID |
+
+Both transports use **identical HID report descriptors** (keyboard Report ID 1,
+consumer control Report ID 2), so the Pi Zero UART protocol is fully
+transport-agnostic.
+
+### Bluetooth Pairing
+
+The device advertises as **"Overboard Calculator"** over Classic BT.
+
+**Current pairing method**: Fixed PIN `0000`.
+
+> **TODO — ICD extension (Message type `0x06` — `BT_PIN_CHANGE`)**
+>
+> Add a new UART message so the Pi Zero can push a user-configured PIN at
+> runtime, eliminating the hard-coded default.
+>
+> Proposed payload:
+> ```c
+> struct bt_pin_change_msg {
+>     uint8_t pin_length;        // 4–16
+>     char    pin[pin_length];   // ASCII digits, null-terminated
+> };
+> ```
+>
+> Once implemented, update `uart_protocol.hpp` with:
+> ```cpp
+> BT_Pin_Change = 0x06,
+> ```
+> and handle it in `bt_hid.cpp` by calling the BTstack PIN API with the new value.
+
+### Board requirement
+
+The Bluetooth transport requires the **Pico 2 W** board (`PICO_BOARD=pico2_w`).
+The standard Pico 2 has no wireless hardware; attempting to link the CYW43/BTstack
+libraries against it will fail at link time.

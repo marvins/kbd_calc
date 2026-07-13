@@ -65,6 +65,21 @@ class SDL_System_Info : public I_System_Info {
          */
         bool has_wifi() const override;
 
+        /**
+         * @brief Check if WiFi is currently powered on
+         */
+        bool wifi_enabled() const override;
+
+        /**
+         * @brief Enable or disable WiFi
+         */
+        void set_wifi_enabled(bool enable) override;
+
+        /**
+         * @brief Scan for available WiFi networks
+         */
+        std::vector<std::string> scan_wifi_networks() override;
+
     private:
         /**
          * @brief Read CPU temperature (platform-specific)

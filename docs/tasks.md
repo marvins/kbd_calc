@@ -113,6 +113,23 @@ Goal: Refresh the status panel with a clock widget and About popup.
 
 ---
 
+## Phase 2.5: Pico 2 W — USB + Bluetooth HID Gadget
+
+Goal: Pico 2 W acts as USB HID keyboard when cabled; falls back to Classic Bluetooth HID when wireless.
+
+- [x] `BT_HID` class — BTstack Classic BT HID device (keyboard + consumer control, same report IDs as USB)
+- [x] Dual-transport routing in `main.cpp` — `usb_connected()` selects USB or BT per loop tick
+- [x] Fixed PIN `"0000"` pairing via `HCI_EVENT_PIN_CODE_REQUEST` handler
+- [x] SDP registration via `hid_sdp_record_t` struct (BTstack v1.6.2 / pico-sdk 2.2.0 API)
+- [x] CMakeLists updated: `PICO_BOARD=pico2_w`, links `pico_cyw43_arch_none` + `pico_btstack_classic`
+- [x] Documented in `docs/pico_usb_gadget.md` with transport selection table
+- [ ] **Compile + flash test** on physical Pico 2 W hardware
+- [ ] Pair with macOS/Linux host, verify keyboard + consumer control reports received over BT
+- [ ] Verify USB HID still works when cable is plugged in (transport switch)
+- [ ] ICD extension: add `BT_PIN_CHANGE` message (type `0x06`) to `uart_protocol.hpp` so Pi Zero can set PIN at runtime (see TODO in `bt_hid.hpp` and `docs/pico_usb_gadget.md`)
+
+---
+
 ## Phase 3: Function-Key Popup System
 
 Goal: F1–F10 on PicoCalc shows a popup anchored to the footer slot, with paging for F6-F10.

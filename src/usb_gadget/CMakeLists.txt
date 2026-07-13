@@ -8,7 +8,7 @@ endif()
 
 set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
 set(PICO_PLATFORM rp2350)
-set(PICO_BOARD pico2)
+set(PICO_BOARD pico2_w)
 
 # Enable UART stdio for debugging
 set(PICO_STDIO_UART ON)
@@ -32,26 +32,33 @@ set(CMAKE_C_STANDARD 11)
 # Executable
 add_executable(usb_hid_bridge
     main.cpp
+    bt_hid.cpp
     uart_handler.cpp
     usb_hid.cpp
     usb_descriptors.c
     mode_controller.cpp
 )
 
-# Include path for shared protocol header
+# Include paths:
+#   ..             — shared protocol header (overboard/protocol/uart_protocol.hpp)
+#   .              — tusb_config.h (required by TinyUSB) and btstack_config.h (required by BTstack)
 target_include_directories(usb_hid_bridge PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # TinyUSB configuration
-target_compile_definitions(usb_hid_bridge PRIVATE
+# PUBLIC so that tinyusb_device (an INTERFACE lib) inherits these when compiling HID sources
+target_compile_definitions(usb_hid_bridge PUBLIC
     # Enable TinyUSB HID device support
     CFG_TUD_HID=1
     CFG_TUD_CDC=0
     CFG_TUD_MSC=0
     CFG_TUD_MIDI=0
     CFG_TUD_VENDOR=0
+)
 
+target_compile_definitions(usb_hid_bridge PRIVATE
     # USB device configuration
     USB_VID=0x2E8A
     USB_PID=0x1234
@@ -74,6 +81,9 @@ target_link_libraries(usb_hid_bridge
     hardware_timer
     tinyusb_device
     tinyusb_board
+    # Wireless — requires pico2_w board
+    pico_cyw43_arch_none        # CYW43 driver, no RTOS, no WiFi stack
+    pico_btstack_classic        # Classic BT (BR/EDR) + HID device profile
 )
 
 # Enable USB output, disable UART output for main binary

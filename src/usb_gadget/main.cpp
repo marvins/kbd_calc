@@ -23,6 +23,7 @@
 
 // Project Libraries
 #include <overboard/protocol/uart_protocol.hpp>
+#include "bt_hid.hpp"
 #include "mode_controller.hpp"
 #include "uart_handler.hpp"
 #include "usb_hid.hpp"
@@ -39,7 +40,13 @@ using namespace ovb::protocol;
 
 static UART_Handler    uart_handler;
 static USB_HID         usb_hid;
+static BT_HID          bt_hid;
 static Mode_Controller mode_controller;
+
+// Returns true when a USB host is connected (VBUS present + enumerated)
+static inline bool usb_connected() {
+    return tud_mounted();
+}
 
 /****************************/
 /*    Init Hardware         */
@@ -65,6 +72,20 @@ void init_hardware() {
 /****************************/
 /*   Process Message        */
 /****************************/
+// Helper: send to whichever HID transport is currently live
+#define HID_SEND_KEY_PRESS(mod, key) \
+    do { if (usb_connected()) usb_hid.send_key_press(mod, key); \
+         else                 bt_hid.send_key_press(mod, key);  } while(0)
+#define HID_SEND_KEY_RELEASE() \
+    do { if (usb_connected()) usb_hid.send_key_release(); \
+         else                 bt_hid.send_key_release();  } while(0)
+#define HID_QUEUE_TEXT(txt) \
+    do { if (usb_connected()) usb_hid.queue_text(txt); \
+         else                 bt_hid.queue_text(txt);  } while(0)
+#define HID_SEND_CONSUMER(id) \
+    do { if (usb_connected()) usb_hid.send_consumer_control(id); \
+         else                 bt_hid.send_consumer_control(id);  } while(0)
+
 void process_message(const Protocol_Message& msg) {
     switch (static_cast<Message_Type>(msg.type)) {
         case Message_Type::Mode_Change: {
@@ -84,9 +105,9 @@ void process_message(const Protocol_Message& msg) {
 
                 if (mode_controller.current_mode() == Operating_Mode::Passthrough) {
                     if (action == static_cast<uint8_t>(Key_Action::Press)) {
-                        usb_hid.send_key_press(modifiers, keycode);
+                        HID_SEND_KEY_PRESS(modifiers, keycode);
                     } else {
-                        usb_hid.send_key_release();
+                        HID_SEND_KEY_RELEASE();
                     }
                 }
             }
@@ -107,9 +128,9 @@ void process_message(const Protocol_Message& msg) {
                         uint8_t delay = action_data[3];
 
                         if (act == static_cast<uint8_t>(Key_Action::Press)) {
-                            usb_hid.send_key_press(mod, key);
+                            HID_SEND_KEY_PRESS(mod, key);
                         } else {
-                            usb_hid.send_key_release();
+                            HID_SEND_KEY_RELEASE();
                         }
 
                         if (delay > 0) {
@@ -120,7 +141,7 @@ void process_message(const Protocol_Message& msg) {
                     }
 
                     // Final release
-                    usb_hid.send_key_release();
+                    HID_SEND_KEY_RELEASE();
                 }
             }
             break;
@@ -130,7 +151,7 @@ void process_message(const Protocol_Message& msg) {
             if (mode_controller.current_mode() == Operating_Mode::Macro) {
                 if (msg.payload_length >= 1) {
                     const char* text = reinterpret_cast<const char*>(msg.payload + 1);
-                    usb_hid.queue_text(text);
+                    HID_QUEUE_TEXT(text);
                 }
             }
             break;
@@ -142,9 +163,9 @@ void process_message(const Protocol_Message& msg) {
                 uint8_t  action   = msg.payload[2];
 
                 if (action == static_cast<uint8_t>(Key_Action::Press)) {
-                    usb_hid.send_consumer_control(usage_id);
+                    HID_SEND_CONSUMER(usage_id);
                 } else {
-                    usb_hid.send_consumer_control(0);
+                    HID_SEND_CONSUMER(0);
                 }
             }
             break;
@@ -157,7 +178,7 @@ void process_message(const Protocol_Message& msg) {
 
         case Message_Type::Reset: {
             mode_controller.set_mode(Operating_Mode::Inactive);
-            usb_hid.send_key_release();
+            HID_SEND_KEY_RELEASE();
             printf("Reset to inactive mode\n");
             break;
         }
@@ -184,17 +205,28 @@ int main() {
     usb_hid.init();
     printf("USB HID initialized\n");
 
+    // Initialize Bluetooth HID
+    bt_hid.init();
+    printf("BT HID initialized\n");
+
     // Initialize mode controller
     mode_controller.init();
     printf("Mode controller initialized\n");
 
-    printf("\nReady. Waiting for commands...\n\n");
+    printf("\nReady. USB or BT HID active depending on connection.\n\n");
 
     // Main loop
     while (true) {
-        // Process USB events
+        // Process USB stack events (always, even when BT is active)
         tud_task();
-        usb_hid.tick();
+
+        // Route HID output to whichever transport is live.
+        // USB takes priority when a host is physically connected.
+        if (usb_connected()) {
+            usb_hid.tick();
+        } else {
+            bt_hid.tick();
+        }
 
         // Check for incoming UART messages
         Protocol_Message msg;
