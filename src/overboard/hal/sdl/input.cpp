@@ -46,24 +46,24 @@ void setup_signal_handlers() {
 /****************************************************************/
 /**
  * @brief SDL event filter callback that intercepts and routes keyboard events
- * 
+ *
  * This filter implements a unified text-first input architecture:
  * - Macropad keys (defined in keyboard.json) generate Action events
  * - Standard keyboard printable keys generate TEXTINPUT + Direct_Action events
  * - Non-printable keys (arrows, F-keys, etc.) generate only Direct_Action events
- * 
+ *
  * Event Flow:
  * 1. KEYDOWN: Convert scancode → Input_Key
  *    a) Check keyboard.json mapping → Action event (block SDL)
  *    b) Printable keys → Direct_Action + allow TEXTINPUT (pass to SDL)
  *    c) Non-printable keys → Direct_Action (block SDL)
- * 
+ *
  * 2. TEXTINPUT: UTF-8 → UTF-32 conversion → Text event (always blocked)
- * 
+ *
  * 3. KEYUP: Release events for keymap-mapped keys only
- * 
+ *
  * 4. SDL_QUIT / platform shortcuts (Cmd-Q, Ctrl-C): Set quit flag
- * 
+ *
  * @param userdata Pointer to SDL_Input instance
  * @param event SDL event to process
  * @return 0 to block event from LVGL, 1 to pass through to LVGL
@@ -74,6 +74,7 @@ static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
 
     // SDL_QUIT Event
     if (event->type == SDL_QUIT) {
+        LOG_TRACE("SDL_Input: received SDL_QUIT");
         input->set_quit(true);
         return 0; // Block: we've handled quit signal
     }
@@ -97,6 +98,7 @@ static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
         // Handle Command-Q on macOS for quit
 #ifdef __APPLE__
         if (event->key.keysym.sym == SDLK_q && (event->key.keysym.mod & KMOD_GUI)) {
+            LOG_TRACE("SDL_Input: received Command-Q");
             input->set_quit(true);
             return 0;
         }
@@ -127,7 +129,7 @@ static int SDLCALL event_filter(void* userdata, SDL_Event* event) {
         // Send Direct_Action for apps that need raw key events (e.g., navigation)
         LOG_DEBUG("  -> Standard keyboard, passing Input_Key directly to GUI");
         input->push_event({Key_Event_Kind::Direct_Action, 0, 0, Key_Event_Type::Press, input_key});
-        
+
         // Path 2a: Printable keys → Pass to SDL for TEXTINPUT generation
         // Path 2b: Non-printable keys (arrows, F-keys) → Block (already handled)
         return is_printable ? 1 : 0;

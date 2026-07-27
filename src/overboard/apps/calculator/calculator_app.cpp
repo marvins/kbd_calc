@@ -119,10 +119,11 @@ void Calculator_App::set_overlay_callbacks(Overlay_Push_Cb push, Overlay_Pop_Cb 
 /*          Destructor         */
 /*******************************/
 Calculator_App::~Calculator_App() {
-    LOG_DEBUG("Calculator_App: destructor");
+    LOG_TRACE("Calculator_App: destructor");
     if (m_impl->container) {
         deactivate();
     }
+    LOG_TRACE("Calculator_App: destructor complete");
 }
 
 /*******************************/
@@ -246,25 +247,29 @@ void Calculator_App::activate(lv_obj_t* parent) {
 /*          Deactivate         */
 /*******************************/
 void Calculator_App::deactivate() {
-    LOG_DEBUG("Calculator_App: deactivating");
+    LOG_TRACE("Calculator_App: deactivating");
     m_impl->active_popup = nullptr;
     if (m_impl->dim_picker) { m_impl->dim_picker->hide(); m_impl->dim_picker.reset(); }
     for (auto& popup : m_impl->f_key_popups) {
         popup.reset();
     }
-    // Delete the container first - LVGL recursively deletes all children
-    // This prevents corruption from deleting child objects individually
-    if (m_impl->container && lv_display_get_next(nullptr) != nullptr) {
-        lv_obj_del(m_impl->container);
-    }
+    // The panel container parent will clean up the LVGL tree; just null our
+    // pointer and reset the C++ wrappers so they don't try to touch it later.
     m_impl->container = nullptr;
-    // Now reset the smart pointers - their LVGL objects are already deleted
+    LOG_TRACE("Calculator_App: resetting footer");
     m_impl->footer.reset();
+    LOG_TRACE("Calculator_App: footer reset");
+    LOG_TRACE("Calculator_App: resetting header");
     m_impl->header.reset();
+    LOG_TRACE("Calculator_App: header reset");
     if (m_impl->lcd) {
+        LOG_TRACE("Calculator_App: tearing down LCD_Section");
         m_impl->lcd->teardown();
+        LOG_TRACE("Calculator_App: resetting LCD_Section");
         m_impl->lcd.reset();
+        LOG_TRACE("Calculator_App: LCD_Section reset");
     }
+    LOG_TRACE("Calculator_App: deactivate complete");
 }
 
 /*******************************/

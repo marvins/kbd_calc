@@ -85,7 +85,9 @@ Status_Page::Status_Page( const core::Layer_Manager&              layers,
 /*******************************/
 /*          Destructor         */
 /*******************************/
-Status_Page::~Status_Page() = default;
+Status_Page::~Status_Page() {
+    deactivate();
+}
 
 /*******************************/
 /*           Activate          */
@@ -248,25 +250,39 @@ void Status_Page::activate(lv_obj_t* parent) {
 /*          Deactivate         */
 /*******************************/
 void Status_Page::deactivate() {
-    LOG_DEBUG("Status_Page: deactivating");
+    if (!m_impl->container) { return; }
+    LOG_TRACE("Status_Page: deactivating");
     hide_wifi_menu();
     hide_connections_popup();
     hide_stats_popup();
     hide_about_popup();
     if (m_impl->clock_timer) {
+        LOG_TRACE("Status_Page: deleting clock timer");
         lv_timer_del(m_impl->clock_timer);
         m_impl->clock_timer = nullptr;
     }
     if (m_impl->solar_timer) {
+        LOG_TRACE("Status_Page: deleting solar timer");
         lv_timer_del(m_impl->solar_timer);
         m_impl->solar_timer = nullptr;
     }
+    LOG_TRACE("Status_Page: resetting solar_info");
+    m_impl->solar_info.reset();
+    LOG_TRACE("Status_Page: resetting digital_clock");
+    m_impl->digital_clock.reset();
+    LOG_TRACE("Status_Page: resetting analog_clock");
+    m_impl->analog_clock.reset();
+    LOG_TRACE("Status_Page: resetting footer");
     m_impl->footer.reset();
+    LOG_TRACE("Status_Page: resetting header");
     m_impl->header.reset();
-    if (m_impl->container) {
-        lv_obj_del(m_impl->container);
-        m_impl->container = nullptr;
-    }
+    LOG_TRACE("Status_Page: resetting connections_popup");
+    m_impl->connections_popup.reset();
+    // The panel container parent will clean up the LVGL tree; just null our
+    // pointer and reset the C++ wrappers so they don't try to touch it later.
+    LOG_TRACE("Status_Page: nulling container");
+    m_impl->container = nullptr;
+    LOG_TRACE("Status_Page: deactivate complete");
 }
 
 /*******************************/
@@ -462,7 +478,7 @@ void Status_Page::show_about_popup() {
 /*******************************/
 void Status_Page::hide_about_popup() {
     if (m_impl->about_popup) {
-        lv_obj_del(m_impl->about_popup);
+        lv_obj_set_hidden(m_impl->about_popup, true);
         m_impl->about_popup = nullptr;
     }
 }
@@ -566,7 +582,7 @@ void Status_Page::show_stats_popup() {
 /*******************************/
 void Status_Page::hide_stats_popup() {
     if (m_impl->stats_popup) {
-        lv_obj_del(m_impl->stats_popup);
+        lv_obj_set_hidden(m_impl->stats_popup, true);
         m_impl->stats_popup = nullptr;
     }
 }

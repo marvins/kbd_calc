@@ -154,10 +154,7 @@ void Analog_Clock::update(const std::tm& tm) {
 /*           Destroy           */
 /*******************************/
 void Analog_Clock::destroy() {
-    if (m_circle_bg) {
-        lv_obj_del(m_circle_bg);
-        m_circle_bg = nullptr;
-    }
+    m_circle_bg = nullptr;
     m_hour_needle = nullptr;
     m_minute_needle = nullptr;
     m_second_needle = nullptr;

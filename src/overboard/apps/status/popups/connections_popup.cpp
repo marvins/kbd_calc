@@ -33,11 +33,11 @@ Connections_Popup::Connections_Popup(hal::I_System_Info& system_info, On_Select_
 Connections_Popup::~Connections_Popup() {
     cleanup_wifi_menu_children();
     if (m_wifi_menu) {
-        lv_obj_del(m_wifi_menu);
+        lv_obj_set_hidden(m_wifi_menu, true);
         m_wifi_menu = nullptr;
     }
     if (m_popup) {
-        lv_obj_del(m_popup);
+        lv_obj_set_hidden(m_popup, true);
         m_popup = nullptr;
     }
 }
@@ -86,7 +86,7 @@ void Connections_Popup::show_wifi_menu() {
 void Connections_Popup::hide_wifi_menu() {
     if (m_wifi_menu) {
         cleanup_wifi_menu_children();
-        lv_obj_del(m_wifi_menu);
+        lv_obj_set_hidden(m_wifi_menu, true);
         m_wifi_menu = nullptr;
     }
 }
