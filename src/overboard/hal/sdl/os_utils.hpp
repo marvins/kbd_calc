@@ -12,6 +12,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace ovb::hal::sdl {
 
@@ -35,6 +36,24 @@ bool has_wifi();
  * @return WiFi status if connected, nullopt otherwise
  */
 std::optional<Wifi_Status> get_wifi_status();
+
+/**
+ * @brief Check if WiFi is currently enabled (not just present)
+ * @return true if WiFi interface is powered on
+ */
+bool wifi_enabled();
+
+/**
+ * @brief Enable or disable WiFi
+ * @param enable true to turn on, false to turn off
+ */
+void set_wifi_enabled(bool enable);
+
+/**
+ * @brief Scan for available WiFi networks
+ * @return List of SSIDs visible to the adapter
+ */
+std::vector<std::string> scan_wifi_networks();
 
 /**
  * @brief Check if Bluetooth is available on the system

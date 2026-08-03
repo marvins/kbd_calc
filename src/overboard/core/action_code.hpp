@@ -162,6 +162,16 @@ enum class Action_Code : uint16_t {
     CLEAR,
     ALL_CLEAR,
 
+    // Matrix / array construction
+    NEW_VECTOR,   ///< Insert a new 1D vector (zeros(n))
+    NEW_MATRIX,   ///< Insert a new 2D matrix (zeros(m, n))
+    MAT_ZEROS,    ///< zeros(m, n) — zero-filled matrix
+    MAT_ONES,     ///< ones(m, n) — ones-filled matrix
+    MAT_EYE,      ///< eye(n) — identity matrix
+    MAT_TRANSPOSE,///< transpose(A)
+    MAT_DET,      ///< det(A)
+    MAT_INV,      ///< inv(A)
+
     // Function keys
     FUNC_1,
     FUNC_2,

@@ -110,6 +110,19 @@ class Calc_Engine {
          */
         void toggle_math_layout();
 
+        /**
+         * @brief Insert a zeros(rows, cols) matrix template into the expression
+         * @param rows Row count
+         * @param cols Column count
+         */
+        void insert_matrix(int rows, int cols);
+
+        /**
+         * @brief Insert a zeros(n) vector template into the expression
+         * @param n Element count
+         */
+        void insert_vector(int n);
+
     private:
 
         /// @brief Current calculation state

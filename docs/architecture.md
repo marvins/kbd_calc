@@ -1,23 +1,64 @@
 # Architecture
 
-This document describes the software architecture for the kbd_calc project.
+This document describes the software architecture for the Overboard project.
 
 ## Source Layout
 
 ```
 src/overboard/
+├── apps/        — application panels (calculator, settings, status)
+│   ├── calculator/ — calculator app with function popups
+│   ├── settings/   — settings editor
+│   └── status/     — status page with clock widgets
 ├── core/        — portable keyboard types, no platform headers
-├── math/        — portable calculator engine, no UI dependencies
+├── display/     — rendering abstraction layer (canvas, layout, cursor)
 ├── font/        — font metrics for math typesetting
-├── io/          — VIA/JSON keymap loading
-├── log/         — lightweight logging
 ├── gui/         — LVGL widget management (platform-agnostic)
 ├── hal/         — hardware abstraction interfaces + platform drivers
-│   ├── sdl/     — SDL desktop simulator
+│   ├── config/  — target-specific configuration
+│   ├── picocalc/ — ClockworkPi PicoCalc (ILI9488 + I2C keyboard)
 │   ├── pi_zero/ — Raspberry Pi Zero (DRM/KMS display + Linux input)
-│   └── picocalc/ — ClockworkPi PicoCalc (ILI9488 + I2C keyboard)
-└── apps/        — application entry points
+│   └── sdl/     — SDL desktop simulator
+├── io/          — VIA/JSON keymap loading
+├── log/         — lightweight logging
+├── math/        — portable calculator engine, no UI dependencies
+│   ├── ast/     — AST node types (Number, Binary_Op, Function, etc.)
+│   ├── layout/  — math typesetting layout engine
+│   └── operators/ — operator factories (trig, hyperbolic, arithmetic)
+└── tools/       — development utilities (keylogger, test tools)
 ```
+
+---
+
+## Namespace Structure
+
+The C++ namespace hierarchy matches the directory structure:
+
+| Namespace | Directory | Purpose |
+|-----------|-----------|---------|
+| `ovb::apps` | `apps/` | Application registration and panel indices |
+| `ovb::core` | `core/` | Keyboard layout, layer management, action codes, settings, solar calculations |
+| `ovb::display` | `display/` | Rendering abstractions: canvas, layout engine, cursor, history display |
+| `ovb::font` | `font/` | Font metrics and font selection for math typesetting |
+| `ovb::gui` | `gui/` | LVGL widgets: panels, popups, header/footer bars, keyboard display |
+| `ovb::gui::widgets` | `apps/status/widgets/` | Clock widgets: analog, digital, solar info |
+| `ovb::hal` | `hal/` | Hardware abstraction interfaces: I_App, I_Display, I_Input, I_Settings_Store, I_System_Info |
+| `ovb::hal::sdl` | `hal/sdl/` | SDL desktop simulator implementation |
+| `ovb::hal::pi_zero` | `hal/pi_zero/` | Raspberry Pi Zero DRM/KMS implementation |
+| `ovb::hal::picocalc` | `hal/picocalc/` | ClockworkPi PicoCalc embedded implementation |
+| `ovb::io` | `io/` | Keyboard configuration and VIA JSON parsing |
+| `ovb::log` | `log/` | Logging infrastructure: I_Logger, Stdout_Logger, File_Logger, log levels |
+| `ovb::math` | `math/` | Calculator engine, expression, parser |
+| `ovb::math::ast` | `math/ast/` | AST node types: Number_Node, Binary_Op_Node, Function_Node, etc. |
+| `ovb::math::layout` | `math/layout/` | Math typesetting: Layout_Engine, Layout_Box |
+| `ovb::math::operators` | `math/operators/` | Operator factories: binary, unary, function operators |
+| `ovb::tools` | `tools/` | Development utilities and test harnesses |
+
+**Namespace Conventions:**
+- All code lives under the root namespace `ovb` (overboard)
+- Sub-namespaces match directory names exactly
+- HAL implementations use nested namespaces (e.g., `ovb::hal::sdl`)
+- Widget sub-namespaces group related UI components (e.g., `ovb::gui::widgets`)
 
 ---
 
@@ -31,6 +72,10 @@ graph TB
 
     subgraph GUI
         B[gui/]
+    end
+
+    subgraph Display
+        DISP[display/]
     end
 
     subgraph HAL
@@ -49,7 +94,10 @@ graph TB
     end
 
     A --> B
+    B --> DISP
     B --> C
+    DISP --> H
+    DISP --> I
     C --> D
     C --> E
     C --> F
@@ -74,9 +122,13 @@ No platform headers allowed.
 | `Grid_Layout` / `Keyboard_Layout` | Key grid geometry and span definitions |
 | `Keymap` | Key-code to character/function mapping; loads from VIA JSON |
 | `Layer_Manager` | Active layer state and switching; provides `action_at()` and `label_at()` for virtual keyboard |
-| `Action_Code` | Semantic calculator operations (DIGIT_0-9, ADD, EVAL, etc.) |
+| `Action_Code` | Semantic calculator operations (DIGIT_0-9, ADD, EVAL, SIN, SINH, ATAN2, etc.) |
 | `Input_Key` | Physical keyboard key enumeration (KEY_0-9, F1-F24, NUMPAD_*, arrows, etc.) |
 | `Config` | Runtime configuration loading |
+| `Settings_Manager` | Persistent settings with observer pattern; manages settings tree and dirty tracking |
+| `Location_Provider` | GPS/location data provider for solar calculations; reads from settings or system |
+| `Solar_Calc` | Sunrise/sunset/solar elevation calculations based on location and time |
+| `Enums` | Shared enumerations (e.g., `Alignment`, `Display_Mode`) |
 | `Point`, `Rect` | Shared geometry types |
 
 ### `math/` — Portable calculator engine
@@ -85,8 +137,64 @@ No UI or platform dependencies. Fully unit-testable in isolation.
 | Class | Responsibility |
 |-------|---------------|
 | `Calc_Engine` | Evaluates expressions, manages history and state |
+| `Expression` | Direct AST manipulation with cursor navigation; inserts operators/functions at cursor position |
 | `Parser` | Tokenises and parses expression strings into an AST |
 | `layout/Layout_Engine` | Converts AST to typeset layout boxes for rendering |
+
+**AST Node Types (`math/ast/`):**
+
+| Node Class | Represents |
+|------------|-----------|
+| `Number_Node` | Numeric literals (integers and decimals) |
+| `Constant_Node` | Named constants (π, e, φ, τ) |
+| `Variable_Node` | User-defined variables |
+| `Placeholder_Node` | Empty slots for function arguments |
+| `Binary_Op_Node` | Binary operators (+, -, *, /, ^) |
+| `Unary_Op_Node` | Unary operators (negation, bitwise NOT) |
+| `Function_Node` | Function calls (sin, cos, atan2, log, etc.) |
+| `Factorial_Node` | Factorial operation (n!) |
+| `Group_Node` | Parenthesis grouping |
+| `Node_Traits` | Compile-time node type information and cursor path validation |
+
+**Operator Factories (`math/operators/`):**
+
+| Factory Class | Creates |
+|--------------|---------|
+| `Binary_Operators` | Add, Subtract, Multiply, Divide, Power |
+| `Unary_Operators` | Negate, Reciprocal, Factorial, Power_2, Power_3 |
+| `Function_Operators` | Sin, Cos, Tan, Cot, Sec, Csc, ASin, ACos, ATan, ACot, Atan2 (20+ trig/hyperbolic/logarithmic functions) |
+| `I_Operator` | Base interface for operator factories |
+
+**Cursor Navigation:**
+- `Cursor_Path_Runtime` — dynamic path through AST for cursor positioning
+- Expression supports `cursor_left()`, `cursor_right()` for navigation
+- Placeholder nodes mark empty function argument slots
+
+### `display/` — Rendering abstraction layer
+Separates display logic from GUI framework, enabling non-LVGL renderers.
+
+**Interfaces:**
+
+| Interface | Responsibility |
+|-----------|---------------|
+| `I_Display_Manager` | Orchestrates rendering pipeline: AST → layout → render → canvas |
+| `I_Canvas` | Abstract canvas for drawing operations (text, lines, rectangles, clear) |
+| `I_Layout_Engine` | Converts AST to typeset layout boxes |
+| `I_Renderer` | Renders layout boxes to canvas |
+| `I_Cursor_Renderer` | Cursor visualization (position and style) |
+| `I_History_Display` | History table rendering |
+| `I_Result_Display` | Result display rendering |
+
+**Implementations:**
+
+| Class | Responsibility |
+|-------|---------------|
+| `Cursor_Renderer` | Default cursor rendering implementation |
+| `History_Display` | History table rendering with scrolling |
+| `Result_Display` | Result display with formatting |
+| `Dirty_Region_Tracker` | Tracks dirty regions for partial redraws; optimization for avoiding full canvas redraws |
+
+**Purpose:** This layer allows the calculator to render to different backends (LVGL canvas, framebuffer, terminal, etc.) without changing math or GUI logic.
 
 ### `font/` — Font metrics
 Provides character size data consumed by `layout/Layout_Engine`.
@@ -100,44 +208,123 @@ Lightweight `Stdout_Logger` with log-level filtering.
 ### `gui/` — LVGL widget management
 Platform-agnostic. Depends on `hal/` interfaces and `core/`/`math/` but **never** on any specific HAL implementation (`hal/sdl/`, `hal/pi_zero/`, `hal/picocalc/`).
 
+**Core Components:**
+
 | File | Responsibility |
 |------|---------------|
-| `App_View` | Root GUI object; owns `LCD_Section` + `Keyboard_Display`; implements `I_Display`; routes input events |
-| `Panel_Manager` | Manages panel stack (Calculator, Menu, Status, etc.); routes `handle_text()`, `handle_input()`, `handle_input_key()` |
-| `Calculator_App` | Main calculator panel; converts text → Action_Code; manages calc engine and LCD section |
-| `App_Menu` | Application launcher menu; handles text shortcuts ('c' for calculator) |
-| `Status_Page` | System status display (uptime, memory, build info) |
-| `Key_Mapping_Info` | Keyboard layout visualization panel |
+| `App_View` | Root GUI object; owns `LCD_Section` + `Keyboard_Display`; routes input events |
+| `Panel_Manager` | Manages panel stack (Calculator, Menu, Status, Settings, etc.); routes `handle_text()`, `handle_input()`, `handle_input_key()` |
+| `App_Menu` | Application launcher menu; handles text shortcuts ('c' for calculator, 's' for settings) |
+| `App_Registry` | Application registration system; provides app discovery and instantiation |
 | `LCD_Section` | Bezel, history table, and typeset math preview canvas (top 500 px) |
 | `Keyboard_Display` | LVGL button grid matching physical key layout (bottom 300 px); displays layer labels |
 | `math_canvas` | Standalone utility: renders a typeset expression onto an `lv_canvas` |
-| `lvgl_theme.hpp` | Centralised color constants and `lvgl_color()` helper |
-| `lv_font_superscript.c` | Custom LVGL font with superscript glyphs (², ³, ⁿ) for power buttons |
-| Popups | F1/F2 function key popup menus (trig, constants, etc.) |
+
+**Headers & Footers:**
+
+| Class | Responsibility |
+|-------|---------------|
+| `Header_Bar` / `I_Header_Bar` | Top navigation bar; displays current panel title and navigation breadcrumbs |
+| `Footer_Bar` / `I_Footer_Bar` | Bottom function key footer (F1-F10); shows context-sensitive labels; supports paging |
+
+**Interfaces:**
+
+| Interface | Responsibility |
+|-----------|---------------|
+| `I_Panel` | Panel lifecycle interface: `activate()`, `deactivate()`, `handle_input()`, `handle_text()` |
+| `I_Popup` | Popup lifecycle interface: `show()`, `hide()`, `handle_input()`, `render()` |
+| `I_App` | Application entry point interface |
+
+**Popups:**
+
+| Class | Purpose |
+|-------|---------|
+| `Function_Menu_Popup` | F1-F10 function key popup menus; displays scrollable list of functions (trig, hyperbolic, constants, algebraic) |
+| `Dimension_Picker_Popup` | UI for selecting array/matrix dimensions; used for matrix/vector creation |
+
+**Fonts & Styling:**
+
+| File | Purpose |
+|------|---------|
+| `lv_font_superscript_regular.c` | Custom LVGL font with superscript glyphs (², ³, ⁿ) for power buttons |
+| `lv_font_superscript_bold.c` | Bold variant of superscript font |
+| `lvgl_theme.hpp` | Centralized color constants and `lvgl_color()` helper |
 
 See [Custom Fonts](custom_fonts.md) for font generation details.
 
 ### `hal/` — Hardware abstraction interfaces
 
-| File | Responsibility |
-|------|---------------|
+**Core Interfaces:**
+
+| Interface | Responsibility |
+|-----------|---------------|
 | `I_App` | Lifecycle interface: `init`, `run`, `should_quit`, `get_display` |
 | `I_Display` | Display contract: `refresh`, `update_layer`, `render` |
 | `I_Input` | Input polling interface |
-| `display_config.hpp` | Shared dimension constants (`FULL_*`, `LCD_*`, `KBD_*`) |
+| `I_Settings_Store` | Persistent storage abstraction: `load()`, `save()`, `exists()` |
+| `I_System_Info` | System information queries: CPU, memory, uptime, battery, temperature, platform details |
+
+**Shared Components:**
+
+| File | Responsibility |
+|------|---------------|
+| `Settings_Tree` | Hierarchical settings with TOML support; type-safe get/set operations |
 | `App_Factory` | Constructs the correct `I_App` for the active compile target |
+| `Settings_Store_Factory` | Constructs platform-specific settings store implementations |
+| `font_5x7.hpp` | Embedded bitmap font for low-level rendering |
+
+**Target Configuration (`hal/config/`):**
+
+| File | Purpose |
+|------|---------|
+| `target.hpp` | Unified target selection; includes appropriate target-specific header |
+| `target_sdl.hpp` | SDL simulator configuration (800×400 display) |
+| `target_picosdl.hpp` | SDL simulator with PicoCalc layout |
+| `target_picocalc.hpp` | ClockworkPi PicoCalc configuration (320×320 display) |
+| `target_pi_zero.hpp` | Raspberry Pi Zero configuration |
+| `target_th33.hpp` | TH33 hardware target configuration |
+
+Each target header defines:
+- Display dimensions (`FULL_WIDTH`, `FULL_HEIGHT`, `LCD_HEIGHT`, `KBD_HEIGHT`)
+- Build info (`BUILD_TARGET_NAME`, `BUILD_HARDWARE_TYPE`)
+- Feature flags
 
 ### `hal/sdl/` — SDL desktop simulator
 
 | Class | Responsibility |
 |-------|---------------|
-| `Display` | Owns the SDL window and LVGL display handle; exposes `screen()` for GUI attachment |
 | `SDL_App` | SDL lifecycle + event loop; owns both `Display` (HAL) and `App_View` (GUI); routes input events |
+| `Display` | Owns the SDL window and LVGL display handle; exposes `screen()` for GUI attachment |
 | `SDL_Input` | Event pump and filtering; converts platform keyboard/mouse events → `Key_Event` queue |
+| `Keyboard_Window` | Separate SDL window for keyboard visualization (optional debug feature) |
+| `Input_Key_Mapping` | SDL keycode → `Input_Key` translation table |
+| `Keymap` | SDL-specific keymap handling |
+| `OS_Utils` | Platform utilities: file paths, system information retrieval |
+| `Settings_Store` | File-based settings persistence (uses TOML files in `~/.config/overboard/`) |
+| `System_Info` | Desktop system information: CPU model, memory, OS version |
 | `event_filter()` | Implements text-first routing strategy for keyboard events (see Input Architecture below) |
 
 ### `hal/pi_zero/` — Raspberry Pi Zero target
-Linux DRM/KMS display driver (`Display_DRM`), Linux evdev input handler (`Linux_Input`), and the main `PiZero_App` lifecycle class.
+Linux target using DRM/KMS for direct HDMI output (no X11).
+
+| Class | Responsibility |
+|-------|---------------|
+| `PiZero_App` | Main application lifecycle class |
+| `Display_DRM` | DRM/KMS display driver for direct framebuffer access |
+| `Linux_Input` | Linux evdev input handler (`/dev/input/event*`); handles keyboard and mouse |
+| `Settings_Store` | File-based settings persistence (uses `/home/<user>/.config/overboard/`) |
+| `System_Info` | Raspberry Pi system information: CPU temp, memory, uptime, Raspberry Pi model |
+
+### `hal/picocalc/` — ClockworkPi PicoCalc target
+RP2350-based calculator with ILI9488 320×320 SPI display and STM32-driven I2C keyboard.
+
+| Class | Responsibility |
+|-------|---------------|
+| `PicoCalc_App` | Main application lifecycle class |
+| `Display` | ILI9488 SPI display driver (320×320 RGB565) |
+| `Input` | I2C keyboard interface to STM32 keyboard controller |
+| `Settings_Store` | Flash-based settings persistence using LittleFS |
+| `System_Info` | RP2350 system information: flash size, RAM, chip ID, temperature |
 
 ---
 
@@ -145,13 +332,83 @@ Linux DRM/KMS display driver (`Display_DRM`), Linux evdev input handler (`Linux_
 
 | Layer | May depend on | Must NOT depend on |
 |-------|---------------|--------------------|
-| `core/`, `math/`, `font/` | each other | `hal/`, `gui/`, platform headers |
-| `hal/` interfaces | `core/` | `gui/`, platform headers |
+| `core/`, `math/`, `font/` | each other | `hal/`, `gui/`, `display/`, platform headers |
+| `display/` | `math/`, `font/` | `hal/`, `gui/`, platform headers |
+| `hal/` interfaces | `core/` | `gui/`, `display/`, platform headers |
 | `hal/sdl/`, `hal/pi_zero/`, `hal/picocalc/` | `hal/` interfaces, `core/`, `gui/` | each other |
-| `gui/` | `hal/` interfaces, `core/`, `math/` | `hal/sdl/`, `hal/pi_zero/`, `hal/picocalc/` |
+| `gui/` | `hal/` interfaces, `core/`, `math/`, `display/` | `hal/sdl/`, `hal/pi_zero/`, `hal/picocalc/` |
 | `apps/` | everything | — |
 
-**Key invariant**: `gui/` has no dependency on any specific HAL implementation. The SDL window driver exposes `lv_obj_t* screen()` as the single coupling point — `App_View` uses it to attach LVGL widgets without knowing anything about SDL.
+**Key invariants**:
+- `gui/` has no dependency on any specific HAL implementation. The SDL window driver exposes `lv_obj_t* screen()` as the single coupling point — `App_View` uses it to attach LVGL widgets without knowing anything about SDL.
+- `display/` abstracts rendering from GUI framework, enabling alternative renderers (terminal, framebuffer, etc.) without changing math or GUI logic.
+
+---
+
+## Application Panels (`apps/`)
+
+Applications are organized as subdirectories, each implementing the `I_Panel` interface.
+
+### `apps/calculator/` — Calculator Panel
+
+| File | Responsibility |
+|------|---------------|
+| `Calculator_App` | Main calculator panel; converts text → Action_Code; manages calc engine and popups |
+
+**Features:**
+- Direct AST manipulation via `Expression` class
+- F1-F10 function key popups (Alg, Trig, Constants)
+- History table with scrolling
+- Math rendering via `math_canvas`
+- Cursor navigation through expressions
+
+**Function Popups:**
+- F1: Algebraic (reciprocal, square, power, sqrt)
+- F2: Trig & Hyperbolic (sin, cos, tan, sinh, cosh, tanh, asin, acos, atan, atan2, asinh, acosh, atanh, etc.)
+- F3: Constants (π, e, φ, τ)
+- F4-F10: Available for future menus
+
+### `apps/settings/` — Settings Editor Panel
+
+| File | Responsibility |
+|------|---------------|
+| `Settings_Page` | Settings editor with tree navigation; allows editing calculator preferences |
+
+**Features:**
+- Hierarchical settings tree display
+- Type-aware editing (bool, int, float, string)
+- Persistent storage via `Settings_Store`
+- Observer notification on changes
+
+### `apps/status/` — Status & Information Panel
+
+| File | Responsibility |
+|------|---------------|
+| `Status_Page` | System status display: uptime, memory, build info, solar times |
+
+**Status Widgets (`apps/status/widgets/`):**
+
+| Widget | Purpose |
+|--------|---------|
+| `Analog_Clock` | Analog clock face with hour/minute/second hands |
+| `Digital_Clock` | Digital time display with date |
+| `Clock_Widget` | Base clock interface |
+| `Solar_Info` | Sunrise/sunset times, solar elevation, daylight hours |
+
+**Features:**
+- Real-time clock updates
+- System resource monitoring (CPU, memory, temperature)
+- Solar calculations based on location (from settings)
+- Build information (target, version, commit hash)
+
+### `apps/app_registration.hpp` — App Registration System
+
+Macros for registering applications with the `App_Registry`:
+```cpp
+REGISTER_APP(Calculator_App, "Calculator", 'c');
+REGISTER_APP(Settings_Page, "Settings", 's');
+REGISTER_APP(Status_Page, "Status", 'i');
+```
 
 ---
 
@@ -291,11 +548,11 @@ This keeps the calculator engine (`math/`) independent of text encoding.
 
 ### Benefits
 
-✅ Consistency across all input sources  
-✅ OS handles keyboard layouts/localization  
-✅ Single text handling path  
-✅ Hardware macropads work seamlessly (VIA configuration)  
-✅ No double-refresh (panels signal when they've refreshed)  
+✅ Consistency across all input sources
+✅ OS handles keyboard layouts/localization
+✅ Single text handling path
+✅ Hardware macropads work seamlessly (VIA configuration)
+✅ No double-refresh (panels signal when they've refreshed)
 
 ---
 
@@ -373,6 +630,30 @@ Remove `input_key` from digit keys to allow natural text generation:
 
 ---
 
+## Development Tools (`tools/`)
+
+Utilities for development, debugging, and testing.
+
+### `keylogger`
+Logs all keyboard events for debugging input routing and key mapping issues. Useful for:
+- Verifying text-first routing strategy
+- Debugging physical keyboard → Input_Key → Action_Code flow
+- Testing VIA macropad configurations
+
+### `ovt_layout_util/`
+Layout testing and validation tools:
+- Visualize layout box trees
+- Validate math typesetting
+- Debug font metrics
+
+### `test_math_render/`
+Math rendering test harness:
+- Standalone renderer for testing expressions
+- Benchmark rendering performance
+- Visual regression testing
+
+---
+
 ## Build System
 
 - **CMake 4.0+**, build script at `scripts/build.sh`
@@ -382,7 +663,7 @@ Remove `input_key` from digit keys to allow natural text generation:
 |--------|--------|-------------|
 | `TARGET_SDL` | `calc_sim` | SDL desktop simulator (default) |
 | `TARGET_PICOSDL` | `calc_sim` | SDL simulator with PicoCalc layout |
-| `TARGET_MF34` | `calc_firmware` | RP2350 embedded firmware (MF34 macropad) |
+| `TARGET_TH33` | `calc_firmware` | TH33 embedded hardware target |
 | `TARGET_PICOCALC` | `calc_firmware` | ClockworkPi PicoCalc embedded firmware |
 | `TARGET_ZERO` | `calc_app` | Raspberry Pi Zero (DRM/KMS) |
 
@@ -399,5 +680,5 @@ Linux target using DRM/KMS for direct HDMI output (no X11). HAL implemented in `
 ### ClockworkPi PicoCalc (`TARGET_PICOCALC`)
 Self-contained calculator with ILI9488 320×320 SPI display and STM32-driven I2C keyboard. HAL implemented in `hal/picocalc/`. Activated with `-DTARGET_DEVICE=PICOCALC`.
 
-### RP2350 / MF34 Macropad (`TARGET_MF34`)
-Custom embedded hardware with the KISNT MF34 34-key macropad. Activated with `-DTARGET_DEVICE=RP2350`.
+### TH33 Hardware (`TARGET_TH33`)
+TH33 embedded hardware target. Activated with `-DTARGET_DEVICE=TH33`.

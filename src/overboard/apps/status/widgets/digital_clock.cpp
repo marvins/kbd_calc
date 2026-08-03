@@ -79,10 +79,7 @@ void Digital_Clock::update(const std::tm& tm) {
 /*           Destroy           */
 /*******************************/
 void Digital_Clock::destroy() {
-    if (m_container) {
-        lv_obj_del(m_container);
-        m_container = nullptr;
-    }
+    m_container = nullptr;
     m_time_label = nullptr;
     m_date_label = nullptr;
 }

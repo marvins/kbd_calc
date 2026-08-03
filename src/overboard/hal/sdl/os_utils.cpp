@@ -21,14 +21,14 @@ namespace ovb::hal::sdl {
 
 // Platform detection
 #if defined(__APPLE__)
-    [[maybe_unused]] constexpr bool IS_MACOS = true;
-    [[maybe_unused]] constexpr bool IS_LINUX = false;
+    #define IS_MACOS 1
+    #define IS_LINUX 0
 #elif defined(__linux__)
-    [[maybe_unused]] constexpr bool IS_MACOS = false;
-    [[maybe_unused]] constexpr bool IS_LINUX = true;
+    #define IS_MACOS 0
+    #define IS_LINUX 1
 #else
-    [[maybe_unused]] constexpr bool IS_MACOS = false;
-    [[maybe_unused]] constexpr bool IS_LINUX = false;
+    #define IS_MACOS 0
+    #define IS_LINUX 0
 #endif
 
 /***************************/
@@ -39,20 +39,21 @@ bool has_wifi() {
     // On macOS, check if Wi-Fi interface exists
     FILE* pipe = popen("networksetup -listallhardwareports 2>/dev/null", "r");
     if (!pipe) {
+        LOG_DEBUG("has_wifi: popen failed");
         return false;
     }
 
     std::array<char, 256> buffer;
-    bool has_wifi = false;
+    bool found = false;
     while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
         std::string line(buffer.data());
         if (line.find("Wi-Fi") != std::string::npos || line.find("AirPort") != std::string::npos) {
-            has_wifi = true;
+            found = true;
             break;
         }
     }
     pclose(pipe);
-    return has_wifi;
+    return found;
 
 #elif IS_LINUX
     // On Linux, check if wireless interface exists
@@ -104,37 +105,49 @@ std::optional<Wifi_Status> get_wifi_status() {
         return std::nullopt;
     }
 
-    // Get current Wi-Fi network on macOS using the detected interface
-    std::string cmd = "networksetup -getairportnetwork " + wifi_interface + " 2>/dev/null";
-    pipe = popen(cmd.c_str(), "r");
-    if (!pipe) {
-        return std::nullopt;
-    }
-
+    // macOS Sonoma+ redacts SSID from all user-space APIs without a signed entitlement.
+    // Detect connectivity via scutil --nwi (interface reachable = connected).
     std::array<char, 256> buffer;
     Wifi_Status status;
     status.connected = false;
     status.signal_strength = 0;
 
-    while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
-        std::string line(buffer.data());
-        // Output format: "Current Wi-Fi Network: <SSID>"
-        if (line.find("Current Wi-Fi Network:") != std::string::npos) {
-            size_t pos = line.find(':');
-            if (pos != std::string::npos) {
-                status.ssid = line.substr(pos + 1);
-                // Trim whitespace
-                while (!status.ssid.empty() && (status.ssid.back() == '\n' || status.ssid.back() == ' ')) {
-                    status.ssid.pop_back();
+    {
+        std::string nwi_cmd = "scutil --nwi 2>/dev/null";
+        FILE* nwi = popen(nwi_cmd.c_str(), "r");
+        if (nwi) {
+            while (fgets(buffer.data(), buffer.size(), nwi) != nullptr) {
+                std::string line(buffer.data());
+                // Line format: "     en0 : flags      : 0x5 (IPv4,DNS)"
+                if (line.find(wifi_interface) != std::string::npos &&
+                    line.find("Reachable") == std::string::npos &&
+                    line.find("flags") != std::string::npos) {
+                    if (line.find("IPv4") != std::string::npos) {
+                        status.connected = true;
+                    }
                 }
-                while (!status.ssid.empty() && status.ssid.front() == ' ') {
-                    status.ssid.erase(0, 1);
-                }
-                status.connected = !status.ssid.empty();
             }
+            pclose(nwi);
         }
     }
-    pclose(pipe);
+
+    if (status.connected) {
+        // SSID is redacted by macOS; use the assigned IP address as display name instead
+        std::string ip_cmd = "/usr/sbin/ipconfig getifaddr " + wifi_interface + " 2>/dev/null";
+        FILE* ip_pipe = popen(ip_cmd.c_str(), "r");
+        if (ip_pipe) {
+            if (fgets(buffer.data(), buffer.size(), ip_pipe) != nullptr) {
+                status.ssid = std::string(buffer.data());
+                while (!status.ssid.empty() && (status.ssid.back() == '\n' || status.ssid.back() == '\r' || status.ssid.back() == ' ')) {
+                    status.ssid.pop_back();
+                }
+            }
+            pclose(ip_pipe);
+        }
+        if (status.ssid.empty()) {
+            status.ssid = wifi_interface;
+        }
+    }
 
     if (status.connected) {
         // Get signal strength using airport command
@@ -211,6 +224,145 @@ std::optional<Wifi_Status> get_wifi_status() {
 #else
     return std::nullopt;
 #endif
+}
+
+/***************************/
+/*      wifi_enabled       */
+/***************************/
+bool wifi_enabled() {
+#if IS_MACOS
+    FILE* pipe = popen("networksetup -getairportpower en0 2>/dev/null", "r");
+    if (!pipe) {
+        return false;
+    }
+    std::array<char, 256> buffer;
+    bool enabled = false;
+    while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+        std::string line(buffer.data());
+        if (line.find("On") != std::string::npos) {
+            enabled = true;
+            break;
+        }
+    }
+    pclose(pipe);
+    return enabled;
+
+#elif IS_LINUX
+    FILE* pipe = popen("cat /sys/class/net/wlan0/operstate 2>/dev/null", "r");
+    if (!pipe) {
+        return false;
+    }
+    std::array<char, 64> buffer;
+    bool enabled = false;
+    if (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+        std::string state(buffer.data());
+        enabled = (state.find("up") != std::string::npos || state.find("dormant") != std::string::npos);
+    }
+    pclose(pipe);
+    return enabled;
+
+#else
+    return false;
+#endif
+}
+
+/****************************/
+/*    set_wifi_enabled      */
+/****************************/
+void set_wifi_enabled([[maybe_unused]] bool enable) {
+#if IS_MACOS
+    // Determine the Wi-Fi interface name first
+    std::string wifi_interface;
+    FILE* pipe = popen("networksetup -listallhardwareports 2>/dev/null", "r");
+    if (pipe) {
+        std::array<char, 256> buffer;
+        while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+            std::string line(buffer.data());
+            if (line.find("Wi-Fi") != std::string::npos || line.find("AirPort") != std::string::npos) {
+                if (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+                    std::string device_line(buffer.data());
+                    size_t start = device_line.find("Device: ");
+                    if (start != std::string::npos) {
+                        wifi_interface = device_line.substr(start + 8);
+                        wifi_interface.erase(wifi_interface.find_last_not_of(" \n\r\t") + 1);
+                        break;
+                    }
+                }
+            }
+        }
+        pclose(pipe);
+    }
+    if (wifi_interface.empty()) {
+        return;
+    }
+    const std::string cmd = "networksetup -setairportpower " + wifi_interface
+                          + (enable ? " on" : " off") + " 2>/dev/null";
+    FILE* p = popen(cmd.c_str(), "r");
+    if (p) pclose(p);
+
+#elif IS_LINUX
+    const std::string cmd = std::string("ip link set wlan0 ")
+                          + (enable ? "up" : "down") + " 2>/dev/null";
+    FILE* p = popen(cmd.c_str(), "r");
+    if (p) pclose(p);
+#endif
+}
+
+/*****************************/
+/*   scan_wifi_networks      */
+/*****************************/
+std::vector<std::string> scan_wifi_networks() {
+    std::vector<std::string> networks;
+
+#if IS_MACOS
+    FILE* pipe = popen("/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -s 2>/dev/null", "r");
+    if (!pipe) {
+        return networks;
+    }
+    std::array<char, 256> buffer;
+    bool header_skipped = false;
+    while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+        if (!header_skipped) {
+            header_skipped = true;
+            continue;
+        }
+        std::string line(buffer.data());
+        // airport -s output: "     SSID  BSSID  RSSI  CHANNEL  HT  CC  SECURITY"
+        // SSID is right-justified in the first 32 chars
+        if (line.size() > 1) {
+            // Trim leading spaces to get SSID (first token)
+            size_t start = line.find_first_not_of(' ');
+            if (start != std::string::npos) {
+                size_t end = line.find(' ', start);
+                std::string ssid = line.substr(start, end - start);
+                if (!ssid.empty()) {
+                    networks.push_back(ssid);
+                }
+            }
+        }
+    }
+    pclose(pipe);
+
+#elif IS_LINUX
+    FILE* pipe = popen("iwlist wlan0 scan 2>/dev/null | grep 'ESSID' | sed 's/.*ESSID:\"\\(.*\\)\"/\\1/'", "r");
+    if (!pipe) {
+        return networks;
+    }
+    std::array<char, 256> buffer;
+    while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+        std::string ssid(buffer.data());
+        // Trim trailing newline
+        while (!ssid.empty() && (ssid.back() == '\n' || ssid.back() == '\r')) {
+            ssid.pop_back();
+        }
+        if (!ssid.empty()) {
+            networks.push_back(ssid);
+        }
+    }
+    pclose(pipe);
+#endif
+
+    return networks;
 }
 
 /***************************/

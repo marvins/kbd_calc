@@ -35,9 +35,6 @@ struct App_View::Impl {
     /// @brief Panel Manager
     std::unique_ptr<Panel_Manager>              m_panels;
 
-    /// @brief Keyboard Display
-    std::unique_ptr<Keyboard_Display>           m_keyboard_display;
-
     /// @brief Settings Manager
     std::shared_ptr<core::Settings_Manager>     m_settings;
 
@@ -52,9 +49,6 @@ struct App_View::Impl {
 
     /// @brief Panel Container
     lv_obj_t*              m_panel_container = nullptr;
-
-    /// @brief Keyboard Container
-    lv_obj_t*              m_kbd_container   = nullptr;
 
     /// @brief Layer Manager
     core::Layer_Manager*   m_layers          = nullptr;
@@ -142,27 +136,6 @@ App_View::App_View( lv_obj_t*                      root,
         LOG_DEBUG("App_View: Booting directly to panel ", std::to_string(default_panel));
     }
 
-// Only create keyboard in main window if KBD_HEIGHT > 0 AND no separate keyboard window
-// (when KBD_WIN_HEIGHT > 0, SDL_App creates a separate Keyboard_Window instead)
-#if SHOW_KEYBOARD_UI
-    if (hal::KBD_HEIGHT > 0 && hal::KBD_WIN_HEIGHT == 0) {
-        LOG_TRACE("App_View: Creating keyboard container");
-        m_impl->m_kbd_container = lv_obj_create(root);
-        lv_obj_set_size(m_impl->m_kbd_container, hal::KBD_WIDTH, hal::KBD_HEIGHT);
-        lv_obj_align(m_impl->m_kbd_container, LV_ALIGN_TOP_LEFT, 0, hal::LCD_HEIGHT);
-        lv_obj_set_style_bg_color(m_impl->m_kbd_container, lvgl_color(LVGL_COLOR_KBD_BG), LV_PART_MAIN);
-        lv_obj_set_style_border_width(m_impl->m_kbd_container, 0, LV_PART_MAIN);
-        lv_obj_set_style_pad_all(m_impl->m_kbd_container, 0, LV_PART_MAIN);
-        lv_obj_set_style_radius(m_impl->m_kbd_container, 0, LV_PART_MAIN);
-        lv_obj_set_scrollable(m_impl->m_kbd_container, false);
-
-        LOG_TRACE("App_View: Creating Keyboard_Display");
-        m_impl->m_keyboard_display = std::make_unique<Keyboard_Display>(
-            m_impl->m_kbd_container, layout, layers, hal::KBD_WIDTH, hal::KBD_HEIGHT);
-    } else {
-        LOG_TRACE("App_View: Skipping keyboard creation (separate keyboard window will be used)");
-    }
-#endif
     LOG_TRACE("App_View: Constructor complete");
 }
 
@@ -241,22 +214,7 @@ void App_View::refresh() {
 /*        Update Layer        */
 /******************************/
 void App_View::update_layer() {
-#if SHOW_KEYBOARD_UI
-    if (m_impl->m_keyboard_display) {
-        m_impl->m_keyboard_display->update_layer();
-    }
-#endif
-}
-
-/*****************************************/
-/*       Set Key Click Callback          */
-/*****************************************/
-void App_View::set_key_click_callback([[maybe_unused]] std::function<void(int)> cb) {
-#if SHOW_KEYBOARD_UI
-    if (m_impl->m_keyboard_display) {
-        m_impl->m_keyboard_display->set_click_callback(std::move(cb));
-    }
-#endif
+    // Keyboard layer updates now handled by SDL_App's Key_Mapping_Info
 }
 
 /****************************/
@@ -281,6 +239,13 @@ std::string App_View::get_active_panel_label(int key_index) const {
 /****************************/
 void App_View::set_panel_change_callback(std::function<void(I_Panel*)> cb) {
     m_impl->m_panels->set_panel_change_callback(std::move(cb));
+}
+
+/*******************************/
+/* Trigger Panel Change Callback */
+/*******************************/
+void App_View::trigger_panel_change_callback() {
+    m_impl->m_panels->trigger_panel_change_callback();
 }
 
 } // namespace ovb::gui

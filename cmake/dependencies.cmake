@@ -53,6 +53,19 @@ if(TARGET_DEVICE STREQUAL "ZERO")
     endif()
 endif()
 
+# Configure LVGL for SDL-based targets (SDL, PICOSDL, WASM)
+if(TARGET_DEVICE STREQUAL "SDL" OR TARGET_DEVICE STREQUAL "PICOSDL" OR TARGET_DEVICE STREQUAL "WASM")
+    # Enable LVGL SDL driver
+    target_compile_definitions(lvgl PUBLIC LV_USE_SDL=1 CONFIG_LV_USE_SDL=1)
+endif()
+
+# Configure LVGL for WASM/Emscripten SDL2 port
+if(TARGET_DEVICE STREQUAL "WASM")
+    # Add -sUSE_SDL=2 to LVGL's compile flags so Emscripten provides SDL2 headers
+    target_compile_options(lvgl PUBLIC -sUSE_SDL=2)
+    target_link_options(lvgl PUBLIC -sUSE_SDL=2)
+endif()
+
 # Remove SDL sources for embedded targets (LVGL doesn't respect CONFIG_LV_USE_SDL without preprocessing)
 if(TARGET_DEVICE STREQUAL "PICOCALC")
     target_compile_definitions(lvgl PUBLIC TARGET_RP2350=1)
@@ -67,8 +80,8 @@ if(TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO")
 endif()
 
 # ── GoogleTest (if tests enabled) ────────────────────────────────────────────────────
-# Only build tests for simulator targets, not embedded
-if(BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO"))
+# Only build tests for native simulator targets, not embedded or WASM
+if(BUILD_TESTS AND NOT (TARGET_DEVICE STREQUAL "PICOCALC" OR TARGET_DEVICE STREQUAL "ZERO" OR TARGET_DEVICE STREQUAL "WASM"))
     add_subdirectory(thirdparty/gtest)
     enable_testing()
 endif()

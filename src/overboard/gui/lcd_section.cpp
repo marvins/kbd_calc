@@ -36,19 +36,32 @@ LCD_Section::LCD_Section(const math::Calc_Engine&                engine,
 LCD_Section::~LCD_Section() {
     LOG_DEBUG("LCD_Section: destructor");
     // Delete LVGL objects before m_canvas_buf is freed to prevent use-after-free
-    if (m_preview_canvas) {
-        lv_obj_del(m_preview_canvas);
-        m_preview_canvas = nullptr;
-    }
-    if (m_table) {
-        lv_obj_del(m_table);
-        m_table = nullptr;
-    }
-    if (m_bezel) {
-        lv_obj_del(m_bezel);
-        m_bezel = nullptr;
+    // Guard against shutdown - if display is torn down, skip LVGL deletion
+    if (lv_display_get_next(nullptr) != nullptr) {
+        if (m_preview_canvas) {
+            lv_obj_del(m_preview_canvas);
+            m_preview_canvas = nullptr;
+        }
+        if (m_table) {
+            lv_obj_del(m_table);
+            m_table = nullptr;
+        }
+        if (m_bezel) {
+            lv_obj_del(m_bezel);
+            m_bezel = nullptr;
+        }
     }
     LOG_DEBUG("LCD_Section: destructor complete");
+}
+
+/*****************************/
+/*         Teardown          */
+/*****************************/
+void LCD_Section::teardown() {
+    m_preview_canvas = nullptr;
+    m_table          = nullptr;
+    m_bezel          = nullptr;
+    m_history_cells.clear();
 }
 
 /*****************************/
@@ -190,10 +203,12 @@ void LCD_Section::refresh() {
         : LVGL_COLOR_CURSOR_HIGHLIGHT;
 
     // Draw typeset math — result and expression both go through the layout engine
-    int pw = hal::PREVIEW_MAX_WIDTH;
-    int ph = hal::PREVIEW_MAX_HEIGHT;
-    draw_math_to_canvas(m_preview_canvas, pw, ph, *m_layout_engine, *ast_to_render, "", cursor_node,
-                        highlight_color);
+    draw_math_to_canvas( m_preview_canvas,
+                         *m_layout_engine,
+                         *ast_to_render,
+                         "",
+                         cursor_node,
+                         highlight_color);
 
     lv_obj_invalidate(m_preview_canvas);
     lv_obj_invalidate(m_bezel);

@@ -62,6 +62,18 @@ Key_Mapping_Info::Key_Mapping_Info( lv_obj_t*                      parent,
 }
 
 /***************************/
+/*        Destructor        */
+/***************************/
+Key_Mapping_Info::~Key_Mapping_Info() {
+    // Remove all event callbacks to prevent use-after-free during LVGL cleanup
+    for (lv_obj_t* rect : m_key_rects) {
+        if (rect) {
+            lv_obj_remove_event_cb(rect, on_btn_clicked);
+        }
+    }
+}
+
+/***************************/
 /*        Build Keys        */
 /***************************/
 void Key_Mapping_Info::build_keys(lv_obj_t* parent) {
@@ -122,7 +134,9 @@ void Key_Mapping_Info::build_keys(lv_obj_t* parent) {
         lv_obj_set_style_border_width(rect, 1, LV_PART_MAIN);
         lv_obj_set_style_radius(rect, 4, LV_PART_MAIN);
         lv_obj_set_style_pad_all(rect, 2, LV_PART_MAIN);
-        // Note: NOT clickable — purely informational
+
+        // Store key index for click handling (clickable flag set by set_click_callback)
+        lv_obj_set_user_data(rect, reinterpret_cast<void*>(static_cast<intptr_t>(i)));
 
         // Label
         lv_obj_t* lbl = lv_label_create(rect);
@@ -293,6 +307,30 @@ std::string Key_Mapping_Info::get_key_label(int key_index, core::Action_Code act
     }
     // Third: fall back to action code display string
     return core::action_code_to_display(action_code);
+}
+
+/********************************/
+/*      Set Click Callback      */
+/********************************/
+void Key_Mapping_Info::set_click_callback(Click_Callback cb) {
+    m_click_cb = std::move(cb);
+    for (lv_obj_t* rect : m_key_rects) {
+        if (!rect) continue;
+        lv_obj_set_clickable(rect, true);
+        lv_obj_add_event_cb(rect, on_btn_clicked, LV_EVENT_CLICKED, this);
+    }
+}
+
+/********************************/
+/*      On Button Clicked       */
+/********************************/
+void Key_Mapping_Info::on_btn_clicked(lv_event_t* e) {
+    auto* self = static_cast<Key_Mapping_Info*>(lv_event_get_user_data(e));
+    if (!self || !self->m_click_cb) return;
+    lv_obj_t* btn = static_cast<lv_obj_t*>(lv_event_get_target(e));
+    const auto key_index = static_cast<int>(
+        reinterpret_cast<intptr_t>(lv_obj_get_user_data(btn)));
+    self->m_click_cb(key_index);
 }
 
 } // namespace ovb::gui

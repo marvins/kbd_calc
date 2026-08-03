@@ -127,6 +127,18 @@ class Status_Page : public I_App {
         /// @brief Hide the Stats popup
         void hide_stats_popup();
 
+        /// @brief Show the Connections popup (WiFi status, toggle, scan)
+        void show_connections_popup();
+
+        /// @brief Hide the Connections popup
+        void hide_connections_popup();
+
+        /// @brief Show the WiFi network selection menu
+        void show_wifi_menu();
+
+        /// @brief Hide the WiFi network selection menu
+        void hide_wifi_menu();
+
         /// @brief Implementation details
         struct Impl;
         std::unique_ptr<Impl> m_impl;

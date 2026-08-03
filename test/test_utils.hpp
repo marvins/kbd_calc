@@ -55,6 +55,12 @@ inline void print_box( const math::layout::Layout_Box& box,
             logger.trace(std::format("{}SQRT w={} h={}", prefix, box.size.x, box.size.y));
             print_box(box.children[0], logger, indent + 1);
             break;
+        case Box_Kind::MATRIX:
+            logger.trace(std::format("{}MATRIX {}x{} w={} h={}", prefix, box.rows, box.cols, box.size.x, box.size.y));
+            for (const auto& child : box.children) {
+                print_box(child, logger, indent + 1);
+            }
+            break;
     }
 }
 
@@ -82,6 +88,8 @@ inline std::string box_to_string(const ovb::math::layout::Layout_Box& box) {
             return "SUPERSCRIPT";
         case Box_Kind::SQRT:
             return "SQRT[" + box_to_string(box.children[0]) + "]";
+        case Box_Kind::MATRIX:
+            return "MATRIX[" + std::to_string(box.rows) + "x" + std::to_string(box.cols) + "]";
     }
     return "UNKNOWN";
 }

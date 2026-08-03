@@ -24,13 +24,11 @@
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/gui/app_view.hpp>
 #include <overboard/gui/key_mapping_info.hpp>
-#include <overboard/gui/keyboard_display.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/hal/i_app.hpp>
 #include <overboard/hal/i_system_info.hpp>
 #include <overboard/hal/sdl/display.hpp>
 #include <overboard/hal/sdl/input.hpp>
-#include <overboard/hal/sdl/keyboard_window.hpp>
 #include <overboard/hal/sdl/system_info.hpp>
 #include <overboard/math/calc_engine.hpp>
 
@@ -97,6 +95,12 @@ class SDL_App : public I_App {
          */
         void handle_direct_action(core::Input_Key key);
 
+        /**
+         * @brief Single frame update: pump events, handle input, render LVGL
+         * Used by the emscripten main loop on the WASM target.
+         */
+        void run_frame();
+
     private:
 
         /**
@@ -130,16 +134,13 @@ class SDL_App : public I_App {
         /// @brief SDL window driver
         std::unique_ptr<Display>       m_display;
 
-        /// @brief Separate keyboard window (PICOSDL only, when SHOW_KEYBOARD_UI=ON)
-        std::unique_ptr<Keyboard_Window> m_keyboard_window;
-
-        /// @brief Keyboard display widget (in separate window for PICOSDL)
-        std::unique_ptr<gui::Keyboard_Display> m_keyboard_display;
-
-        /// @brief Key mapping info panel (in main window for SDL/PICOSDL)
+        /// @brief Interactive key mapping info panel (in main window below LCD)
+        /// Declared before m_view so it is destroyed after m_view (reverse order)
         std::unique_ptr<gui::Key_Mapping_Info> m_key_mapping_info;
 
-        /// @brief LVGL application view (LCD + key mapping info panel)
+        /// @brief LVGL application view (LCD + panel system)
+        /// Declared after m_display so it is destroyed first (reverse order),
+        /// ensuring all LVGL objects are deleted while the display is still alive
         std::unique_ptr<gui::App_View> m_view;
 
         /// @brief System info provider

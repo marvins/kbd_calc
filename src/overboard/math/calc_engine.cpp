@@ -15,7 +15,10 @@
 
 // Project Libraries
 #include <overboard/log/stdout_logger.hpp>
+#include <overboard/math/ast/function_node.hpp>
+#include <overboard/math/ast/matrix_node.hpp>
 #include <overboard/math/ast/number_node.hpp>
+#include <overboard/math/ast/placeholder_node.hpp>
 #include <overboard/math/parser.hpp>
 
 namespace ovb::math {
@@ -101,6 +104,7 @@ void Calc_Engine::handle_key( core::Action_Code code ) {
         case core::Action_Code::BIT_AND:    case core::Action_Code::BIT_OR:     case core::Action_Code::BIT_XOR:
         case core::Action_Code::BITSHIFT_LEFT: case core::Action_Code::BITSHIFT_RIGHT:
         case core::Action_Code::APPROX:
+        case core::Action_Code::MAT_TRANSPOSE: case core::Action_Code::MAT_DET: case core::Action_Code::MAT_INV:
             try_insert(code);
             break;
 
@@ -117,6 +121,14 @@ void Calc_Engine::handle_key( core::Action_Code code ) {
 
         case core::Action_Code::CURSOR_RIGHT:
             m_state.expression.cursor_right();
+            break;
+
+        case core::Action_Code::CURSOR_UP:
+            m_state.expression.cursor_up();
+            break;
+
+        case core::Action_Code::CURSOR_DOWN:
+            m_state.expression.cursor_down();
             break;
 
         case core::Action_Code::BACKSPACE:
@@ -235,6 +247,24 @@ void Calc_Engine::evaluate() {
 /****************************/
 void Calc_Engine::toggle_math_layout() {
     m_state.use_math_layout = !m_state.use_math_layout;
+}
+
+/****************************/
+/*      Insert Matrix       */
+/****************************/
+void Calc_Engine::insert_matrix(int rows, int cols) {
+    auto node = std::make_unique<ast::Matrix_Node>(rows, cols);
+    m_state.expression.insert_node(*node);
+    m_state.display_value = m_state.expression.render_string();
+}
+
+/****************************/
+/*      Insert Vector       */
+/****************************/
+void Calc_Engine::insert_vector(int n) {
+    auto node = std::make_unique<ast::Matrix_Node>(1, n);
+    m_state.expression.insert_node(*node);
+    m_state.display_value = m_state.expression.render_string();
 }
 
 /******************************/

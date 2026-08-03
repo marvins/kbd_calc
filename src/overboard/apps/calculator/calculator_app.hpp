@@ -12,9 +12,11 @@
 #pragma once
 
 // C++ Standard Libraries
+#include <array>
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 // Third-Party Libraries
 #include <lvgl.h>
@@ -23,6 +25,7 @@
 #include <overboard/core/input_key.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/core/settings_manager.hpp>
+#include <overboard/gui/dimension_picker_popup.hpp>
 #include <overboard/gui/footer_bar.hpp>
 #include <overboard/gui/function_menu_popup.hpp>
 #include <overboard/gui/header_bar.hpp>
@@ -31,18 +34,22 @@
 
 namespace ovb::gui {
 
-// Number of F-key popup slots (F1-F10)
+// Number of F-key slots per context (F1–F5)
+inline constexpr int F_KEY_SLOT_COUNT  = 5;
+
+// Total popup slots (F1–F10, two banks)
 inline constexpr int F_KEY_POPUP_COUNT = 10;
 
 /**
- * @brief Popup menu indices for F-key assignments
+ * @brief One named context defining what F1–F5 do and their footer labels.
+ *
+ * Each context owns a list of menu items per slot. An empty item list means
+ * the corresponding F-key has no popup (pressing it is a no-op).
  */
-enum class Popup_Menu : int {
-    Alg      = 0,  // F1: Algebraic operations (reciprocal, square, power, sqrt)
-    Trig     = 1,  // F2: Trigonometric and hyperbolic functions (sin, cos, tan, sinh, cosh, etc.)
-    Const    = 2,  // F3: Mathematical constants (π, e, φ, τ)
-    Advanced = 3,  // F4: Available for future use
-    // F5-F10: Reserved for future menus
+struct F_Key_Context {
+    std::string                                        name;             ///< Display name (e.g. "Core Math")
+    std::array<std::string, F_KEY_SLOT_COUNT>          labels;           ///< Footer labels for F1–F5
+    std::array<std::vector<Function_Menu_Item>, F_KEY_SLOT_COUNT> slots; ///< Popup items per slot
 };
 
 /**
@@ -152,6 +159,15 @@ class Calculator_App : public I_App {
 
         /// @brief Build overlay key descriptors mapping digit keys to popup items
         std::vector<I_Panel::Overlay_Key_Desc> build_popup_overlay(const Function_Menu_Popup& popup) const;
+
+        /// @brief Advance the active context by @p delta steps (wraps)
+        void cycle_context(int delta);
+
+        /// @brief Apply the active context: rebuild popups and update footer labels
+        void apply_context();
+
+        /// @brief Show the dimension picker for matrix or vector insertion
+        void show_dimension_picker(bool matrix_mode);
 
         struct Impl;
         std::unique_ptr<Impl> m_impl;

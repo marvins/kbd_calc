@@ -1,13 +1,20 @@
 # Project Tasks
 
+## Imminent
+
+- [ ] Add valgrind/gdb like debugger flag to go_macropad — enable ASan via `-DUSE_ASAN=ON` for memory corruption debugging. Check OS and compiler, then adjust flags accordingly.
+- [ ] Add WASM/Emscripten build target: EMSDK setup, `TARGET_DEVICE=WASM` CMake path, `--wasm` flag in `go_macropad`, and browser launch via `emrun`.
+
+---
+
 ## Phase 0: Math Canvas Cleanup
 
 Goal: Refactor the monolithic draw lambda in `math_canvas.cpp` for better maintainability and performance.
 
-- [ ] Extract per-kind draw functions — split the 120-line lambda into named static helpers (`draw_atom`, `draw_placeholder`, `draw_fraction_bar`, `draw_sqrt`)
-- [ ] Add `make_area` inline helper — eliminate repeated `lv_area_t` construction with `static_cast<int32_t>` noise
-- [ ] Replace `std::function` with local recursive struct — zero-cost recursion without heap allocation
-- [ ] Remove `offset_x / offset_y` parameters — `layout()` already sets absolute positions, offsets are always `0, 0`
+- [x] Extract per-kind draw functions — split the 120-line lambda into named static helpers (`draw_atom`, `draw_placeholder`, `draw_fraction_bar`, `draw_sqrt`)
+- [x] Add `make_area` inline helper — eliminate repeated `lv_area_t` construction with `static_cast<int32_t>` noise
+- [x] Replace `std::function` with local recursive struct — zero-cost recursion without heap allocation
+- [x] Remove `offset_x / offset_y` parameters — `layout()` already sets absolute positions, offsets are always `0, 0`
 - [ ] Derive canvas size internally — query `lv_obj_get_width/height(canvas)` instead of passing `width`/`height` parameters
 - [ ] Move result string rendering into layout tree — currently drawn with hardcoded offsets, should be a proper layout region
 
@@ -19,15 +26,7 @@ Goal: Get the calculator working end-to-end for basic arithmetic and algebra.
 
 **New Operations:**
 
-*Roots & Powers:*
-- [x] `factorial(n)` or `n!` — factorial function (already exists)
-- [x] `cbrt(x)` — cube root (∛x)
-- [x] `nthroot(x, n)` — nth root (ⁿ√x)
-- [x] `x^3` — cube power (already exists as POWER_3)
-- [x] `x^y` — general power function (POWER_N)
-
 *Absolute Value & Sign:*
-- [x] `abs(x)` — absolute value (|x|)
 - [ ] `sign(x)` — sign function (returns -1, 0, or 1)
 
 *Rounding & Truncation:*
@@ -114,6 +113,23 @@ Goal: Refresh the status panel with a clock widget and About popup.
 
 ---
 
+## Phase 2.5: Pico 2 W — USB + Bluetooth HID Gadget
+
+Goal: Pico 2 W acts as USB HID keyboard when cabled; falls back to Classic Bluetooth HID when wireless.
+
+- [x] `BT_HID` class — BTstack Classic BT HID device (keyboard + consumer control, same report IDs as USB)
+- [x] Dual-transport routing in `main.cpp` — `usb_connected()` selects USB or BT per loop tick
+- [x] Fixed PIN `"0000"` pairing via `HCI_EVENT_PIN_CODE_REQUEST` handler
+- [x] SDP registration via `hid_sdp_record_t` struct (BTstack v1.6.2 / pico-sdk 2.2.0 API)
+- [x] CMakeLists updated: `PICO_BOARD=pico2_w`, links `pico_cyw43_arch_none` + `pico_btstack_classic`
+- [x] Documented in `docs/pico_usb_gadget.md` with transport selection table
+- [ ] **Compile + flash test** on physical Pico 2 W hardware
+- [ ] Pair with macOS/Linux host, verify keyboard + consumer control reports received over BT
+- [ ] Verify USB HID still works when cable is plugged in (transport switch)
+- [ ] ICD extension: add `BT_PIN_CHANGE` message (type `0x06`) to `uart_protocol.hpp` so Pi Zero can set PIN at runtime (see TODO in `bt_hid.hpp` and `docs/pico_usb_gadget.md`)
+
+---
+
 ## Phase 3: Function-Key Popup System
 
 Goal: F1–F10 on PicoCalc shows a popup anchored to the footer slot, with paging for F6-F10.
@@ -156,14 +172,14 @@ Goal: F1–F10 on PicoCalc shows a popup anchored to the footer slot, with pagin
 Goal: PgUp/PgDn cycles through named contexts, each defining what F1–F5 do and their labels in the footer bar. Each F-key opens a popup menu with context-specific items.
 
 **Core Context Infrastructure:**
-- [ ] Define `F_Key_Context` struct with name, 5 footer labels, and 5 popup item lists
-- [ ] Add `m_contexts` vector and `m_active_context` index to `Calculator_App`
-- [ ] Implement `cycle_context(int delta)` and `apply_context()` in `Calculator_App`
-- [ ] Wire PgUp/PgDn to `cycle_context()` while calculator is active
+- [x] Define `F_Key_Context` struct with name, 5 footer labels, and 5 popup item lists
+- [x] Add `m_contexts` vector and `m_active_context` index to `Calculator_App`
+- [x] Implement `cycle_context(int delta)` and `apply_context()` in `Calculator_App`
+- [x] Wire PgUp/PgDn to `cycle_context()` while calculator is active
 - [ ] Update footer bar to show context name and page indicator (e.g. "Core Math 1/4")
 
 **Context Definitions (Default Layer):**
-- [ ] Core Math context: F1=Alg, F2=Trig, F3=Const, F4=Log, F5=Round
+- [x] Core Math context: F1=Alg, F2=Trig, F3=Const, F4=Log, F5=Round
 - [ ] Number Theory context: F1=Factor, F2=Divis, F3=Mod, F4=Base, F5=Comb
 - [ ] Statistics context: F1=Avg, F2=Spread, F3=Dist, F4=Fit, F5=Misc
 - [ ] Units & Conversions context: F1=Len, F2=Mass, F3=Temp, F4=Area, F5=Speed
@@ -391,11 +407,18 @@ Goal: Add first-class support for 1D arrays (vectors) and ND arrays (matrices) w
 - [ ] Array literal syntax — `[1, 2, 3]` for vectors, `[[1,2], [3,4]]` for matrices
 - [ ] Placeholder templates — `[□, □, □]` for quick vector entry, matrix templates for common sizes
 
+**F-Key Assignment (Core Math context):**
+- [x] F1 — Alg popup (algebra / power functions)
+- [x] F2 — Trig popup (trig and inverse trig)
+- [x] F3 — Const popup (π, e, φ, τ)
+- [x] F4 — New Matrix (opens dimension picker directly)
+- [x] F5 — Mat Ops popup (New Vec, zeros, ones, eye, transp, det, inv)
+
 **Construction & Access:**
 - [ ] Array constructor functions:
-  - [ ] `zeros(n)` / `zeros(m, n)` — create zero-filled vector/matrix
-  - [ ] `ones(n)` / `ones(m, n)` — create ones-filled vector/matrix
-  - [ ] `eye(n)` — identity matrix
+  - [x] `zeros(n)` / `zeros(m, n)` — create zero-filled vector/matrix
+  - [x] `ones(n)` / `ones(m, n)` — create ones-filled vector/matrix
+  - [x] `eye(n)` — identity matrix
   - [ ] `diag([v1, v2, ...])` — diagonal matrix from vector
   - [ ] `linspace(start, stop, n)` — linearly spaced vector
   - [ ] `arange(start, stop, step)` — range vector with step size
@@ -422,12 +445,13 @@ Goal: Add first-class support for 1D arrays (vectors) and ND arrays (matrices) w
 - [ ] `norm(v)` — Euclidean norm of vector
 
 **Display & Rendering:**
-- [ ] Matrix layout in typeset view — grid rendering with proper alignment
+- [x] Matrix layout in typeset view — `MATRIX` layout box with row-major cell grid and `[` `]` bracket rendering
+- [x] `Dimension_Picker_Popup` — spinner UI for selecting rows × cols (or n for vectors)
 - [ ] Compact notation for large matrices — show corners with ellipsis
 - [ ] Vector display — horizontal `[1, 2, 3]` or vertical column format
 
 **Unit Tests:**
-- [ ] Array construction and initialization
+- [x] `insert_matrix` / `insert_vector` — eval string, display value, state transitions (`test_matrix_ops.cpp`)
 - [ ] Element access and slicing
 - [ ] Arithmetic operations with dimension checks
 - [ ] Matrix multiplication correctness

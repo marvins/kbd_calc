@@ -26,6 +26,7 @@ enum class Node_Kind {
     FUNCTION,     // named function, one or more args
     FACTORIAL,    // n!
     GROUP,        // parenthesis grouping — (child)
+    MATRIX,       // m×n grid of editable cells
 };
 
 // Binary operations

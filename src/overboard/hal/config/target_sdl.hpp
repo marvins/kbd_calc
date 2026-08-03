@@ -20,7 +20,7 @@ namespace ovb::hal::config {
 /// @brief SDL simulator loads layout from keyboard.json
 inline core::Grid_Layout create_layout(const std::filesystem::path& layout_path)
 {
-    auto config = io::parse_keyboard_config(layout_path);
+    auto config = io::load_keyboard_config(layout_path, true);
     return io::to_grid_layout(config);
 }
 

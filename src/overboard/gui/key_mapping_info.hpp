@@ -27,12 +27,12 @@
 namespace ovb::gui {
 
 /**
- * @brief Key mapping information panel
+ * @brief Key mapping information panel with optional interactive buttons
  *
  * Renders current layer key mappings in a grid layout.
- * Non-interactive — purely informational display.
- * Designed for macropad users who have physical keys locked to one layer
- * but need to see the dynamic key mapping.
+ * Can be made interactive by calling set_click_callback() after construction.
+ * Designed for macropad users who need to see dynamic key mappings,
+ * and for simulator/browser users who can click keys to interact.
  */
 class Key_Mapping_Info {
 
@@ -42,6 +42,9 @@ class Key_Mapping_Info {
         static constexpr int HEADER_H    = 20;  ///< Header height
         static constexpr int MARGIN_LEFT   = 8;   ///< Left margin
         static constexpr int MARGIN_TOP    = 6;   ///< Top margin (below header)
+
+        /// @brief Callback invoked when a key button is clicked; argument is the key index
+        using Click_Callback = std::function<void(int key_index)>;
 
         /**
          * @brief Create key mapping info panel
@@ -60,9 +63,24 @@ class Key_Mapping_Info {
                          std::function<std::string(int)> get_label_cb = nullptr );
 
         /**
+         * @brief Destructor - removes event callbacks before LVGL cleanup
+         */
+        ~Key_Mapping_Info();
+
+        /**
          * @brief Update display to match current layer
          */
         void update_layer();
+
+        /**
+         * @brief Register a callback invoked on every button click
+         *
+         * Must be called after construction. Retroactively enables
+         * LV_OBJ_FLAG_CLICKABLE on all key widgets and attaches the handler.
+         *
+         * @param cb Callable receiving the logical key index
+         */
+        void set_click_callback(Click_Callback cb);
 
         /**
          * @brief Push an overlay frame onto the stack
@@ -132,6 +150,9 @@ class Key_Mapping_Info {
         /// @brief Overlay stack (top frame is active)
         std::vector<Overlay_Frame> m_overlay_stack;
 
+        /// @brief Click callback (null if not interactive)
+        Click_Callback m_click_cb;
+
         /// @brief Apply the top overlay frame (or restore layer if empty)
         void apply_top_overlay();
 
@@ -140,6 +161,9 @@ class Key_Mapping_Info {
 
         /// @brief Get display text for a key, checking custom label callback first
         std::string get_key_label(int key_index, core::Action_Code action_code) const;
+
+        /// @brief LVGL event handler forwarded to m_click_cb
+        static void on_btn_clicked(lv_event_t* e);
 };
 
 } // namespace ovb::gui

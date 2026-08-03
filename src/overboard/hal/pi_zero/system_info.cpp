@@ -11,10 +11,13 @@
 #include <sys/statvfs.h>
 #include <unistd.h>
 
+#include <array>
 #include <cerrno>
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include <string>
+#include <vector>
 
 // Project Libraries
 #include <overboard/log/stdout_logger.hpp>
@@ -117,6 +120,52 @@ bool PiZero_System_Info::has_bluetooth() const {
 /************************************/
 bool PiZero_System_Info::has_wifi() const {
     return access("/sys/class/net/wlan0", F_OK) == 0;
+}
+
+/************************************/
+/*         WiFi Enabled             */
+/************************************/
+bool PiZero_System_Info::wifi_enabled() const {
+    std::ifstream operstate("/sys/class/net/wlan0/operstate");
+    if (!operstate.is_open()) {
+        return false;
+    }
+    std::string state;
+    operstate >> state;
+    return (state == "up" || state == "dormant");
+}
+
+/************************************/
+/*        Set WiFi Enabled          */
+/************************************/
+void PiZero_System_Info::set_wifi_enabled(bool enable) {
+    const std::string cmd = std::string("ip link set wlan0 ")
+                          + (enable ? "up" : "down") + " 2>/dev/null";
+    FILE* p = popen(cmd.c_str(), "r");
+    if (p) pclose(p);
+}
+
+/************************************/
+/*       Scan WiFi Networks         */
+/************************************/
+std::vector<std::string> PiZero_System_Info::scan_wifi_networks() {
+    std::vector<std::string> networks;
+    FILE* pipe = popen("iwlist wlan0 scan 2>/dev/null | grep 'ESSID' | sed 's/.*ESSID:\"\\(.*\\)\"/\\1/'", "r");
+    if (!pipe) {
+        return networks;
+    }
+    std::array<char, 256> buffer;
+    while (fgets(buffer.data(), buffer.size(), pipe) != nullptr) {
+        std::string ssid(buffer.data());
+        while (!ssid.empty() && (ssid.back() == '\n' || ssid.back() == '\r')) {
+            ssid.pop_back();
+        }
+        if (!ssid.empty()) {
+            networks.push_back(ssid);
+        }
+    }
+    pclose(pipe);
+    return networks;
 }
 
 /****************************/

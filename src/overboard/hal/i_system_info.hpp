@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace ovb::hal {
 
@@ -115,6 +116,23 @@ class I_System_Info {
          * @brief Check if WiFi status is available
          */
         virtual bool has_wifi() const = 0;
+
+        /**
+         * @brief Check if WiFi is currently powered on
+         */
+        virtual bool wifi_enabled() const { return false; }
+
+        /**
+         * @brief Enable or disable WiFi
+         * @param enable true to turn on, false to turn off
+         */
+        virtual void set_wifi_enabled([[maybe_unused]] bool enable) {}
+
+        /**
+         * @brief Scan for available WiFi networks
+         * @return List of visible SSIDs
+         */
+        virtual std::vector<std::string> scan_wifi_networks() { return {}; }
 };
 
 } // namespace ovb::hal

@@ -72,6 +72,14 @@ class LCD_Section {
          */
         void refresh();
 
+        /**
+         * @brief Null out LVGL object pointers without deleting them
+         *
+         * Call this after the parent LVGL container has been deleted,
+         * so the destructor won't attempt to delete already-freed objects.
+         */
+        void teardown();
+
     private:
 
         /// @brief LVGL object for the bezel container

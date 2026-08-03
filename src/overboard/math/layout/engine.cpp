@@ -7,11 +7,14 @@
  */
 #include <overboard/math/layout/engine.hpp>
 
-// Project Libraries
-#include <overboard/core/point.hpp>
-
 // C++ Standard Libraries
 #include <algorithm>
+#include <cmath>
+
+// Project Libraries
+#include <overboard/core/point.hpp>
+#include <overboard/math/ast/matrix_node.hpp>
+#include <overboard/math/ast/number_node.hpp>
 
 namespace {
     // Fraction of base height to raise superscript (must match in measure and layout)
@@ -84,6 +87,22 @@ Layout_Box Layout_Box::sqrt( Layout_Box arg, float scale ) {
              { std::move(arg) } };
 }
 
+/**************************/
+/*        Matrix          */
+/**************************/
+Layout_Box Layout_Box::matrix( std::vector<Layout_Box> cells, int rows, int cols, float scale ) {
+    Layout_Box box;
+    box.kind     = Box_Kind::MATRIX;
+    box.pos      = core::Point<int>(0, 0);
+    box.size     = core::Size<int>(0, 0);
+    box.baseline = 0;
+    box.scale    = scale;
+    box.rows     = rows;
+    box.cols     = cols;
+    box.children = std::move(cells);
+    return box;
+}
+
 /****************************/
 /*      Layout Engine       */
 /****************************/
@@ -152,6 +171,25 @@ Layout_Box Layout_Engine::build( const ast::Node* node, float scale ) {
             boxes.push_back(build(group->child().get(), scale));
             boxes.push_back(Layout_Box::atom(")", scale));
             auto box = Layout_Box::sequence(std::move(boxes), scale);
+            box.node_ptr = node;
+            return box;
+        }
+
+        case ast::Node_Kind::MATRIX: {
+            const auto* mat = static_cast<const ast::Matrix_Node*>(node);
+            const int rows = mat->rows();
+            const int cols = mat->cols();
+            const float cell_scale = std::max(1.0f, scale - 1.0f);
+
+            std::vector<Layout_Box> cells;
+            cells.reserve(static_cast<std::size_t>(rows * cols));
+            for (int r = 0; r < rows; ++r) {
+                for (int c = 0; c < cols; ++c) {
+                    auto idx = static_cast<std::size_t>(r * cols + c);
+                    cells.push_back(build(mat->child_at(idx), cell_scale));
+                }
+            }
+            auto box = Layout_Box::matrix(std::move(cells), rows, cols, scale);
             box.node_ptr = node;
             return box;
         }
@@ -241,6 +279,21 @@ Layout_Box Layout_Engine::build_function( const ast::Function_Node* node, float 
         auto result = Layout_Box::sqrt(build(node->args()[0].get(), scale), scale);
         result.node_ptr = node;
         return result;
+    }
+
+    // Special case: zeros/ones with 2 numeric args → render as matrix grid
+    if ((node->name() == "zeros" || node->name() == "ones") && node->args().size() == 2) {
+        return build_matrix_literal(node, scale);
+    }
+
+    // Special case: zeros/ones with 1 numeric arg → render as 1×n row vector
+    if ((node->name() == "zeros" || node->name() == "ones") && node->args().size() == 1) {
+        return build_vector_literal(node, scale);
+    }
+
+    // Special case: eye(n) → render as n×n identity matrix
+    if (node->name() == "eye" && node->args().size() == 1) {
+        return build_eye_literal(node, scale);
     }
 
     std::vector<Layout_Box> seq;
@@ -341,6 +394,41 @@ void Layout_Engine::measure(Layout_Box& box) {
             // TODO: Implement if needed
             break;
 
+        case Box_Kind::MATRIX: {
+            if (box.rows <= 0 || box.cols <= 0) break;
+            constexpr int CELL_PAD { 4 };  // pixels between cells
+            constexpr int BRACKET_W { 4 }; // width of [ and ] arms
+
+            // Measure all cells
+            for (auto& cell : box.children) {
+                measure(cell);
+            }
+
+            // Compute per-column max widths and per-row max heights
+            std::vector<int> col_w(static_cast<std::size_t>(box.cols), 0);
+            std::vector<int> row_h(static_cast<std::size_t>(box.rows), 0);
+            for (int r = 0; r < box.rows; ++r) {
+                for (int c = 0; c < box.cols; ++c) {
+                    const auto& cell = box.children[static_cast<std::size_t>(r * box.cols + c)];
+                    col_w[static_cast<std::size_t>(c)] = std::max(col_w[static_cast<std::size_t>(c)], cell.size.x);
+                    row_h[static_cast<std::size_t>(r)] = std::max(row_h[static_cast<std::size_t>(r)], cell.size.y);
+                }
+            }
+
+            int total_w = 2 * BRACKET_W;
+            for (int w : col_w) total_w += w + CELL_PAD;
+            if (box.cols > 0) total_w -= CELL_PAD; // no trailing gap
+
+            int total_h = 0;
+            for (int h : row_h) total_h += h + CELL_PAD;
+            if (box.rows > 0) total_h -= CELL_PAD;
+
+            box.size.x   = total_w;
+            box.size.y   = total_h;
+            box.baseline = total_h / 2;
+            break;
+        }
+
         case Box_Kind::SQRT: {
             auto& arg = box.children[0];
             measure(arg);
@@ -423,6 +511,39 @@ void Layout_Engine::layout(Layout_Box& box, core::Point<int> pos) {
             // TODO: Implement if needed
             break;
 
+        case Box_Kind::MATRIX: {
+            if (box.rows <= 0 || box.cols <= 0) break;
+            constexpr int CELL_PAD { 4 };
+            constexpr int BRACKET_W { 4 };
+
+            // Recompute column widths and row heights from already-measured cells
+            std::vector<int> col_w(static_cast<std::size_t>(box.cols), 0);
+            std::vector<int> row_h(static_cast<std::size_t>(box.rows), 0);
+            for (int r = 0; r < box.rows; ++r) {
+                for (int c = 0; c < box.cols; ++c) {
+                    const auto& cell = box.children[static_cast<std::size_t>(r * box.cols + c)];
+                    col_w[static_cast<std::size_t>(c)] = std::max(col_w[static_cast<std::size_t>(c)], cell.size.x);
+                    row_h[static_cast<std::size_t>(r)] = std::max(row_h[static_cast<std::size_t>(r)], cell.size.y);
+                }
+            }
+
+            // Position each cell
+            int cy = pos.y;
+            for (int r = 0; r < box.rows; ++r) {
+                int cx = pos.x + BRACKET_W;
+                for (int c = 0; c < box.cols; ++c) {
+                    auto& cell = box.children[static_cast<std::size_t>(r * box.cols + c)];
+                    // Centre cell within its column/row slot
+                    int cell_x = cx + (col_w[static_cast<std::size_t>(c)] - cell.size.x) / 2;
+                    int cell_y = cy + (row_h[static_cast<std::size_t>(r)] - cell.size.y) / 2;
+                    layout(cell, core::Point<int>(cell_x, cell_y));
+                    cx += col_w[static_cast<std::size_t>(c)] + CELL_PAD;
+                }
+                cy += row_h[static_cast<std::size_t>(r)] + CELL_PAD;
+            }
+            break;
+        }
+
         case Box_Kind::SQRT: {
             auto& arg = box.children[0];
             int symbol_width = 2 * static_cast<int>(box.scale);
@@ -464,6 +585,77 @@ std::optional<core::Point<int>> Layout_Engine::find_node_position(const Layout_B
     }
 
     return std::nullopt;
+}
+
+/****************************************/
+/*      Build Matrix Literal (2D)       */
+/****************************************/
+Layout_Box Layout_Engine::build_matrix_literal( const ast::Function_Node* node, float scale ) {
+    int rows = 2;
+    int cols = 2;
+    if (node->args().size() >= 2) {
+        if (auto* rn = dynamic_cast<const ast::Number_Node*>(node->args()[0].get()))
+            rows = static_cast<int>(rn->value());
+        if (auto* cn = dynamic_cast<const ast::Number_Node*>(node->args()[1].get()))
+            cols = static_cast<int>(cn->value());
+    }
+    rows = std::max(1, rows);
+    cols = std::max(1, cols);
+
+    std::vector<Layout_Box> cells;
+    cells.reserve(static_cast<std::size_t>(rows * cols));
+    for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < cols; ++c) {
+            cells.push_back(Layout_Box::atom("0", std::max(1.0f, scale - 1.0f)));
+        }
+    }
+    auto result = Layout_Box::matrix(std::move(cells), rows, cols, scale);
+    result.node_ptr = node;
+    return result;
+}
+
+/****************************************/
+/*      Build Vector Literal (1D)       */
+/****************************************/
+Layout_Box Layout_Engine::build_vector_literal( const ast::Function_Node* node, float scale ) {
+    int n = 3;
+    if (!node->args().empty()) {
+        if (auto* rn = dynamic_cast<const ast::Number_Node*>(node->args()[0].get()))
+            n = static_cast<int>(rn->value());
+    }
+    n = std::max(1, n);
+
+    std::vector<Layout_Box> cells;
+    cells.reserve(static_cast<std::size_t>(n));
+    for (int i = 0; i < n; ++i) {
+        cells.push_back(Layout_Box::atom("0", std::max(1.0f, scale - 1.0f)));
+    }
+    auto result = Layout_Box::matrix(std::move(cells), 1, n, scale);
+    result.node_ptr = node;
+    return result;
+}
+
+/****************************************/
+/*      Build Eye Literal (n×n)         */
+/****************************************/
+Layout_Box Layout_Engine::build_eye_literal( const ast::Function_Node* node, float scale ) {
+    int n = 2;
+    if (!node->args().empty()) {
+        if (auto* rn = dynamic_cast<const ast::Number_Node*>(node->args()[0].get()))
+            n = static_cast<int>(rn->value());
+    }
+    n = std::max(1, n);
+
+    std::vector<Layout_Box> cells;
+    cells.reserve(static_cast<std::size_t>(n * n));
+    for (int r = 0; r < n; ++r) {
+        for (int c = 0; c < n; ++c) {
+            cells.push_back(Layout_Box::atom(r == c ? "1" : "0", std::max(1.0f, scale - 1.0f)));
+        }
+    }
+    auto result = Layout_Box::matrix(std::move(cells), n, n, scale);
+    result.node_ptr = node;
+    return result;
 }
 
 } // namespace ovb::math::layout

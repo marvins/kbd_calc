@@ -32,7 +32,8 @@ enum class Box_Kind {
     POWER,      ///< Base with superscript exponent
     SEQUENCE,   ///< Horizontal list of boxes
     SUPERSCRIPT,///< Standalone superscript (for future use)
-    SQRT        ///< Square root with horizontal bar over argument
+    SQRT,       ///< Square root with horizontal bar over argument
+    MATRIX      ///< 2-D grid of cells with bracket delimiters
 };
 
 /**
@@ -54,6 +55,9 @@ struct Layout_Box {
     std::string text;           ///< Text content (for ATOM boxes)
     std::vector<Layout_Box> children;  ///< Child boxes (for composite types)
     const ast::Node* node_ptr = nullptr;  ///< AST node pointer (for cursor position tracking)
+
+    int rows = 0;  ///< Row count (MATRIX only)
+    int cols = 0;  ///< Column count (MATRIX only)
 
 
     /**
@@ -112,6 +116,20 @@ struct Layout_Box {
      * @return Layout_Box Square root box
      */
     static Layout_Box sqrt( Layout_Box arg, float scale = 2.0f );
+
+    /**
+     * @brief Create a matrix box
+     *
+     * Children are stored row-major: child at row r, col c is children[r * cols + c].
+     * The box draws square brackets around a grid of cells.
+     *
+     * @param cells  Cell boxes in row-major order
+     * @param rows   Row count
+     * @param cols   Column count
+     * @param scale  Font scale
+     * @return Layout_Box Matrix box
+     */
+    static Layout_Box matrix( std::vector<Layout_Box> cells, int rows, int cols, float scale = 2.0f );
 
     /**
      * @brief Position accessor

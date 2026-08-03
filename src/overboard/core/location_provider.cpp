@@ -135,10 +135,19 @@ void resolve_location_async(const hal::Settings_Tree& tree, Location_Cb cb) {
         LOG_WARN("location.source=settings but lat/lon/timezone missing — falling back to IP");
     }
 
-    // IP geolocation — launch background thread
+    // IP geolocation — launch background thread (not supported in WASM)
     // Capture url by value to avoid dangling reference to tree
     const std::string url = tree.get<std::string>("location.ip_url",
                                 std::string("http://ip-api.com/json"));
+#ifdef __EMSCRIPTEN__
+    // WASM: single-threaded; resolve synchronously
+    if (auto loc = fetch_ip_location(url)) {
+        cb(*loc);
+    } else {
+        LOG_WARN("IP geolocation failed, using default location (Denver, CO)");
+        cb(DEFAULT_LOCATION);
+    }
+#else
     std::thread([cb, url]() {
         if (auto loc = fetch_ip_location(url)) {
             cb(*loc);
@@ -147,6 +156,7 @@ void resolve_location_async(const hal::Settings_Tree& tree, Location_Cb cb) {
             cb(DEFAULT_LOCATION);
         }
     }).detach();
+#endif
 }
 
 } // namespace ovb::core

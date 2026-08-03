@@ -118,7 +118,7 @@ This layout matches the **KISNT MF34** macropad physical arrangement:
     </div>
   </div>
   <div class="left-section">
-    <div class="key-group"><kbd>F3</kbd><kbd>F4</kbd><kbd>F5</kbd></div>
+    <div class="key-group"><kbd>F3 Const</kbd><kbd>F4 Matrix</kbd><kbd>F5 Mat Ops</kbd></div>
     <div class="key-group-3x2"><kbd>ANS</kbd><kbd>Home</kbd><kbd>PgUp</kbd><kbd>Del</kbd><kbd>End</kbd><kbd>PgDn</kbd></div>
     <div class="arrow-group">
       <kbd style="grid-area: up;">↑</kbd>
@@ -215,6 +215,20 @@ Hexadecimal digits, bitwise operations, and bit-shift keys.
     </div>
   </div>
 </div>
+
+---
+
+## F-Key Context Reference
+
+F1–F5 open popup menus or trigger direct actions. The active context is **Core Math**.
+
+| Key | Label | Behaviour |
+|-----|-------|-----------|
+| F1 | Alg | Popup: algebra / power functions (1/x, x², √, nroot, abs, n!, …) |
+| F2 | Trig | Popup: trig and inverse trig (sin, cos, tan, asin, …, sinh, …) |
+| F3 | Const | Popup: mathematical constants (π, e, φ, τ) |
+| F4 | Matrix | Direct: opens dimension picker → inserts `zeros(m,n)` |
+| F5 | Mat Ops | Popup: matrix operations (New Vec, zeros, ones, eye, transp, det, inv) |
 
 ---
 

@@ -338,24 +338,16 @@ void Solar_Info::update(const std::tm& tm) {
 /*           Destroy           */
 /*******************************/
 void Solar_Info::destroy() {
-    if (m_impl->container) {
-        // Check if the object still has a valid parent before deleting
-        // This prevents segfaults during shutdown when the object tree is partially destroyed
-        lv_obj_t* parent = lv_obj_get_parent(m_impl->container);
-        if (parent) {
-            lv_obj_del(m_impl->container);
-        }
-        m_impl->container   = nullptr;
-        m_impl->title_label = nullptr;
-        m_impl->arc_bg      = nullptr;
-        m_impl->sun_dot     = nullptr;
-        m_impl->horizon_line = nullptr;
-        m_impl->sunrise_label = nullptr;
-        m_impl->noon_label    = nullptr;
-        m_impl->sunset_label  = nullptr;
-        m_impl->elevation_label = nullptr;
-        m_impl->daylength_label = nullptr;
-    }
+    m_impl->container   = nullptr;
+    m_impl->title_label = nullptr;
+    m_impl->arc_bg      = nullptr;
+    m_impl->sun_dot     = nullptr;
+    m_impl->horizon_line = nullptr;
+    m_impl->sunrise_label = nullptr;
+    m_impl->noon_label    = nullptr;
+    m_impl->sunset_label  = nullptr;
+    m_impl->elevation_label = nullptr;
+    m_impl->daylength_label = nullptr;
 }
 
 /*******************************/

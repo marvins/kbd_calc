@@ -106,6 +106,11 @@ class Panel_Manager {
          */
         void set_panel_change_callback(std::function<void(I_Panel*)> cb);
 
+        /**
+         * @brief Manually trigger panel change callback for current active panel
+         */
+        void trigger_panel_change_callback();
+
     private:
 
         /// @brief LVGL parent object for panels

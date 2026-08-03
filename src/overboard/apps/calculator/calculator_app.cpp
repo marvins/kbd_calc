@@ -46,11 +46,23 @@ struct Calculator_App::Impl {
     /// @brief Footer bar
     std::unique_ptr<Footer_Bar>             footer;
 
-    /// @brief F-key popups
+    /// @brief F-key popups (rebuilt when context changes)
     std::array<std::unique_ptr<Function_Menu_Popup>, F_KEY_POPUP_COUNT> f_key_popups;
 
     /// @brief Currently visible popup
     Function_Menu_Popup*                    active_popup = nullptr;
+
+    /// @brief Dimension picker popup (matrix/vector construction)
+    std::unique_ptr<Dimension_Picker_Popup> dim_picker;
+
+    /// @brief All available F-key contexts
+    std::vector<F_Key_Context>              contexts;
+
+    /// @brief Index of the currently active context
+    int                                     active_context = 0;
+
+    /// @brief Callback shared across all popup slots
+    Function_Menu_Popup::Select_Cb          menu_callback;
 
     /// @brief Overlay push callback
     I_Panel::Overlay_Push_Cb                on_overlay_push;
@@ -107,10 +119,11 @@ void Calculator_App::set_overlay_callbacks(Overlay_Push_Cb push, Overlay_Pop_Cb 
 /*          Destructor         */
 /*******************************/
 Calculator_App::~Calculator_App() {
-    LOG_DEBUG("Calculator_App: destructor");
+    LOG_TRACE("Calculator_App: destructor");
     if (m_impl->container) {
         deactivate();
     }
+    LOG_TRACE("Calculator_App: destructor complete");
 }
 
 /*******************************/
@@ -154,86 +167,79 @@ void Calculator_App::activate(lv_obj_t* parent) {
     LOG_DEBUG("Calculator_App: LCD_Section built");
 
     // Footer bar
-    m_impl->footer = std::make_unique<Footer_Bar>( m_impl->container,
-                                                   width );
-    m_impl->footer->set_label(0, "Alg");
-    m_impl->footer->set_label(1, "Trig");
-    m_impl->footer->set_label(2, "Const");
+    m_impl->footer = std::make_unique<Footer_Bar>( m_impl->container, width );
 
-    // Callback for all function menu selections
-    auto menu_callback = [this](core::Action_Code action) {
-        m_impl->active_popup = nullptr;  // Clear active popup
+    // Shared callback for all popup slot selections
+    m_impl->menu_callback = [this](core::Action_Code action) {
+        m_impl->active_popup = nullptr;
         if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
         m_impl->engine.handle_key(action);
         refresh();
     };
 
-    // F1: Alg menu
-    std::vector<Function_Menu_Item> alg_items = {
-        {"1/x",           "Inverse",       core::Action_Code::RECIPROCAL},
-        {"x\xC2\xB2",     "Square",        core::Action_Code::POWER_2},
-        {"x\xC2\xB3",     "Cube",          core::Action_Code::POWER_3},
-        {"x^y",           "Power",         core::Action_Code::POWER_N},
-        {"abs",           "Absolute Value",core::Action_Code::ABS},
-        {"n!",            "Factorial",     core::Action_Code::FACTORIAL},
-        {"\xE2\x88\x9A",  "Square Root",   core::Action_Code::SQRT},
-        {"\xE2\x88\x9B",  "Cube Root",     core::Action_Code::CUBE_ROOT},
-        {"nroot",         "Nth Root",      core::Action_Code::NTH_ROOT}
-    };
-    LOG_DEBUG("Calculator_App: alg_items.size()=" + std::to_string(alg_items.size()) + " before creating popup");
-    LOG_DEBUG("Calculator_App: creating Alg popup");
-    m_impl->f_key_popups[static_cast<int>(Popup_Menu::Alg)] =
-        std::make_unique<Function_Menu_Popup>(m_impl->container, "Alg", alg_items, menu_callback);
-    LOG_DEBUG("Calculator_App: Alg popup created");
+    // ── Context definitions ───────────────────────────────────────────────
+    m_impl->contexts.clear();
 
-    // F2: Trig menu (includes hyperbolic functions)
-    std::vector<Function_Menu_Item> trig_items = {
-        {"Sin",   "Sine",             core::Action_Code::SIN},
-        {"Cos",   "Cosine",           core::Action_Code::COS},
-        {"Tan",   "Tangent",          core::Action_Code::TAN},
-        {"Cot",   "Cotangent",        core::Action_Code::COT},
-        {"Sec",   "Secant",           core::Action_Code::SEC},
-        {"Csc",   "Cosecant",         core::Action_Code::CSC},
-        {"Sinh",  "Hyp. Sine",        core::Action_Code::SINH},
-        {"Cosh",  "Hyp. Cosine",      core::Action_Code::COSH},
-        {"Tanh",  "Hyp. Tangent",     core::Action_Code::TANH},
-        {"Coth",  "Hyp. Cotangent",   core::Action_Code::COTH},
-        {"Sech",  "Hyp. Secant",      core::Action_Code::SECH},
-        {"Csch",  "Hyp. Cosecant",    core::Action_Code::CSCH},
-        {"ASin",  "Inverse Sine",     core::Action_Code::ASIN},
-        {"ACos",  "Inverse Cosine",   core::Action_Code::ACOS},
-        {"ATan",  "Inverse Tangent",  core::Action_Code::ATAN},
-        {"ACot",  "Inverse Cotangent",core::Action_Code::ACOT},
-        {"Atan2", "Angle (y, x)",     core::Action_Code::ATAN2},
-        {"ASinh", "Inv. Hyp. Sine",   core::Action_Code::ASINH},
-        {"ACosh", "Inv. Hyp. Cosine", core::Action_Code::ACOSH},
-        {"ATanh", "Inv. Hyp. Tangent",core::Action_Code::ATANH}
-    };
+    // Context 0: Core Math
+    {
+        F_Key_Context ctx;
+        ctx.name = "Core Math";
+        ctx.labels = { "Alg", "Trig", "Const", "Matrix", "Mat Ops" };
+        ctx.slots[0] = {
+            {"1/x",          "Inverse",       core::Action_Code::RECIPROCAL},
+            {"x\xC2\xB2",    "Square",        core::Action_Code::POWER_2},
+            {"x\xC2\xB3",    "Cube",          core::Action_Code::POWER_3},
+            {"x^y",          "Power",         core::Action_Code::POWER_N},
+            {"abs",          "Absolute Value",core::Action_Code::ABS},
+            {"n!",           "Factorial",     core::Action_Code::FACTORIAL},
+            {"\xE2\x88\x9A", "Square Root",   core::Action_Code::SQRT},
+            {"\xE2\x88\x9B", "Cube Root",     core::Action_Code::CUBE_ROOT},
+            {"nroot",        "Nth Root",      core::Action_Code::NTH_ROOT},
+        };
+        ctx.slots[1] = {
+            {"Sin",   "Sine",              core::Action_Code::SIN},
+            {"Cos",   "Cosine",            core::Action_Code::COS},
+            {"Tan",   "Tangent",           core::Action_Code::TAN},
+            {"Cot",   "Cotangent",         core::Action_Code::COT},
+            {"Sec",   "Secant",            core::Action_Code::SEC},
+            {"Csc",   "Cosecant",          core::Action_Code::CSC},
+            {"Sinh",  "Hyp. Sine",         core::Action_Code::SINH},
+            {"Cosh",  "Hyp. Cosine",       core::Action_Code::COSH},
+            {"Tanh",  "Hyp. Tangent",      core::Action_Code::TANH},
+            {"Coth",  "Hyp. Cotangent",    core::Action_Code::COTH},
+            {"Sech",  "Hyp. Secant",       core::Action_Code::SECH},
+            {"Csch",  "Hyp. Cosecant",     core::Action_Code::CSCH},
+            {"ASin",  "Inverse Sine",      core::Action_Code::ASIN},
+            {"ACos",  "Inverse Cosine",    core::Action_Code::ACOS},
+            {"ATan",  "Inverse Tangent",   core::Action_Code::ATAN},
+            {"ACot",  "Inverse Cotangent", core::Action_Code::ACOT},
+            {"Atan2", "Angle (y, x)",      core::Action_Code::ATAN2},
+            {"ASinh", "Inv. Hyp. Sine",    core::Action_Code::ASINH},
+            {"ACosh", "Inv. Hyp. Cosine",  core::Action_Code::ACOSH},
+            {"ATanh", "Inv. Hyp. Tangent", core::Action_Code::ATANH},
+        };
+        ctx.slots[2] = {
+            {"\u03c0", "Pi",           core::Action_Code::PI},
+            {"e",      "Euler",        core::Action_Code::EULER},
+            {"\u03c6", "Golden Ratio", core::Action_Code::PHI},
+            {"\u03c4", "Tau",          core::Action_Code::TAU},
+        };
+        // F4: no popup — pressing F4 fires FUNC_4 which maps to NEW_MATRIX directly
+        ctx.slots[3] = {};
+        ctx.slots[4] = {
+            {"New Vec",  "New vector (zeros)",    core::Action_Code::NEW_VECTOR},
+            {"zeros",   "Zero-filled matrix",    core::Action_Code::MAT_ZEROS},
+            {"ones",    "Ones-filled matrix",    core::Action_Code::MAT_ONES},
+            {"eye",     "Identity matrix",       core::Action_Code::MAT_EYE},
+            {"transp",  "Transpose",             core::Action_Code::MAT_TRANSPOSE},
+            {"det",     "Determinant",           core::Action_Code::MAT_DET},
+            {"inv",     "Inverse",               core::Action_Code::MAT_INV},
+        };
+        m_impl->contexts.push_back(std::move(ctx));
+    }
 
-    LOG_DEBUG("Calculator_App: creating Trig popup");
-    m_impl->f_key_popups[static_cast<int>(Popup_Menu::Trig)] =
-        std::make_unique<Function_Menu_Popup>( m_impl->container,
-                                               "Trig",
-                                               trig_items,
-                                               menu_callback );
-    LOG_DEBUG("Calculator_App: Trig popup created");
-
-    // F3: Constants menu
-    std::vector<Function_Menu_Item> const_items = {
-        {"\u03c0", "Pi",          core::Action_Code::PI},
-        {"e",      "Euler",       core::Action_Code::EULER},
-        {"\u03c6", "Golden Ratio",core::Action_Code::PHI},
-        {"\u03c4", "Tau",         core::Action_Code::TAU},
-    };
-    LOG_DEBUG("Calculator_App: creating Const popup");
-    m_impl->f_key_popups[static_cast<int>(Popup_Menu::Const)] =
-        std::make_unique<Function_Menu_Popup>( m_impl->container,
-                                               "Const",
-                                               const_items,
-                                               menu_callback );
-    LOG_DEBUG("Calculator_App: Const popup created");
-
-    // F4-F10: Available for future menus
+    m_impl->active_context = 0;
+    apply_context();
     LOG_DEBUG("Calculator_App: activate complete");
 }
 
@@ -241,24 +247,46 @@ void Calculator_App::activate(lv_obj_t* parent) {
 /*          Deactivate         */
 /*******************************/
 void Calculator_App::deactivate() {
-    LOG_DEBUG("Calculator_App: deactivating");
+    LOG_TRACE("Calculator_App: deactivating");
     m_impl->active_popup = nullptr;
+    if (m_impl->dim_picker) { m_impl->dim_picker->hide(); m_impl->dim_picker.reset(); }
     for (auto& popup : m_impl->f_key_popups) {
         popup.reset();
     }
+    // The panel container parent will clean up the LVGL tree; just null our
+    // pointer and reset the C++ wrappers so they don't try to touch it later.
+    m_impl->container = nullptr;
+    LOG_TRACE("Calculator_App: resetting footer");
     m_impl->footer.reset();
+    LOG_TRACE("Calculator_App: footer reset");
+    LOG_TRACE("Calculator_App: resetting header");
     m_impl->header.reset();
-    m_impl->lcd.reset();
-    if (m_impl->container) {
-        lv_obj_del(m_impl->container);
-        m_impl->container = nullptr;
+    LOG_TRACE("Calculator_App: header reset");
+    if (m_impl->lcd) {
+        LOG_TRACE("Calculator_App: tearing down LCD_Section");
+        m_impl->lcd->teardown();
+        LOG_TRACE("Calculator_App: resetting LCD_Section");
+        m_impl->lcd.reset();
+        LOG_TRACE("Calculator_App: LCD_Section reset");
     }
+    LOG_TRACE("Calculator_App: deactivate complete");
 }
 
 /*******************************/
 /*        Handle Input         */
 /*******************************/
 bool Calculator_App::handle_input(core::Action_Code action) {
+    // If the dimension picker is active, route all input to it first
+    if (m_impl->dim_picker) {
+        bool handled = m_impl->dim_picker->handle_input(action);
+        if (!m_impl->dim_picker->is_visible()) {
+            m_impl->dim_picker.reset();
+            if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
+            refresh();
+        }
+        if (handled) return true;
+    }
+
     // If a popup is active, route action codes to it first
     if (m_impl->active_popup) {
         bool handled = m_impl->active_popup->handle_input(action);
@@ -272,6 +300,12 @@ bool Calculator_App::handle_input(core::Action_Code action) {
     switch (action) {
         case core::Action_Code::ESCAPE:
             if (m_impl->on_back) { m_impl->on_back(); }
+            return true;
+        case core::Action_Code::PAGE_UP:
+            cycle_context(-1);
+            return true;
+        case core::Action_Code::PAGE_DOWN:
+            cycle_context(+1);
             return true;
         case core::Action_Code::NEXT_LAYER:
             m_impl->layers.next_layer();
@@ -288,9 +322,43 @@ bool Calculator_App::handle_input(core::Action_Code action) {
         case core::Action_Code::GO_ALG_LAYER:
             m_impl->layers.set_layer(4);
             return true;
+        case core::Action_Code::NEW_MATRIX:
+            show_dimension_picker(true);
+            return true;
+        case core::Action_Code::NEW_VECTOR:
+            show_dimension_picker(false);
+            return true;
+        case core::Action_Code::MAT_ZEROS:
+            m_impl->engine.insert_matrix(2, 2);
+            refresh();
+            return true;
+        case core::Action_Code::MAT_ONES:
+            m_impl->engine.insert_matrix(2, 2);
+            refresh();
+            return true;
+        case core::Action_Code::MAT_EYE:
+            m_impl->engine.insert_vector(2);
+            refresh();
+            return true;
+        case core::Action_Code::MAT_TRANSPOSE:
+            m_impl->engine.handle_key(core::Action_Code::MAT_TRANSPOSE);
+            refresh();
+            return true;
+        case core::Action_Code::MAT_DET:
+            m_impl->engine.handle_key(core::Action_Code::MAT_DET);
+            refresh();
+            return true;
+        case core::Action_Code::MAT_INV:
+            m_impl->engine.handle_key(core::Action_Code::MAT_INV);
+            refresh();
+            return true;
+        case core::Action_Code::FUNC_4:
+            show_dimension_picker(true);
+            return true;
         case core::Action_Code::FUNC_1:
         case core::Action_Code::FUNC_2:
-        case core::Action_Code::FUNC_3: {
+        case core::Action_Code::FUNC_3:
+        case core::Action_Code::FUNC_5: {
             const int popup_index = static_cast<int>(action) - static_cast<int>(core::Action_Code::FUNC_1);
             auto& popup = m_impl->f_key_popups[static_cast<std::size_t>(popup_index)];
             if (popup) {
@@ -316,6 +384,17 @@ bool Calculator_App::handle_input(core::Action_Code action) {
 /*      Handle Input Key       */
 /*******************************/
 bool Calculator_App::handle_input_key(core::Input_Key key) {
+    // If the dimension picker is active, route input to it first
+    if (m_impl->dim_picker) {
+        bool handled = m_impl->dim_picker->handle_input(key);
+        if (!m_impl->dim_picker->is_visible()) {
+            m_impl->dim_picker.reset();
+            if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
+            refresh();
+        }
+        if (handled) return true;
+    }
+
     // If a popup is active, route input to it first
     if (m_impl->active_popup) {
         bool handled = m_impl->active_popup->handle_input(key);
@@ -349,6 +428,18 @@ bool Calculator_App::handle_input_key(core::Input_Key key) {
         case core::Input_Key::RIGHT:
             // Move cursor right in the expression
             m_impl->engine.state().expression.cursor_right();
+            refresh();
+            return true;
+
+        case core::Input_Key::UP:
+            // Move cursor up (matrix cell navigation)
+            m_impl->engine.state().expression.cursor_up();
+            refresh();
+            return true;
+
+        case core::Input_Key::DOWN:
+            // Move cursor down (matrix cell navigation)
+            m_impl->engine.state().expression.cursor_down();
             refresh();
             return true;
 
@@ -490,21 +581,62 @@ void Calculator_App::refresh() {
 /*      Get Custom Label       */
 /*******************************/
 std::string Calculator_App::get_custom_label(int key_index) const {
-    // Resolve the action code for this physical key in the base layer (layer 0),
-    // then return the calculator-specific popup name.  This is keyboard-JSON-agnostic
-    // — it doesn't matter which key index F1 lives on in the JSON.
     const auto& layer = m_impl->layers.current_layer();
     if (key_index < 0 || static_cast<std::size_t>(key_index) >= layer.keys.size()) {
         return "";
     }
-    switch (layer.keys[static_cast<std::size_t>(key_index)]) {
-        case core::Action_Code::ANS:    return "Ans";
-        case core::Action_Code::FUNC_1: return "Alg";
-        case core::Action_Code::FUNC_2: return "Trig";
-        case core::Action_Code::FUNC_3: return "Const";
-        case core::Action_Code::FUNC_4: return "F4";
-        case core::Action_Code::FUNC_5: return "F5";
-        default: return "";
+    const auto action = layer.keys[static_cast<std::size_t>(key_index)];
+    if (action == core::Action_Code::ANS) return "Ans";
+
+    // Map FUNC_1–FUNC_5 to the current context's footer labels
+    const int func_idx = static_cast<int>(action) - static_cast<int>(core::Action_Code::FUNC_1);
+    if (func_idx >= 0 && func_idx < F_KEY_SLOT_COUNT && !m_impl->contexts.empty()) {
+        const auto& ctx = m_impl->contexts[static_cast<std::size_t>(m_impl->active_context)];
+        return ctx.labels[static_cast<std::size_t>(func_idx)];
+    }
+    return "";
+}
+
+/*******************************/
+/*       Cycle Context         */
+/*******************************/
+void Calculator_App::cycle_context(int delta) {
+    if (m_impl->contexts.empty()) return;
+    const int n = static_cast<int>(m_impl->contexts.size());
+    m_impl->active_context = (m_impl->active_context + delta % n + n) % n;
+    LOG_DEBUG("Calculator_App: context -> ", m_impl->contexts[static_cast<std::size_t>(m_impl->active_context)].name);
+    apply_context();
+}
+
+/*******************************/
+/*       Apply Context         */
+/*******************************/
+void Calculator_App::apply_context() {
+    if (m_impl->contexts.empty()) return;
+    const auto& ctx = m_impl->contexts[static_cast<std::size_t>(m_impl->active_context)];
+
+    // Dismiss any active popup first
+    if (m_impl->active_popup) {
+        m_impl->active_popup->hide();
+        m_impl->active_popup = nullptr;
+        if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
+    }
+
+    // Rebuild the first F_KEY_SLOT_COUNT popup slots from the context
+    for (int i = 0; i < F_KEY_SLOT_COUNT; ++i) {
+        auto idx = static_cast<std::size_t>(i);
+        m_impl->f_key_popups[idx].reset();
+        if (!ctx.slots[idx].empty() && m_impl->container) {
+            m_impl->f_key_popups[idx] = std::make_unique<Function_Menu_Popup>(
+                m_impl->container, ctx.labels[idx], ctx.slots[idx], m_impl->menu_callback);
+        }
+    }
+
+    // Update footer labels
+    if (m_impl->footer) {
+        for (int i = 0; i < F_KEY_SLOT_COUNT; ++i) {
+            m_impl->footer->set_label(i, ctx.labels[static_cast<std::size_t>(i)]);
+        }
     }
 }
 
@@ -536,6 +668,41 @@ Calculator_App::build_popup_overlay(const Function_Menu_Popup& popup) const {
         }
     }
     return overlay_keys;
+}
+
+/*******************************/
+/*    Show Dimension Picker    */
+/*******************************/
+void Calculator_App::show_dimension_picker(bool matrix_mode) {
+    // Dismiss any active function popup first
+    if (m_impl->active_popup) {
+        m_impl->active_popup->hide();
+        m_impl->active_popup = nullptr;
+        if (m_impl->on_overlay_pop) m_impl->on_overlay_pop();
+    }
+
+    if (!m_impl->container) return;
+
+    const std::string title = matrix_mode ? "New Matrix" : "New Vector";
+
+    m_impl->dim_picker = std::make_unique<Dimension_Picker_Popup>(
+        m_impl->container,
+        title,
+        [this, matrix_mode](int rows, int cols) {
+            if (matrix_mode) {
+                m_impl->engine.insert_matrix(rows, cols);
+            } else {
+                m_impl->engine.insert_vector(rows);
+            }
+            refresh();
+        },
+        matrix_mode  // show_cols = true for matrix, false for vector
+    );
+
+    m_impl->dim_picker->show();
+    if (m_impl->on_overlay_push) {
+        m_impl->on_overlay_push(title, {});
+    }
 }
 
 } // namespace ovb::gui

@@ -18,6 +18,7 @@
 #include <sstream>
 
 // Project Libraries
+#include <overboard/apps/status/popups/connections_popup.hpp>
 #include <overboard/apps/status/widgets/analog_clock.hpp>
 #include <overboard/apps/status/widgets/digital_clock.hpp>
 #include <overboard/apps/status/widgets/solar_info.hpp>
@@ -53,8 +54,9 @@ struct Status_Page::Impl {
     lv_obj_t*                    container   = nullptr;
     lv_timer_t*                  clock_timer = nullptr;
     lv_timer_t*                  solar_timer = nullptr;
-    lv_obj_t*                    about_popup = nullptr;
-    lv_obj_t*                    stats_popup = nullptr;
+    lv_obj_t*                    about_popup        = nullptr;
+    lv_obj_t*                    stats_popup        = nullptr;
+    std::unique_ptr<Connections_Popup> connections_popup;
     std::unique_ptr<Header_Bar>  header;
     std::unique_ptr<Footer_Bar>  footer;
     std::unique_ptr<widgets::Analog_Clock>  analog_clock;
@@ -62,9 +64,13 @@ struct Status_Page::Impl {
     std::unique_ptr<widgets::Solar_Info>    solar_info;
     bool                         dismissed  = false;
 
-    /// @brief Pending location resolved from background thread
-    std::mutex                          location_mutex;
-    std::optional<core::Solar_Location> pending_location;
+    /// @brief Shared between Impl and the detached location thread so the
+    ///        thread can safely write even after Status_Page is destroyed.
+    struct Location_State {
+        std::mutex                          mutex;
+        std::optional<core::Solar_Location> pending;
+    };
+    std::shared_ptr<Location_State> location_state = std::make_shared<Location_State>();
 };
 
 /*******************************/
@@ -79,7 +85,9 @@ Status_Page::Status_Page( const core::Layer_Manager&              layers,
 /*******************************/
 /*          Destructor         */
 /*******************************/
-Status_Page::~Status_Page() = default;
+Status_Page::~Status_Page() {
+    deactivate();
+}
 
 /*******************************/
 /*           Activate          */
@@ -142,10 +150,13 @@ void Status_Page::activate(lv_obj_t* parent) {
     m_impl->solar_info->create(content);
 
     // Resolve geographic location from settings or IP geolocation
+    // Capture location_state by value (shared_ptr copy) so the detached
+    // thread can safely write even if Status_Page is destroyed first.
     {
-        core::resolve_location_async(m_impl->settings->tree(), [this](core::Solar_Location loc) {
-            std::lock_guard<std::mutex> lock(m_impl->location_mutex);
-            m_impl->pending_location = loc;
+        auto loc_state = m_impl->location_state;
+        core::resolve_location_async(m_impl->settings->tree(), [loc_state](core::Solar_Location loc) {
+            std::lock_guard<std::mutex> lock(loc_state->mutex);
+            loc_state->pending = loc;
         });
     }
 
@@ -196,20 +207,42 @@ void Status_Page::activate(lv_obj_t* parent) {
         if (impl->solar_info) {
             // Apply location if background thread resolved one
             {
-                std::lock_guard<std::mutex> lock(impl->location_mutex);
-                if (impl->pending_location) {
-                    impl->solar_info->set_location(*impl->pending_location);
-                    impl->pending_location.reset();
+                std::lock_guard<std::mutex> lock(impl->location_state->mutex);
+                if (impl->location_state->pending) {
+                    impl->solar_info->set_location(*impl->location_state->pending);
+                    impl->location_state->pending.reset();
                 }
             }
             impl->solar_info->update(tm_update);
         }
     }, solar_update_ms, m_impl.get());
 
+    // Connections popup — created once, shown/hidden on demand
+    m_impl->connections_popup = std::make_unique<Connections_Popup>(
+        m_impl->system_info, nullptr);
+
     // Footer bar
     m_impl->footer = std::make_unique<Footer_Bar>(m_impl->container, width);
     m_impl->footer->set_label(0, "About");
     m_impl->footer->set_label(1, "Stats");
+    m_impl->footer->set_label(2, "Network");
+    m_impl->footer->set_click_callback([this](int slot) {
+        switch (slot) {
+            case 0:
+                if (m_impl->about_popup)       { hide_about_popup(); }
+                else { hide_stats_popup(); hide_connections_popup(); show_about_popup(); }
+                break;
+            case 1:
+                if (m_impl->stats_popup)       { hide_stats_popup(); }
+                else { hide_about_popup(); hide_connections_popup(); show_stats_popup(); }
+                break;
+            case 2:
+                if (m_impl->connections_popup && m_impl->connections_popup->is_visible()) { hide_connections_popup(); }
+                else { hide_about_popup(); hide_stats_popup(); show_connections_popup(); }
+                break;
+            default: break;
+        }
+    });
     lv_obj_align(m_impl->footer->get_obj(), LV_ALIGN_BOTTOM_MID, 0, 0);
 }
 
@@ -217,23 +250,39 @@ void Status_Page::activate(lv_obj_t* parent) {
 /*          Deactivate         */
 /*******************************/
 void Status_Page::deactivate() {
-    LOG_DEBUG("Status_Page: deactivating");
+    if (!m_impl->container) { return; }
+    LOG_TRACE("Status_Page: deactivating");
+    hide_wifi_menu();
+    hide_connections_popup();
     hide_stats_popup();
     hide_about_popup();
     if (m_impl->clock_timer) {
+        LOG_TRACE("Status_Page: deleting clock timer");
         lv_timer_del(m_impl->clock_timer);
         m_impl->clock_timer = nullptr;
     }
     if (m_impl->solar_timer) {
+        LOG_TRACE("Status_Page: deleting solar timer");
         lv_timer_del(m_impl->solar_timer);
         m_impl->solar_timer = nullptr;
     }
+    LOG_TRACE("Status_Page: resetting solar_info");
+    m_impl->solar_info.reset();
+    LOG_TRACE("Status_Page: resetting digital_clock");
+    m_impl->digital_clock.reset();
+    LOG_TRACE("Status_Page: resetting analog_clock");
+    m_impl->analog_clock.reset();
+    LOG_TRACE("Status_Page: resetting footer");
     m_impl->footer.reset();
+    LOG_TRACE("Status_Page: resetting header");
     m_impl->header.reset();
-    if (m_impl->container) {
-        lv_obj_del(m_impl->container);
-        m_impl->container = nullptr;
-    }
+    LOG_TRACE("Status_Page: resetting connections_popup");
+    m_impl->connections_popup.reset();
+    // The panel container parent will clean up the LVGL tree; just null our
+    // pointer and reset the C++ wrappers so they don't try to touch it later.
+    LOG_TRACE("Status_Page: nulling container");
+    m_impl->container = nullptr;
+    LOG_TRACE("Status_Page: deactivate complete");
 }
 
 /*******************************/
@@ -242,6 +291,14 @@ void Status_Page::deactivate() {
 bool Status_Page::handle_input(core::Action_Code action) {
     // ESC closes any open popup, otherwise dismisses status page
     if (action == core::Action_Code::ESCAPE) {
+        if (m_impl->connections_popup && m_impl->connections_popup->wifi_menu_visible()) {
+            hide_wifi_menu();
+            return true;
+        }
+        if (m_impl->connections_popup && m_impl->connections_popup->is_visible()) {
+            hide_connections_popup();
+            return true;
+        }
         if (m_impl->stats_popup) {
             hide_stats_popup();
             return true;
@@ -256,14 +313,37 @@ bool Status_Page::handle_input(core::Action_Code action) {
         }
     }
 
-    // F1 shows About popup
+    // F1 toggles About popup
     if (action == core::Action_Code::FUNC_1) {
-        show_about_popup();
+        if (m_impl->about_popup) {
+            hide_about_popup();
+        } else {
+            hide_stats_popup();
+            hide_connections_popup();
+            show_about_popup();
+        }
     }
 
-    // F2 shows Stats popup
+    // F2 toggles Stats popup
     if (action == core::Action_Code::FUNC_2) {
-        show_stats_popup();
+        if (m_impl->stats_popup) {
+            hide_stats_popup();
+        } else {
+            hide_about_popup();
+            hide_connections_popup();
+            show_stats_popup();
+        }
+    }
+
+    // F3 toggles Connections popup
+    if (action == core::Action_Code::FUNC_3) {
+        if (m_impl->connections_popup && m_impl->connections_popup->is_visible()) {
+            hide_connections_popup();
+        } else {
+            hide_about_popup();
+            hide_stats_popup();
+            show_connections_popup();
+        }
     }
 
     return true;
@@ -275,6 +355,14 @@ bool Status_Page::handle_input(core::Action_Code action) {
 bool Status_Page::handle_input_key(core::Input_Key key) {
     // ESCAPE closes any open popup, otherwise dismisses status page
     if (key == core::Input_Key::ESCAPE) {
+        if (m_impl->connections_popup && m_impl->connections_popup->wifi_menu_visible()) {
+            hide_wifi_menu();
+            return true;
+        }
+        if (m_impl->connections_popup && m_impl->connections_popup->is_visible()) {
+            hide_connections_popup();
+            return true;
+        }
         if (m_impl->stats_popup) {
             hide_stats_popup();
             return true;
@@ -290,15 +378,39 @@ bool Status_Page::handle_input_key(core::Input_Key key) {
         }
     }
 
-    // F1 shows About popup
+    // F1 toggles About popup
     if (key == core::Input_Key::F1) {
-        show_about_popup();
+        if (m_impl->about_popup) {
+            hide_about_popup();
+        } else {
+            hide_stats_popup();
+            hide_connections_popup();
+            show_about_popup();
+        }
         return true;
     }
 
-    // F2 shows Stats popup
+    // F2 toggles Stats popup
     if (key == core::Input_Key::F2) {
-        show_stats_popup();
+        if (m_impl->stats_popup) {
+            hide_stats_popup();
+        } else {
+            hide_about_popup();
+            hide_connections_popup();
+            show_stats_popup();
+        }
+        return true;
+    }
+
+    // F3 toggles Connections popup
+    if (key == core::Input_Key::F3) {
+        if (m_impl->connections_popup && m_impl->connections_popup->is_visible()) {
+            hide_connections_popup();
+        } else {
+            hide_about_popup();
+            hide_stats_popup();
+            show_connections_popup();
+        }
         return true;
     }
 
@@ -366,7 +478,7 @@ void Status_Page::show_about_popup() {
 /*******************************/
 void Status_Page::hide_about_popup() {
     if (m_impl->about_popup) {
-        lv_obj_del(m_impl->about_popup);
+        lv_obj_set_hidden(m_impl->about_popup, true);
         m_impl->about_popup = nullptr;
     }
 }
@@ -470,8 +582,44 @@ void Status_Page::show_stats_popup() {
 /*******************************/
 void Status_Page::hide_stats_popup() {
     if (m_impl->stats_popup) {
-        lv_obj_del(m_impl->stats_popup);
+        lv_obj_set_hidden(m_impl->stats_popup, true);
         m_impl->stats_popup = nullptr;
+    }
+}
+
+/*************************************/
+/*      Show Connections Popup       */
+/*************************************/
+void Status_Page::show_connections_popup() {
+    if (m_impl->connections_popup) {
+        m_impl->connections_popup->show();
+    }
+}
+
+/*************************************/
+/*      Hide Connections Popup       */
+/*************************************/
+void Status_Page::hide_connections_popup() {
+    if (m_impl->connections_popup) {
+        m_impl->connections_popup->hide();
+    }
+}
+
+/*************************************/
+/*         Show WiFi Menu            */
+/*************************************/
+void Status_Page::show_wifi_menu() {
+    if (m_impl->connections_popup) {
+        m_impl->connections_popup->show_wifi_menu();
+    }
+}
+
+/*************************************/
+/*          Hide WiFi Menu           */
+/*************************************/
+void Status_Page::hide_wifi_menu() {
+    if (m_impl->connections_popup) {
+        m_impl->connections_popup->hide_wifi_menu();
     }
 }
 

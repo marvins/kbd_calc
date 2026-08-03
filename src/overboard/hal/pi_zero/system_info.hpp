@@ -14,6 +14,10 @@
  */
 #pragma once
 
+// C++ Standard Libraries
+#include <string>
+#include <vector>
+
 // Project Libraries
 #include <overboard/hal/i_system_info.hpp>
 
@@ -66,6 +70,21 @@ class PiZero_System_Info : public I_System_Info {
          * @brief Check if WiFi status is available
          */
         bool has_wifi() const override;
+
+        /**
+         * @brief Check if WiFi is currently powered on
+         */
+        bool wifi_enabled() const override;
+
+        /**
+         * @brief Enable or disable WiFi
+         */
+        void set_wifi_enabled(bool enable) override;
+
+        /**
+         * @brief Scan for available WiFi networks
+         */
+        std::vector<std::string> scan_wifi_networks() override;
 
         /**
          * @brief Initialize - probe available sensors

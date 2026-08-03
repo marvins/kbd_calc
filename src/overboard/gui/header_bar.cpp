@@ -82,7 +82,7 @@ Header_Bar::Header_Bar(lv_obj_t* parent, int width, hal::I_System_Info& system_i
 /*******************************/
 Header_Bar::~Header_Bar() {
     m_destroying = true;
-    if (m_refresh_timer) {
+    if (m_refresh_timer && lv_display_get_next(nullptr) != nullptr) {
         lv_timer_del(m_refresh_timer);
         m_refresh_timer = nullptr;
     }

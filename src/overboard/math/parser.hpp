@@ -133,6 +133,13 @@ class Parser {
          */
         ast::Node::ptr_t parse_func(const std::string& name);
 
+        /**
+         * @brief Parse a matrix literal [[a,b];[c,d]]
+         *
+         * @return ast::Node::ptr_t Parsed matrix node
+         */
+        ast::Node::ptr_t parse_matrix();
+
         /// @brief Input string to parse
         const std::string& m_src;
 
