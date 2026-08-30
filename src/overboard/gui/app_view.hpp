@@ -105,7 +105,7 @@ class App_View : public hal::I_Display {
 
         /**
          * @brief Manually trigger panel change callback for current active panel
-         * 
+         *
          * Used to wire up callbacks after they are set, for panels that were
          * already activated during construction.
          */
