@@ -119,7 +119,7 @@ void Key_Mapping_Info::build_keys(lv_obj_t* parent) {
 
         const auto& r = *rect_opt;
 
-        // Rectangle widget (non-interactive, no click flag)
+        // Key widget with optional click handling
         lv_obj_t* rect = lv_obj_create(parent);
         if (!rect) {
             LOG_TRACE("Key_Mapping_Info::build_keys: Failed to create rect for key " + std::to_string(i) + ", skipping");
@@ -134,8 +134,10 @@ void Key_Mapping_Info::build_keys(lv_obj_t* parent) {
         lv_obj_set_style_border_width(rect, 1, LV_PART_MAIN);
         lv_obj_set_style_radius(rect, 4, LV_PART_MAIN);
         lv_obj_set_style_pad_all(rect, 2, LV_PART_MAIN);
+        lv_obj_set_style_bg_color(rect, lvgl_color(LVGL_COLOR_BORDER_DARK), static_cast<lv_style_selector_t>(static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_PRESSED)));
+        lv_obj_set_style_border_width(rect, 2, static_cast<lv_style_selector_t>(static_cast<uint32_t>(LV_PART_MAIN) | static_cast<uint32_t>(LV_STATE_PRESSED)));
 
-        // Store key index for click handling (clickable flag set by set_click_callback)
+        // Store key index for click handling
         lv_obj_set_user_data(rect, reinterpret_cast<void*>(static_cast<intptr_t>(i)));
 
         // Label
@@ -307,6 +309,38 @@ std::string Key_Mapping_Info::get_key_label(int key_index, core::Action_Code act
     }
     // Third: fall back to action code display string
     return core::action_code_to_display(action_code);
+}
+
+/********************************/
+/*      Find Key By Label       */
+/********************************/
+int Key_Mapping_Info::find_key_by_label(const std::string& label) const {
+    if (label.empty()) return -1;
+    const auto& layer = m_layers.current_layer();
+    const auto  count = static_cast<int>(m_key_labels.size());
+    for (int i = 0; i < count; ++i) {
+        if (!m_key_labels[static_cast<std::size_t>(i)]) continue;
+        std::string key_label = get_key_label(i, layer.keys[static_cast<std::size_t>(i)]);
+        if (key_label == label) return i;
+    }
+    return -1;
+}
+
+/********************************/
+/*         Flash Key            */
+/********************************/
+void Key_Mapping_Info::flash_key(int key_index) {
+    auto idx = static_cast<std::size_t>(key_index);
+    if (idx >= m_key_rects.size() || !m_key_rects[idx]) return;
+
+    lv_obj_t* rect = m_key_rects[idx];
+    lv_obj_add_state(rect, LV_STATE_PRESSED);
+
+    lv_timer_create([](lv_timer_t* timer) {
+        auto* obj = static_cast<lv_obj_t*>(lv_timer_get_user_data(timer));
+        lv_obj_clear_state(obj, LV_STATE_PRESSED);
+        lv_timer_delete(timer);
+    }, FLASH_MS, rect);
 }
 
 /********************************/

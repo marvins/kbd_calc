@@ -5,9 +5,8 @@
  *
  * @brief   Key Mapping Info Panel
  *
- * Displays current layer key mappings in an informational panel.
+ * Displays current layer key mappings as interactive buttons.
  * Used in the main window when the keyboard is in a separate window.
- * Non-interactive — purely informational for macropad users.
  */
 #pragma once
 
@@ -38,10 +37,11 @@ class Key_Mapping_Info {
 
     public:
 
-        static constexpr int KEY_PAD     = 2;   ///< Gap between keys
-        static constexpr int HEADER_H    = 20;  ///< Header height
+        static constexpr int KEY_PAD       = 2;   ///< Gap between keys
+        static constexpr int HEADER_H      = 20;  ///< Header height
         static constexpr int MARGIN_LEFT   = 8;   ///< Left margin
         static constexpr int MARGIN_TOP    = 6;   ///< Top margin (below header)
+        static constexpr int FLASH_MS      = 120; ///< Key flash duration in milliseconds
 
         /// @brief Callback invoked when a key button is clicked; argument is the key index
         using Click_Callback = std::function<void(int key_index)>;
@@ -105,6 +105,27 @@ class Key_Mapping_Info {
          * @brief Check if any overlay is active
          */
         bool is_overlay_active() const;
+
+        /**
+         * @brief Briefly flash a key to show it was pressed
+         *
+         * Sets the key to its pressed visual state, then restores it
+         * after a short LVGL timer. Used for physical keypress feedback.
+         *
+         * @param key_index Logical key index to flash
+         */
+        void flash_key(int key_index);
+
+        /**
+         * @brief Find a key index whose current display label matches the given string
+         *
+         * Searches the current layer labels and action code display strings.
+         * Returns -1 if no match is found.
+         *
+         * @param label Display label to search for (e.g. "2", "+", "sin")
+         * @return Key index, or -1 if not found
+         */
+        int find_key_by_label(const std::string& label) const;
 
         /**
          * @brief Get the container object for positioning

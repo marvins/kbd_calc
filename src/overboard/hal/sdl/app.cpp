@@ -170,12 +170,12 @@ bool SDL_App::init() {
                 hal::FULL_WIDTH, hal::KBD_HEIGHT,
                 [this](int key_index) { return m_view->get_active_panel_label(key_index); });
             lv_obj_set_pos(m_key_mapping_info->container(), 0, hal::LCD_HEIGHT);
-            
+
             // Make it interactive - wire button clicks to the same handler as physical keys
             m_key_mapping_info->set_click_callback([this](int key_index) {
                 on_key_clicked(key_index, this);
             });
-            
+
             LOG_TRACE("Interactive Key_Mapping_Info panel created successfully");
         }
 
@@ -234,6 +234,15 @@ static void sdl_app_run_frame(void* user_data) {
 #endif
 
 void SDL_App::run_frame() {
+    // Accurate tick tracking
+    static uint32_t last_tick = SDL_GetTicks();
+    uint32_t now  = SDL_GetTicks();
+    uint32_t elapsed = now - last_tick;
+    last_tick = now;
+    if (elapsed > 0) {
+        lv_tick_inc(elapsed);
+    }
+
     // Pump SDL events (handles keyboard and mouse hit-testing)
     m_input->pump();
 
@@ -248,7 +257,15 @@ void SDL_App::run_frame() {
                 // Standard keyboard: Input_Key -> Action_Code directly
                 handle_direct_action(key_event.input_key);
             } else {
-                // Text input - panel handles refresh if consumed
+                // Text input - flash the matching key on the mapping panel
+                if (m_key_mapping_info && key_event.codepoint > 0 && key_event.codepoint < 128) {
+                    std::string ch(1, static_cast<char>(key_event.codepoint));
+                    int idx = m_key_mapping_info->find_key_by_label(ch);
+                    if (idx >= 0) {
+                        m_key_mapping_info->flash_key(idx);
+                    }
+                }
+                // Panel handles refresh if consumed
                 if (!m_view->handle_text(key_event.codepoint)) {
                     m_view->refresh();
                 }
@@ -261,7 +278,6 @@ void SDL_App::run_frame() {
     // Layer switching will be handled by the app mode system.
     [[maybe_unused]] int current_shift_state = m_input->is_shift_pressed() ? 1 : 0;
 
-    lv_tick_inc(16);
     m_view->render();
 }
 
@@ -275,8 +291,15 @@ void SDL_App::run() {
     // Native target: blocking loop with SDL_Delay
     int loop_count = 0;
     while (!m_should_quit && !m_input->should_quit()) {
+        uint32_t frame_start = SDL_GetTicks();
         run_frame();
-        SDL_Delay(16);
+        uint32_t frame_time = SDL_GetTicks() - frame_start;
+        if (frame_time > 30) {
+            LOG_WARN("Slow frame: ", frame_time, "ms");
+        }
+        if (frame_time < 16) {
+            SDL_Delay(16 - frame_time);
+        }
         loop_count++;
     }
     LOG_DEBUG("SDL_App::run() exiting, loop_count=" + std::to_string(loop_count));
@@ -295,6 +318,11 @@ void SDL_App::on_key_clicked(int key_index, void* user_data) {
 /*        Handle Keypress        */
 /*********************************/
 void SDL_App::handle_key(int key_index) {
+    // Flash the key on the mapping panel for visual feedback
+    if (m_key_mapping_info) {
+        m_key_mapping_info->flash_key(key_index);
+    }
+
     // Get action code first - if there's an action, route as action
     const core::Action_Code code = m_layers.action_at(key_index);
 

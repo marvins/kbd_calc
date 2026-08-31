@@ -252,6 +252,11 @@ void PiZero_App::handle_key(int key_index) {
         return;  // Unmapped physical key
     }
 
+    // Flash the key on the mapping panel for visual feedback
+    if (m_key_mapping_info) {
+        m_key_mapping_info->flash_key(layout_idx);
+    }
+
     // Get the action from the current layer
     core::Action_Code action = m_layers.action_at(layout_idx);
 
