@@ -123,6 +123,50 @@ bool PiZero_App::init() {
     };
     m_input = std::make_unique<Linux_Input>(input_devices);
 
+    // Create key mapping info panel below the LCD area
+#if SHOW_KEY_MAPPING
+    if constexpr (hal::KBD_HEIGHT > 0) {
+        LOG_DEBUG("PiZero_App: Creating Key_Mapping_Info panel");
+        m_key_mapping_info = std::make_unique<gui::Key_Mapping_Info>(
+            m_display->screen(), m_layout, m_layers,
+            hal::FULL_WIDTH, hal::KBD_HEIGHT,
+            [this](int key_index) { return m_view->get_active_panel_label(key_index); });
+        lv_obj_set_pos(m_key_mapping_info->container(), 0, hal::LCD_HEIGHT);
+
+        // Make it interactive — wire button clicks to the same handler as physical keys
+        m_key_mapping_info->set_click_callback([this](int key_index) {
+            on_key_clicked(key_index, this);
+        });
+        LOG_DEBUG("PiZero_App: Key_Mapping_Info panel created");
+    }
+
+    // Subscribe to layer changes
+    m_layers.on_layer_change([this]([[maybe_unused]] int layer_index) {
+        if (m_key_mapping_info) {
+            m_key_mapping_info->update_layer();
+        }
+    });
+
+    // Subscribe to panel changes to update labels and wire overlay callbacks
+    m_view->set_panel_change_callback([this]([[maybe_unused]] gui::I_Panel* panel) {
+        if (m_key_mapping_info) {
+            m_key_mapping_info->update_layer();
+        }
+        if (panel && m_key_mapping_info) {
+            panel->set_overlay_callbacks(
+                [this](const std::string& title, const std::vector<gui::I_Panel::Overlay_Key_Desc>& keys) {
+                    m_key_mapping_info->push_overlay(title, keys);
+                },
+                [this]() {
+                    m_key_mapping_info->pop_overlay();
+                });
+        }
+    });
+
+    // Trigger callback manually for the initial panel (already activated during App_View construction)
+    m_view->trigger_panel_change_callback();
+#endif
+
     // Set initial layer
     m_layers.set_layer(0);
 

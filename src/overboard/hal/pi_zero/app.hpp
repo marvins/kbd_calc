@@ -23,6 +23,7 @@
 #include <overboard/core/keymap.hpp>
 #include <overboard/core/layer_manager.hpp>
 #include <overboard/gui/app_view.hpp>
+#include <overboard/gui/key_mapping_info.hpp>
 #include <overboard/hal/display_config.hpp>
 #include <overboard/hal/i_app.hpp>
 #include <overboard/hal/i_system_info.hpp>
@@ -126,6 +127,9 @@ class PiZero_App : public I_App {
 
         /// @brief DRM display driver
         std::unique_ptr<Display_DRM>      m_display;
+
+        /// @brief Interactive key mapping info panel (below LCD area)
+        std::unique_ptr<gui::Key_Mapping_Info> m_key_mapping_info;
 
         /// @brief LVGL application view (LCD + key mapping info panel)
         std::unique_ptr<gui::App_View>    m_view;

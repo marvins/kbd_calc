@@ -722,7 +722,7 @@
 #define LV_USE_EXT_DATA 0
 
 /** Use `float` instead of `int32_t` for coordinates and values that need sub-pixel precision. */
-#define LV_USE_FLOAT 0
+#define LV_USE_FLOAT 1
 
 /** Bind widgets to subject variables so they update automatically when the value changes. */
 #define LV_USE_OBSERVER 1
@@ -883,7 +883,7 @@
  *
  *  Enable: LV_USE_VECTOR_GRAPHIC
  */
-#define LV_USE_SVG 1
+#define LV_USE_SVG 0
 
 #if LV_USE_SVG
 /** SVG animation */
@@ -1494,7 +1494,9 @@
  *============================================================================*/
 
 /** Driver for /dev/dri/card */
+#ifndef LV_USE_LINUX_DRM
 #define LV_USE_LINUX_DRM 0
+#endif
 
 #if LV_USE_LINUX_DRM
 /** Legacy behavior, slated for removal: the backend is inferred from
@@ -2265,7 +2267,7 @@
 /** Include `lvgl_private.h` from `lvgl.h` so that LVGL internal data
  *  structures and functions are accessible by default.
  */
-#define LV_USE_PRIVATE_API 1
+#define LV_USE_PRIVATE_API 0
 
 /** By default, LVGL stores all runtime state in a single static
  *  'lv_global_t' variable, sufficient for most single-display
@@ -2335,7 +2337,7 @@
  *  New projects should use LV_ASSERT_CUSTOM_INCLUDE and LV_ASSERT_HANDLER
  *  directly.
  */
-#define LV_DISABLE_ASSERT_HANDLER_INCLUDE_WARNING 0
+#define LV_DISABLE_ASSERT_HANDLER_INCLUDE_WARNING 1
 
 /** Include the header given by LV_ASSERT_CUSTOM_INCLUDE, which must define
  *  a custom LV_ASSERT_HANDLER.
