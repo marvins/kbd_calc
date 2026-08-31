@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.15.0] - 2026-08-30
+
+### Added
+- Pi Zero `Key_Mapping_Info` panel below the LCD area, matching the SDL app
+
+### Changed
+- LVGL upgraded to v9.6.0; `lv_conf.h` restructured to match official template
+- Disabled `LV_USE_PRIVATE_API`; migrated to public API (`lv_display_get_flush_cb`, `lv_timer_get_user_data`)
+- App menu migrated from deprecated `lv_list` to flex column layout
+- Updated submodules: `gtest`, `json`, `lvgl`, `stb`, `tomlplusplus`
+
+### Fixed
+- DRM flush callback and timer user data access using public API instead of private struct members
+
+---
+
 ## [0.14.0] - 2026-07-12
 
 ### Added

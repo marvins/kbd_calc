@@ -175,7 +175,7 @@ void Status_Page::activate(lv_obj_t* parent) {
 
     // Timer to update clocks
     m_impl->clock_timer = lv_timer_create([](lv_timer_t* timer) {
-        auto* impl = static_cast<Status_Page::Impl*>(timer->user_data);
+        auto* impl = static_cast<Status_Page::Impl*>(lv_timer_get_user_data(timer));
         if (!impl) return;
 
         auto now_update = std::chrono::system_clock::now();
@@ -197,7 +197,7 @@ void Status_Page::activate(lv_obj_t* parent) {
 
     // Separate timer for solar widget (slower update rate)
     m_impl->solar_timer = lv_timer_create([](lv_timer_t* timer) {
-        auto* impl = static_cast<Status_Page::Impl*>(timer->user_data);
+        auto* impl = static_cast<Status_Page::Impl*>(lv_timer_get_user_data(timer));
         if (!impl) return;
 
         auto now_update = std::chrono::system_clock::now();

@@ -70,22 +70,39 @@ void App_Menu::activate(lv_obj_t* parent) {
     m_header = std::make_unique<Header_Bar>(m_container, width, m_system_info);
     m_header->set_app_name("Menu");
 
-    // Menu list (centered between header and footer)
+    // Menu list (flex column, centered between header and footer)
     const int list_h = height - Header_Bar::HEIGHT - Footer_Bar::HEIGHT;
-    m_list = lv_list_create(m_container);
+    m_list = lv_obj_create(m_container);
     lv_obj_set_size(m_list, width - 32, list_h - 32);
     lv_obj_align(m_list, LV_ALIGN_TOP_MID, 0, Header_Bar::HEIGHT + 16);
     lv_obj_set_style_bg_color(m_list, lvgl_color(LVGL_COLOR_BG_BEZEL), LV_PART_MAIN);
     lv_obj_set_style_border_width(m_list, 0, LV_PART_MAIN);
     lv_obj_set_style_radius(m_list, 8, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(m_list, 0, LV_PART_MAIN);
+    lv_obj_set_layout(m_list, LV_LAYOUT_FLEX);
+    lv_obj_set_flex_flow(m_list, LV_FLEX_FLOW_COLUMN);
 
     // Add menu items
     LOG_DEBUG("App_Menu: adding ", std::to_string(m_menu_items.size()), " menu items");
     for (size_t i = 0; i < m_menu_items.size(); ++i) {
         const auto& item = m_menu_items[i];
         LOG_DEBUG("App_Menu: adding item '", item.name, "' with icon '", item.icon, "'");
-        lv_obj_t* btn = lv_list_add_btn(m_list, item.icon.c_str(), item.name.c_str());
-        // Store menu index in user data for selection callback
+
+        lv_obj_t* btn = lv_button_create(m_list);
+        lv_obj_set_size(btn, lv_pct(100), LV_SIZE_CONTENT);
+        lv_obj_set_style_radius(btn, 0, LV_PART_MAIN);
+        lv_obj_set_layout(btn, LV_LAYOUT_FLEX);
+        lv_obj_set_flex_flow(btn, LV_FLEX_FLOW_ROW);
+        lv_obj_set_flex_align(btn, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+        lv_obj_set_style_pad_all(btn, 8, LV_PART_MAIN);
+        lv_obj_set_style_pad_column(btn, 8, LV_PART_MAIN);
+
+        lv_obj_t* icon = lv_label_create(btn);
+        lv_label_set_text(icon, item.icon.c_str());
+
+        lv_obj_t* label = lv_label_create(btn);
+        lv_label_set_text(label, item.name.c_str());
+
         lv_obj_set_user_data(btn, reinterpret_cast<void*>(static_cast<intptr_t>(i)));
     }
 

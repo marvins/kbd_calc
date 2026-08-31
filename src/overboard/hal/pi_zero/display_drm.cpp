@@ -27,7 +27,6 @@
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 #include <lvgl.h>
-#include <lvgl_private.h>
 
 // Overboard Libraries
 #include <overboard/log/stdout_logger.hpp>
@@ -170,7 +169,7 @@ Display_DRM::Display_DRM(int width, int height)
 
     // Step 4: save original flush_cb, install our rotation wrapper, and store
     // the rotation context in user_data (driver_data is used by the DRM driver).
-    m_impl->rot_ctx.orig_flush_cb = m_impl->lv_display->flush_cb;
+    m_impl->rot_ctx.orig_flush_cb = lv_display_get_flush_cb(m_impl->lv_display);
     lv_display_set_user_data(m_impl->lv_display, &m_impl->rot_ctx);
     lv_display_set_flush_cb(m_impl->lv_display, rotation_flush_cb);
 

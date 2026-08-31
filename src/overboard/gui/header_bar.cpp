@@ -52,7 +52,7 @@ Header_Bar::Header_Bar(lv_obj_t* parent, int width, hal::I_System_Info& system_i
 
     // Auto-refresh timer for system info (WiFi/Bluetooth status)
     m_refresh_timer = lv_timer_create([](lv_timer_t* timer) {
-        auto* header = static_cast<Header_Bar*>(timer->user_data);
+        auto* header = static_cast<Header_Bar*>(lv_timer_get_user_data(timer));
         if (header && !header->m_destroying) {
             header->refresh();
         }
